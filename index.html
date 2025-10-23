@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c71f1f">
+
+<script>
+  // Service worker registreren
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("Service worker geregistreerd"))
+      .catch(err => console.error("Service worker fout:", err));
+  }
+</script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Brandweer Herentals — Portal</title>
+
+  <!-- Basic styling: brandweer rood / zwart / wit -->
+  <style>
+    :root{
+      --red:#c71f1f;
+      --dark:#111;
+      --light:#ffffff;
+      --muted:#f6f6f6;
+      --radius:14px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background: linear-gradient(180deg, #fff 0%, #fff 35%, #f8f8f8 100%);
+      color:var(--dark);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .container{
+      width:100%;
+      max-width:780px;
+      background:var(--light);
+      border-radius:18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      overflow:hidden;
+      border: 4px solid var(--red);
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:18px;
+      background:linear-gradient(90deg, var(--red), #8f1515);
+      color:var(--light);
+    }
+    header .logo{
+      width:52px;
+      height:52px;
+      border-radius:10px;
+      background:rgba(255,255,255,0.08);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:20px;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,0.15);
+    }
+    header h1{
+      font-size:18px;
+      margin:0;
+      letter-spacing:0.2px;
+    }
+    header p{margin:0;font-size:12px;opacity:0.95}
+
+    .content{
+      padding:18px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+
+    /* big buttons */
+    .btn{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:16px;
+      border-radius:12px;
+      background:var(--muted);
+      text-decoration:none;
+      color:var(--dark);
+      font-weight:700;
+      font-size:16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+      transition: transform .06s ease, box-shadow .06s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn .icon{
+      width:52px;
+      height:52px;
+      min-width:52px;
+      border-radius:10px;
+      background:linear-gradient(180deg,#ffffff,#f0f0f0);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .btn small{ display:block; font-weight:600; font-size:12px; opacity:0.8; margin-top:4px; font-weight:600;}
+
+    /* special style for primary (red) */
+    .primary{
+      background: linear-gradient(90deg,var(--red), #9c1616);
+      color:var(--light);
+    }
+    .primary .icon{ background: rgba(255,255,255,0.08); color:var(--light); }
+
+    /* secondary */
+    .secondary{ background: linear-gradient(180deg,#fff,#fafafa); }
+
+    /* footer */
+    footer{
+      padding:12px 18px;
+      font-size:13px;
+      color:#444;
+      background: #fff;
+      border-top:1px solid #eee;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+
+    .small{
+      font-size:12px;
+      color:#666;
+    }
+
+    /* Responsive: two columns on wider screens */
+    @media(min-width:620px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Fire Crew Herentals portal">
+    <header>
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <h1>Brandweer Herentals</h1>
+        <p>Interne app</p>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="grid" id="buttonsGrid">
+        <!-- BUTTON: Defectmelding -->
+        <a href="#" id="btn-defect" class="btn primary" aria-label="Open defectmelding">
+          <div class="icon" aria-hidden="true">🔧</div>
+          <div>
+            <div>Defectmelding</div>
+            <small>Meld snel defecten aan materiaal of voertuigen</small>
+          </div>
+        </a>
+
+        <!-- BUTTON: Voertuigreservatie -->
+        <a href="#" id="btn-vehicle" class="btn" aria-label="Open voertuigreservatie">
+          <div class="icon" aria-hidden="true">🚒</div>
+          <div>
+            <div>Voertuigreservatie</div>
+            <small>Reserveer een voertuig of controleer beschikbaarheid</small>
+          </div>
+        </a>
+
+        <!-- BUTTON: Bestelling -->
+        <a href="#" id="btn-order" class="btn" aria-label="Open bestelling">
+          <div class="icon" aria-hidden="true">📦</div>
+          <div>
+            <div>Bestelling</div>
+            <small>Bestel materiaal of verbruiksgoederen</small>
+          </div>
+        </a>
+
+        <!-- Add extra button slot for later -->
+        <a href="#" id="btn-overview" class="btn" aria-label="Open overzicht">
+          <div class="icon" aria-hidden="true">📋</div>
+          <div>
+            <div>Overzicht</div>
+            <small>Teamstatus, meldingen en laatste updates</small>
+          </div>
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      <div class="small">Versie 1.0 — </div>
+      <div class="small">Open in je telefoon: voeg toe aan beginscherm voor snelle toegang</div>
+    </footer>
+  </div>
+
+  <!-- Kleine script om links te vervangen / makkelijk editbaar te maken -->
+  <script>
+    // PAS HIER DE LINKS AAN: vul jouw formulier/URL in per knop
+    const links = {
+      defect: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u",
+      vehicle: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u", 
+      order: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNFdJQlNJREREVTZFTkM2QUhJWlhaV1NWSS4u",
+      overview: "https://yourdomain.org/overzicht"
+    };
+
+    // assign to elements
+    document.getElementById("btn-defect").href = links.defect;
+    document.getElementById("btn-vehicle").href = links.vehicle;
+    document.getElementById("btn-order").href = links.order;
+    document.getElementById("btn-overview").href = links.overview;
+
+    // Optional: open in same tab on mobile, new tab on desktop
+    Array.from(document.querySelectorAll(".btn")).forEach(btn=>{
+      btn.addEventListener("click", function(e){
+        // if the href is placeholder (#) do nothing
+        const h = this.getAttribute("href");
+        if(!h || h === "#") {
+          e.preventDefault();
+          alert("Deze knop is nog niet ingesteld. Pas de links in het index.html aan.");
+        }
+      });
+    });
+  </script>
+<script>
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('✅ beforeinstallprompt event fired!');
+});
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // standaardmelding onderdrukken
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Toon een aangepaste melding of knop
+    const installBtn = document.createElement('button');
+    installBtn.textContent = '📱 App toevoegen aan startscherm';
+    installBtn.style.position = 'fixed';
+    installBtn.style.bottom = '20px';
+    installBtn.style.left = '50%';
+    installBtn.style.transform = 'translateX(-50%)';
+    installBtn.style.background = '#c71f1f';
+    installBtn.style.color = 'white';
+    installBtn.style.border = 'none';
+    installBtn.style.padding = '12px 20px';
+    installBtn.style.borderRadius = '10px';
+    installBtn.style.fontSize = '16px';
+    installBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+    installBtn.style.zIndex = '9999';
+    installBtn.style.cursor = 'pointer';
+
+    document.body.appendChild(installBtn);
+
+    installBtn.addEventListener('click', async () => {
+      installBtn.remove();
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('App toegevoegd aan startscherm!');
+      }
+      deferredPrompt = null;
+    });
+  });
+</script>
+</body>
+</html>
