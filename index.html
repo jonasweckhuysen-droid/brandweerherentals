@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#c71f1f">
+  <link rel="manifest" href="manifest.json">
+  <title>Brandweer Herentals — Portal</title>
+
+  <!-- Service Worker registreren -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js")
+        .then(() => console.log("Service worker geregistreerd"))
+        .catch(err => console.error("Service worker fout:", err));
+    }
+  </script>
+
+  <!-- Styling -->
+  <style>
+    :root {
+      --red:#c71f1f;
+      --dark:#111;
+      --light:#fff;
+      --muted:#f6f6f6;
+      --radius:14px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(180deg, #fff 0%, #fff 35%, #f8f8f8 100%);
+      color: var(--dark);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      background: var(--light);
+      border-radius: 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
+      border: 4px solid var(--red);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px;
+      background: linear-gradient(90deg, var(--red), #8f1515);
+      color: var(--light);
+    }
+    header .logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,0.15);
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: 0.2px;
+    }
+    header p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.95;
+    }
+
+    .content {
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media(min-width:620px){
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--muted);
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+      transition: transform .06s ease, box-shadow .06s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    .btn .icon {
+      width: 52px;
+      height: 52px;
+      min-width: 52px;
+      border-radius: 10px;
+      background: linear-gradient(180deg,#ffffff,#f0f0f0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .btn small {
+      display: block;
+      font-weight: 600;
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+
+    .primary {
+      background: linear-gradient(90deg,var(--red), #9c1616);
+      color: var(--light);
+    }
+    .primary .icon { background: rgba(255,255,255,0.08); color: var(--light); }
+
+    footer {
+      padding: 12px 18px;
+      font-size: 13px;
+      color: #444;
+      background: #fff;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .small { font-size: 12px; color: #666; }
+
+    /* Install knop */
+    #installBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--red);
+      color: var(--light);
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 9999;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Fire Crew Herentals portal">
+    <header>
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <h1>Brandweer Herentals</h1>
+        <p>Interne app</p>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="grid" id="buttonsGrid">
+        <a href="#" id="btn-defect" class="btn primary">
+          <div class="icon">🔧</div>
+          <div>
+            <div>Defectmelding</div>
+            <small>Meld snel defecten aan materiaal of voertuigen</small>
+          </div>
+        </a>
+
+        <a href="#" id="btn-vehicle" class="btn">
+          <div class="icon">🚒</div>
+          <div>
+            <div>Voertuigreservatie</div>
+            <small>Reserveer een voertuig of controleer beschikbaarheid</small>
+          </div>
+        </a>
+
+        <a href="#" id="btn-order" class="btn">
+          <div class="icon">📦</div>
+          <div>
+            <div>Bestelling</div>
+            <small>Bestel materiaal of verbruiksgoederen</small>
+          </div>
+        </a>
+
+        <a href="#" id="btn-verdi" class="btn">
+          <div class="icon">📋</div>
+          <div>
+            <div>Verdi</div>
+            <small>Oproepen en status aanpassen</small>
+          </div>
+        </a>
+
+        <a href="#" id="btn-abiweb" class="btn">
+          <div class="icon">📋</div>
+          <div>
+            <div>Abiweb</div>
+            <small>Oefeningen en prestaties</small>
+          </div>
+        </a>
+      </div>
+
+      <footer>
+        <div class="small">Versie 1.0 — </div>
+        <div class="small">Open in je telefoon: voeg toe aan beginscherm voor snelle toegang</div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Install knop -->
+  <button id="installBtn">📱 App toevoegen aan startscherm</button>
+
+  <!-- Script: links en install prompt -->
+  <script>
+    const links = {
+      defect: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u",
+      vehicle: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u", 
+      order: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNFdJQlNJREREVTZFTkM2QUhJWlhaV1NWSS4u",
+      verdi: "https://kempen.verdi.cloud/",
+      abiweb: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new%26redirect_uri%3Dhttps%253A%252F%252Fgateway.brandweerzonekempen.be%252Fsignin-oidc%26response_type%3Dcode%26scope%3Dopenid%2520profile%2520offline_access%2520env%253Alive%2520app%253Aabiweb%26code_challenge%3DNxCaark0uDHEU8DAz6lc2n-3BMq_9tzGbt8bDULVqEk%26code_challenge_method%3DS256%26response_mode%3Dform_post%26nonce%3D638968098682383278.NzQyZWJiYjgtYTU2Zi00NzA2LThhNjQtMmMwMzRjNzYyZDNiNjdiZDk5NWItMWM4OC00NTE2LTk5NjYtN2EwMzViZTlhM2Qx%26state%3DCfDJ8LmaVBoVLF9AkPzOFxLSOyE2-nP3tXkvNXBI333LRgrJHVuNlzG2cT2tEZDxwTTZm8J_jAGbX7Xu7kxecvY2ZDIiXQt9pWoSbknJAgM27NjIa6DdCR9avaYcXWKlp-ZaUtSvZ3-__BRxnFAVP2AerK8nZ5zuIWZBlHYVqAJv2hCWjvu2x3ih_9a-VcKa5jVAuLTHUyMj7dXIOZqL6BEQAJqRnfbi1DeTC9jv2yWfwJgkDmxUcwEdDRgQZei6MmlOLHS0_rEeownDF44QB8JhIO1sfNdtKgbDYflKK33hc6j8PBYW_myfZ5YoMnxG_L0lt8WMHixeMr3f9f2it8hKOApl2m5tLhmXq1wuZqx_0swWwPYxKe2ybBePOOLMlCXsA07F1D85b1iKCaLJ0TbPSWHgjZRiV7gL3VGKKPBc4qssHZdEYOKed09oNTATwPLT15472nOTumQ7TIOACJ2oUvuYTOw3X4KQ6Ff8bzFhSmzRMwG_C1eL7-1F5iLP8hxTSnEeVV0TQ4SGuRT2MolQ1L8%26x-client-SKU%3DID_NET8_0%26x-client-ver%3D7.1.2.0&client_Id=abiweb.client.new"
+    };
+
+    // Koppel links aan knoppen
+    document.getElementById("btn-defect").href = links.defect;
+    document.getElementById("btn-vehicle").href = links.vehicle;
+    document.getElementById("btn-order").href = links.order;
+    document.getElementById("btn-verdi").href = links.verdi;
+    document.getElementById("btn-abiweb").href = links.abiweb;
+
+    // Warn if link is #
+    Array.from(document.querySelectorAll(".btn")).forEach(btn => {
+      btn.addEventListener("click", e => {
+        const h = btn.getAttribute("href");
+        if(!h || h === "#") {
+          e.preventDefault();
+          alert("Deze knop is nog niet ingesteld. Pas de links in het index.html aan.");
+        }
+      });
+    });
+
+    // Install prompt
+    let deferredPrompt;
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log("✅ beforeinstallprompt event gedetecteerd");
+    });
+
+    // Toon knop altijd
+    window.addEventListener("load", () => {
+      installBtn.style.display = "block";
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if(deferredPrompt){
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if(outcome === "accepted") console.log("App geïnstalleerd");
+        deferredPrompt = null;
+      } else {
+        alert("📲 Om de app te installeren: tik op de drie puntjes ⋮ bovenaan in Chrome, en kies 'App installeren' of 'Toevoegen aan startscherm'.");
+      }
+    });
+  </script>
+</body>
+</html>
