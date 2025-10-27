@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fire Crew Herentals App</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #1f1f1f;
+      padding: 15px;
+      font-size: 1.6em;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+    }
+
+    #datetime {
+      font-size: 1em;
+      color: #bbb;
+      margin-top: 5px;
+    }
+
+    .menu {
+      margin-top: 40px;
+    }
+
+    .menu-button {
+      display: block;
+      width: 80%;
+      margin: 15px auto;
+      padding: 15px 20px;
+      background: #00bcd4;
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 1.2em;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .menu-button:hover {
+      background: #0097a7;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 10px;
+      color: #888;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Fire Crew Herentals
+    <div id="datetime"></div>
+  </header>
+
+  <div class="menu">
+    <a href="agenda.html" class="menu-button">Agenda</a>
+    <a href="communicatie.html" class="menu-button">Communicatie</a>
+    <a href="defectmelding.html" class="menu-button">Defectmelding</a>
+    <a href="info.html" class="menu-button">Info</a>
+    <a href="leden.html" class="menu-button">Leden</a>
+    <a href="materiaal.html" class="menu-button">Materiaal</a>
+    <a href="wegenwerken.html" class="menu-button">Wegenwerken</a>
+  </div>
+
+  <footer>
+    © 2025 Fire Crew Herentals
+  </footer>
+
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+      const date = now.toLocaleDateString('nl-BE', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const time = now.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('datetime').textContent = `${date} - ${time}`;
+    }
+
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+  </script>
+</body>
+</html>
