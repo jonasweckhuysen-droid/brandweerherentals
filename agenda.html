@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda — Brandweer Herentals</title>
+  <link rel="manifest" href="/brandweerherentals/manifest.json">
+  <meta name="theme-color" content="#c71f1f">
+
+  <style>
+    :root {
+      --red: #c71f1f;
+      --dark: #111;
+      --light: #fff;
+      --muted: #f6f6f6;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      overflow-y: auto;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      background: var(--light);
+      border-radius: 18px;
+      border: 4px solid var(--red);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px;
+      background: linear-gradient(90deg, var(--red), #8f1515);
+      color: var(--light);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header .logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    header h1 { margin: 0; font-size: 18px; }
+    header p { margin: 0; font-size: 12px; opacity: 0.9; }
+
+    #datetime {
+      font-size: 14px;
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    main.content {
+      flex: 1 1 auto;
+      padding: 18px;
+    }
+
+    .event {
+      background: var(--muted);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .event h3 {
+      margin: 0 0 6px;
+      color: var(--red);
+    }
+
+    .event p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .back-btn {
+      display: inline-block;
+      text-align: center;
+      padding: 12px 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+      background: linear-gradient(90deg, var(--red), #9c1616);
+      color: var(--light);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .back-btn:active {
+      transform: translateY(1px);
+    }
+
+    footer {
+      padding: 12px 18px;
+      font-size: 13px;
+      color: #444;
+      background: #fff;
+      border-top: 1px solid #eee;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="header-left">
+        <div class="logo">BWH</div>
+        <div>
+          <h1>Agenda</h1>
+          <p>Belangrijke data</p>
+        </div>
+      </div>
+      <div id="datetime"></div>
+    </header>
+
+    <main class="content">
+      <div id="agenda-container">Laden...</div>
+      <a href="/brandweerherentals/index.html" class="back-btn">⬅ Terug naar app</a>
+    </main>
+
+    <footer>Versie 1.1 — Brandweer Herentals</footer>
+  </div>
+
+  <script>
+    // 🕒 Datum & tijd
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' };
+      document.getElementById('datetime').textContent = now.toLocaleString('nl-BE', options);
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // 📅 Agenda laden
+    async function loadAgenda() {
+      try {
+        const response = await fetch('agenda.json');
+        if (!response.ok) throw new Error('Kan agenda.json niet laden');
+        const agenda = await response.json();
+
+        const container = document.getElementById('agenda-container');
+        container.innerHTML = '';
+
+        agenda.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+
+        agenda.forEach(item => {
+          const div = document.createElement('div');
+          div.classList.add('event');
+          div.innerHTML = `
+            <h3>${item.titel}</h3>
+            <p><strong>${new Date(item.datum).toLocaleDateString('nl-BE')}</strong></p>
+            <p>${item.beschrijving}</p>
+          `;
+          container.appendChild(div);
+        });
+      } catch (error) {
+        document.getElementById('agenda-container').innerHTML =
+          '<p>❌ Fout bij het laden van de agenda.</p>';
+        console.error(error);
+      }
+    }
+
+    loadAgenda();
+  </script>
+</body>
+</html>
