@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FireCrew Herentals</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      background-color: #b71c1c;
+      padding: 15px 0;
+      font-size: 1.2em;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .datetime {
+      font-size: 0.9em;
+      color: #ffcdd2;
+      margin-top: 4px;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 12px;
+      background-color: #d32f2f;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background-color: #f44336;
+      transform: scale(1.02);
+    }
+
+    iframe {
+      width: 90%;
+      height: 80vh;
+      border: none;
+      margin-top: 20px;
+      display: none;
+    }
+
+    footer {
+      margin: 30px 0;
+      font-size: 0.8em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    FireCrew Herentals
+    <div class="datetime" id="datetime"></div>
+  </header>
+
+  <h1>App Dashboard</h1>
+  <div class="button-container" id="buttons"></div>
+
+  <iframe id="frame" title="Inhoudsweergave"></iframe>
+
+  <footer>&copy; 2025 FireCrew Herentals</footer>
+
+  <script>
+    // --- Datum en tijd bijwerken ---
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateString = now.toLocaleDateString('nl-BE', options);
+      const timeString = now.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById("datetime").textContent = `${dateString} - ${timeString}`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // --- Links naar pagina’s ---
+    const links = {
+      abiweb: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new",
+      agenda: "agenda.html",
+      defect: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u",
+      logistiek: "https://form.jotform.com/230682691731055",
+      order: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNFdJQlNJREREVTZFTkM2QUhJWlhaV1NWSS4u",
+      vehicle: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u",
+      verdi: "https://kempen.verdi.cloud/",
+      wegenwerken: "wegenwerken.html"
+    };
+
+    // --- Knoppen alfabetisch tonen ---
+    const buttonsContainer = document.getElementById("buttons");
+    Object.keys(links).sort().forEach(key => {
+      const btn = document.createElement("button");
+      btn.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+      btn.onclick = () => openLink(links[key]);
+      buttonsContainer.appendChild(btn);
+    });
+
+    // --- Pagina’s of externe links openen ---
+    const frame = document.getElementById("frame");
+    function openLink(url) {
+      if (url.endsWith(".html")) {
+        frame.src = url;
+        frame.style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        frame.style.display = "none";
+        window.open(url, "_blank");
+      }
+    }
+
+    // --- Cache wissen bij afsluiten ---
+    window.addEventListener("beforeunload", () => {
+      caches.keys().then(names => names.forEach(name => caches.delete(name)));
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+  </script>
+</body>
+</html>

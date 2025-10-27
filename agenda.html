@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda - Brandweer Herentals</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      text-align: center;
+    }
+
+    header {
+      background-color: #b71c1c;
+      padding: 15px 0;
+      font-size: 1.4em;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .event-container {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+
+    .event {
+      background-color: #1e1e1e;
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      text-align: left;
+    }
+
+    .event h3 {
+      margin: 0;
+      color: #f44336;
+    }
+
+    .event p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>Agenda</header>
+
+  <div class="event-container" id="agendaContainer">
+    <p>Laden...</p>
+  </div>
+
+  <script>
+    async function laadAgenda() {
+      const container = document.getElementById('agendaContainer');
+      try {
+        const response = await fetch('agenda.json?_=' + new Date().getTime()); // cache-bypass
+        const data = await response.json();
+
+        // Sorteer op datum
+        data.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+
+        container.innerHTML = ''; // leegmaken
+
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.classList.add('event');
+          div.innerHTML = `
+            <h3>${new Date(item.datum).toLocaleDateString('nl-BE', { day: '2-digit', month: 'long', year: 'numeric' })}</h3>
+            <p><strong>${item.titel}</strong></p>
+            <p>${item.locatie}</p>
+            <p>${item.omschrijving}</p>
+          `;
+          container.appendChild(div);
+        });
+      } catch (error) {
+        container.innerHTML = "<p>Kon agenda niet laden.</p>";
+        console.error("Agenda laden mislukt:", error);
+      }
+    }
+
+    laadAgenda();
+  </script>
+</body>
+</html>
