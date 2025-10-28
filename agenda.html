@@ -89,12 +89,12 @@
   </style>
 </head>
 <body>
-  <div class="container" role="application" aria-label="Agenda Herentals">
+  <div class="container" role="application" aria-label="Agenda Brandweer Herentals">
     <header>
       <div class="logo" aria-hidden="true">BWH</div>
       <div>
         <h1>Agenda</h1>
-        <p>Alle evenementen en interne afspraken</p>
+        <p>Evenementen & activiteiten</p>
       </div>
     </header>
     <main class="content">
@@ -107,64 +107,72 @@
     </footer>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ical.js@1.4.0/build/ical.min.js"></script>
   <script>
+    // Huidige datum tonen
     document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-    const ICS_URL = "https://outlook.office365.com/owa/calendar/8a2b99e533cc4de49da60ef221300ac3@brandweerzonekempen.be/52f46cccb1a846aab7a79ff1a8d37a9513138115846516051108/calendar.ics"; // Vervang dit door de iCal URL
+    // ICS-feed via proxy
+    const ICS_PROXY = "/agenda.ics";
 
-    async function loadAgenda() {
-      try {
-        const res = await fetch(ICS_URL);
-        if (!res.ok) throw new Error("Kan ICS-feed niet laden");
-        const icsText = await res.text();
-
-        const jcal = ICAL.parse(icsText);
-        const comp = new ICAL.Component(jcal);
-        const vevents = comp.getAllSubcomponents("vevent");
-
-        // Huidige datum
-        const today = new Date();
-        const upcomingEvents = vevents.map(evt => {
-          const e = new ICAL.Event(evt);
-          return {
-            start: e.startDate.toJSDate(),
-            end: e.endDate.toJSDate(),
-            title: e.summary,
-            desc: e.description || ""
-          };
-        }).filter(e => e.end >= today)
-          .sort((a,b) => a.start - b.start);
-
-        const list = document.getElementById("agendaList");
-        list.innerHTML = "";
-
-        if (upcomingEvents.length === 0) {
-          list.innerHTML = "<p>Geen aankomende evenementen.</p>";
-        } else {
-          upcomingEvents.forEach(e => {
-            const el = document.createElement("div");
-            el.className = "event";
-            el.innerHTML = `
-              <div class="event-date">${e.start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}</div>
-              <div class="event-title">${e.title}</div>
-              <div class="event-desc">${e.desc}</div>
-            `;
-            list.appendChild(el);
-          });
-        }
-
-      } catch(err) {
+    fetch(ICS_PROXY)
+      .then(response => response.text())
+      .then(text => {
+        const events = parseICS(text);
+        displayEvents(events);
+      })
+      .catch(err => {
         console.error("Fout bij laden agenda:", err);
-        document.getElementById("agendaList").innerHTML = "<p>Kan de agenda niet laden.</p>";
-      }
+        document.getElementById("agendaList").innerHTML = "<p>Kon agenda niet laden.</p>";
+      });
+
+    // Eenvoudige ICS parser
+    function parseICS(data) {
+      const lines = data.split(/\r?\n/);
+      const events = [];
+      let current = null;
+
+      lines.forEach(line => {
+        if (line.startsWith("BEGIN:VEVENT")) current = {};
+        else if (line.startsWith("END:VEVENT")) {
+          if (current) events.push(current);
+          current = null;
+        } else if (current) {
+          if (line.startsWith("SUMMARY:")) current.summary = line.replace("SUMMARY:", "");
+          else if (line.startsWith("DTSTART:")) current.start = line.replace("DTSTART:", "");
+          else if (line.startsWith("DTEND:")) current.end = line.replace("DTEND:", "");
+          else if (line.startsWith("LOCATION:")) current.location = line.replace("LOCATION:", "");
+        }
+      });
+
+      // Sorteer op startdatum en filter op toekomstige events
+      const today = new Date().toISOString().split("T")[0];
+      return events.filter(ev => ev.start >= today).sort((a,b) => a.start.localeCompare(b.start));
     }
 
-    loadAgenda();
+    function displayEvents(events) {
+      const container = document.getElementById("agendaList");
+      container.innerHTML = "";
 
-    // Automatische refresh elke 15 minuten
-    setInterval(loadAgenda, 15 * 60 * 1000);
+      if (events.length === 0) {
+        container.innerHTML = "<p>Geen aankomende evenementen.</p>";
+        return;
+      }
+
+      events.forEach(ev => {
+        const start = new Date(ev.start);
+        const el = document.createElement("div");
+        el.className = "event";
+        el.innerHTML = `
+          <div class="event-date">${start.toLocaleString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}</div>
+          <div class="event-title">${ev.summary}</div>
+          <div class="event-desc">${ev.location || ""}</div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    // Optioneel: automatische refresh elke 10 minuten
+    setInterval(() => window.location.reload(), 600000);
   </script>
 </body>
 </html>
-
