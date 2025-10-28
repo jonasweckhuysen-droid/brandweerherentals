@@ -111,7 +111,7 @@
     // Huidige datum tonen
     document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-    const ICS_URL = "http://localhost:3000/agenda.ics";
+    const ICS_URL = "https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/e5cc3b0e-7304-4c1c-94eb-3974df154403/cid-7FF1D857A9BC86AF/calendar.ics";
 
     // ICS parser
     function parseICS(data) {
@@ -189,5 +189,6 @@
   </script>
 </body>
 </html>
+
 
 
