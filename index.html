@@ -301,7 +301,15 @@
         .then(() => console.log("✅ Service Worker geregistreerd"))
         .catch(err => console.error("❌ SW fout:", err));
     }
+
+    // 🍎 iPhone/iPad melding (éénmalig)
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isInStandalone = window.navigator.standalone === true;
+
+    if (isIOS && !isInStandalone && !localStorage.getItem('iosInstallHintShown')) {
+      alert("📲 Tip: Druk op het deel-icoon (vierkant met pijltje omhoog) en kies 'Zet op beginscherm' om deze app te installeren.");
+      localStorage.setItem('iosInstallHintShown', 'true');
+    }
   </script>
 </body>
 </html>
-
