@@ -149,38 +149,42 @@
       return d.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
     }
 
-    function loadAgenda() {
-      fetch(ICS_URL)
-        .then(res => res.text())
-        .then(txt => {
-          const events = parseICS(txt);
-          const list = document.getElementById("agendaList");
-          if (events.length === 0) {
-            list.innerHTML = "<p>Geen aankomende evenementen.</p>";
-            return;
-          }
-          list.innerHTML = "";
-          events.forEach(ev => {
-            const el = document.createElement("div");
-            el.className = "event";
-            el.innerHTML = `
-              <div class="event-date">${formatDate(ev.start)}</div>
-              <div class="event-title">${ev.summary}</div>
-              <div class="event-desc">${ev.location || ""}</div>
-            `;
-            list.appendChild(el);
-          });
-        })
-        .catch(err => {
-          console.error("Fout bij laden agenda:", err);
-          document.getElementById("agendaList").innerHTML = "<p>Kon agenda niet laden.</p>";
+    async function loadAgenda() {
+      const list = document.getElementById("agendaList");
+      list.innerHTML = "Laden…";
+
+      try {
+        const res = await fetch(ICS_URL);
+        if (!res.ok) throw new Error("Netwerkfout bij laden agenda");
+        const txt = await res.text();
+        const events = parseICS(txt);
+
+        if (events.length === 0) {
+          list.innerHTML = "<p>Geen aankomende evenementen.</p>";
+          return;
+        }
+
+        list.innerHTML = "";
+        events.forEach(ev => {
+          const el = document.createElement("div");
+          el.className = "event";
+          el.innerHTML = `
+            <div class="event-date">${formatDate(ev.start)}</div>
+            <div class="event-title">${ev.summary}</div>
+            <div class="event-desc">${ev.location || ""}</div>
+          `;
+          list.appendChild(el);
         });
+      } catch (err) {
+        console.error("Fout bij laden agenda:", err);
+        list.innerHTML = "<p>Kon agenda niet laden.</p>";
+      }
     }
 
-    // Eerste load
-    loadAgenda();
+    // Live load bij openen
+    window.addEventListener("load", loadAgenda);
 
-    // Elke 15 minuten automatisch verversen
+    // Automatische verversing elke 15 minuten
     setInterval(loadAgenda, 15*60*1000);
   </script>
 </body>
