@@ -6,7 +6,7 @@ const app = express();
 const PORT = 3000; // kies een poort
 
 // ICS-feed URL van Outlook
-const ICS_URL = "https://outlook.office365.com/owa/calendar/8a2b99e533cc4de49da60ef221300ac3@brandweerzonekempen.be/52f46cccb1a846aab7a79ff1a8d37a9513138115846516051108/calendar.ics";
+const ICS_URL = "https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/e5cc3b0e-7304-4c1c-94eb-3974df154403/cid-7FF1D857A9BC86AF/calendar.ics";
 
 // Proxy endpoint
 app.get("/agenda.ics", async (req, res) => {
@@ -23,4 +23,5 @@ app.get("/agenda.ics", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`ICS-proxy draait op http://localhost:${PORT}/agenda.ics`));
+
 
