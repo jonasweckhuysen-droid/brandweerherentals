@@ -108,41 +108,52 @@
   </div>
 
   <script>
-    // Huidige datum tonen
+    // Toon huidige datum in footer
     document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-    // Fetch het JSON-bestand
-    fetch("/brandweerherentals/werken.json")
-      .then(response => {
-        if (!response.ok) throw new Error("Netwerkfout bij laden data");
-        return response.json();
-      })
-      .then(data => {
-        const works = data;
-        const today = new Date().toISOString().split("T")[0];
-        const upcoming = works.filter(w => w.date >= today).sort((a,b) => a.date.localeCompare(b.date));
+    // Functie om werken te tonen
+    function renderWorks(works) {
+      const list = document.getElementById("werkenList");
+      const now = new Date();
 
-        const list = document.getElementById("werkenList");
-        if (upcoming.length === 0) {
-          list.innerHTML = "<p>Geen aankomende werken.</p>";
-        } else {
-          list.innerHTML = "";
-          upcoming.forEach(w => {
-            const el = document.createElement("div");
-            el.className = "event";
-            el.innerHTML = `
-              <div class="event-date">${ new Date(w.date).toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" }) }</div>
-              <div class="event-title">${w.location}</div>
-              <div class="event-desc">${w.desc}</div>
-            `;
-            list.appendChild(el);
-          });
-        }
-      })
-      .catch(err => {
-        console.error("Fout bij laden wegenwerken:", err);
-        document.getElementById("werkenList").innerHTML = "<p>Kon data niet laden.</p>";
+      // Filter lopende of toekomstige werken
+      const upcoming = works.filter(w => new Date(w.end) >= now)
+                            .sort((a,b) => new Date(a.start) - new Date(b.start));
+
+      if (upcoming.length === 0) {
+        list.innerHTML = "<p>Geen aankomende werken.</p>";
+        return;
+      }
+
+      list.innerHTML = "";
+      upcoming.forEach(w => {
+        const start = new Date(w.start).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+        const end = new Date(w.end).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+        const el = document.createElement("div");
+        el.className = "event";
+        el.innerHTML = `
+          <div class="event-date">${start}${start !== end ? " – " + end : ""}</div>
+          <div class="event-title">${w.location}</div>
+          <div class="event-desc">${w.info}</div>
+        `;
+        list.appendChild(el);
       });
+    }
+
+    // Fetch JSON en render
+    function loadWorks() {
+      fetch("/brandweerherentals/werken.json?_=" + new Date().getTime()) // cache-busting
+        .then(r => r.json())
+        .then(renderWorks)
+        .catch(err => {
+          console.error("Fout bij laden wegenwerken:", err);
+          document.getElementById("werkenList").innerHTML = "<p>Kon data niet laden.</p>";
+        });
+    }
+
+    // Meteen laden en elke minuut verversen
+    loadWorks();
+    setInterval(loadWorks, 60000);
   </script>
 </body>
 </html>
