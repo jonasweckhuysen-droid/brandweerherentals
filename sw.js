@@ -5,9 +5,7 @@ const urlsToCache = [
   "/brandweerherentals/manifest.json",
   "/brandweerherentals/icons/icon-192x192-round.png",
   "/brandweerherentals/icons/icon-512x512-round.png",
-  "/brandweerherentals/bestellingen.html",
-  "/brandweerherentals/leden.html",
-  "/brandweerherentals/info.html"
+  "/brandweerherentals/bestellingen.html"
 ];
 
 // Installatie: cache de bestanden
@@ -49,4 +47,5 @@ self.addEventListener("message", event => {
     self.skipWaiting();
   }
 });
+
 
