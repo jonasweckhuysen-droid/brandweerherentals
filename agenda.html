@@ -94,7 +94,7 @@
       <div class="logo" aria-hidden="true">BWH</div>
       <div>
         <h1>Agenda</h1>
-        <p>Google Kalender</p>
+        <p>Google Calendar</p>
       </div>
     </header>
     <main class="content">
@@ -102,105 +102,121 @@
       <div id="agendaList">Laden…</div>
     </main>
     <footer>
-      <div class="small">Versie 1.1 —</div>
+      <div class="small">Versie 1.2 —</div>
       <div class="small">Laatste update: <span id="today"></span></div>
     </footer>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", {
+    // Huidige datum tonen
+    const todayEl = document.getElementById("today");
+    if (todayEl) {
+      todayEl.textContent = new Date().toLocaleDateString("nl-BE", {
         weekday:"long", year:"numeric", month:"long", day:"numeric"
       });
+    }
 
-      const ICS_URL = "https://agenda-proxy.onrender.com/agenda.ics";
+    const ICS_URL = "https://agenda-proxy.onrender.com/agenda.ics";
 
-      // ICS-parser
-      function parseICS(data) {
-        const lines = data.split(/\r?\n/);
-        const events = [];
-        let current = null;
-
-        lines.forEach(line => {
-          if (line.startsWith("BEGIN:VEVENT")) current = {};
-          else if (line.startsWith("END:VEVENT")) {
-            if (current) events.push(current);
-            current = null;
-          } else if (current) {
-            if (line.startsWith("SUMMARY:")) current.summary = line.replace("SUMMARY:", "");
-            else if (line.startsWith("DTSTART")) current.start = parseICSDatetime(line);
-            else if (line.startsWith("DTEND")) current.end = parseICSDatetime(line);
-            else if (line.startsWith("LOCATION:")) current.location = line.replace("LOCATION:", "");
-          }
-        });
-
-        const today = new Date();
-        return events.filter(ev => ev.start >= today).sort((a,b) => a.start - b.start);
+    // Parse ICS met ondersteuning voor all-day events
+    function parseICSDatetime(line) {
+      const allDayMatch = line.match(/DTSTART;VALUE=DATE:(\d{8})/);
+      if (allDayMatch) {
+        const [, date] = allDayMatch;
+        const y = parseInt(date.slice(0,4));
+        const m = parseInt(date.slice(4,6)) - 1;
+        const d = parseInt(date.slice(6,8));
+        return { date: new Date(y, m, d), allDay: true };
       }
 
-      function parseICSDatetime(line) {
-        // Ondersteun DTSTAMP, DTSTART;TZID=Europe/Brussels:20251205T190000 enz.
-        const tzMatch = line.match(/DTSTART(;TZID=([^:]+))?:(\d{8}T\d{6}Z?)/);
-        if (!tzMatch) return new Date();
+      const tzMatch = line.match(/DTSTART(;TZID=([^:]+))?:(\d{8}T\d{6}Z?)/);
+      if (!tzMatch) return { date: new Date(), allDay: false };
 
-        const [, , tz, datetime] = tzMatch;
-        const match = datetime.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
-        if (!match) return new Date(datetime);
+      const [, , tz, datetime] = tzMatch;
+      const match = datetime.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
+      if (!match) return { date: new Date(datetime), allDay: false };
 
-        const [, y,m,d,h,min,s,z] = match;
+      const [, y,m,d,h,min,s,z] = match;
+      let dateObj;
+      if (z) dateObj = new Date(Date.UTC(y, m-1, d, h, min, s));
+      else dateObj = new Date(y, m-1, d, h, min, s);
+      return { date: dateObj, allDay: false };
+    }
 
-        let dateObj;
-        if (z) {
-          dateObj = new Date(Date.UTC(y, m-1, d, h, min, s));
-        } else {
-          // Als er een TZ is, negeer voor nu en neem lokale tijd
-          dateObj = new Date(y, m-1, d, h, min, s);
+    function parseICS(data) {
+      const lines = data.split(/\r?\n/);
+      const events = [];
+      let current = null;
+
+      lines.forEach(line => {
+        if (line.startsWith("BEGIN:VEVENT")) current = {};
+        else if (line.startsWith("END:VEVENT")) {
+          if (current) events.push(current);
+          current = null;
+        } else if (current) {
+          if (line.startsWith("SUMMARY:")) current.summary = line.replace("SUMMARY:", "");
+          else if (line.startsWith("DTSTART")) current.start = parseICSDatetime(line);
+          else if (line.startsWith("DTEND")) current.end = parseICSDatetime(line);
+          else if (line.startsWith("LOCATION:")) current.location = line.replace("LOCATION:", "");
         }
-        return dateObj;
-      }
+      });
 
-      function formatDate(d) {
-        return d.toLocaleDateString("nl-BE", {
+      const today = new Date();
+      return events
+        .filter(ev => {
+          if (ev.start.allDay) return ev.start.date >= new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          return ev.start.date >= today;
+        })
+        .sort((a,b) => a.start.date - b.start.date);
+    }
+
+    function formatDate(ev) {
+      if (ev.start.allDay) {
+        return ev.start.date.toLocaleDateString("nl-BE", {
+          weekday:"short", day:"2-digit", month:"short"
+        }) + " (Hele dag)";
+      } else {
+        return ev.start.date.toLocaleDateString("nl-BE", {
           weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"
         });
       }
+    }
 
-      async function loadAgenda() {
-        const list = document.getElementById("agendaList");
-        list.innerHTML = "Laden…";
+    async function loadAgenda() {
+      const list = document.getElementById("agendaList");
+      if (!list) return;
+      list.innerHTML = "Laden…";
 
-        try {
-          const res = await fetch(ICS_URL);
-          if (!res.ok) throw new Error("Netwerkfout bij laden agenda");
+      try {
+        const res = await fetch(ICS_URL);
+        if (!res.ok) throw new Error("Netwerkfout bij laden agenda");
+        const txt = await res.text();
+        const events = parseICS(txt);
 
-          const txt = await res.text();
-          const events = parseICS(txt);
-
-          if (events.length === 0) {
-            list.innerHTML = "<p>Geen aankomende evenementen.</p>";
-            return;
-          }
-
-          list.innerHTML = "";
-          events.forEach(ev => {
-            const el = document.createElement("div");
-            el.className = "event";
-            el.innerHTML = `
-              <div class="event-date">${formatDate(ev.start)}</div>
-              <div class="event-title">${ev.summary}</div>
-              <div class="event-desc">${ev.location || ""}</div>
-            `;
-            list.appendChild(el);
-          });
-        } catch (err) {
-          console.error("Fout bij laden agenda:", err);
-          list.innerHTML = "<p>Kon agenda niet laden.</p>";
+        if (events.length === 0) {
+          list.innerHTML = "<p>Geen aankomende evenementen.</p>";
+          return;
         }
-      }
 
-      loadAgenda();
-      setInterval(loadAgenda, 15*60*1000);
-    });
+        list.innerHTML = "";
+        events.forEach(ev => {
+          const el = document.createElement("div");
+          el.className = "event";
+          el.innerHTML = `
+            <div class="event-date">${formatDate(ev)}</div>
+            <div class="event-title">${ev.summary}</div>
+            <div class="event-desc">${ev.location || ""}</div>
+          `;
+          list.appendChild(el);
+        });
+      } catch (err) {
+        console.error("Fout bij laden agenda:", err);
+        list.innerHTML = "<p>Kon agenda niet laden.</p>";
+      }
+    }
+
+    window.addEventListener("load", loadAgenda);
+    setInterval(loadAgenda, 15*60*1000); // ververs elke 15 min
   </script>
 </body>
 </html>
