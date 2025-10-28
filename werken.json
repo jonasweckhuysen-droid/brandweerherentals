@@ -2,13 +2,12 @@
   {
     "date": "2025-10-27 - 2025-11-07",
     "location": "Lierseweg",
-    "desc": "🔁 Omleidingen per zone:
-
-27 oktober: St-Jansstraat ↔ Vestingstraat
-Na afronding: Markgravenstraat ↔ Ringlaan
-29–31 oktober: Glasstraat ↔ Ringlaan
-Daarna: Glasstraat ↔ Vossenberg
-Laatste: Vossenberg ↔ Vestingstraat"
+    "desc": "Omleidingen per zone:
+             - 27/10/2025: St-Jansstraat ↔ Vestingstraat
+             - Na afronding: Markgravenstraat ↔ Ringlaan
+             - 29-31/10/2025: Glasstraat ↔ Ringlaan
+             - Daarna: Glasstraat ↔ Vossenberg
+             - Laatste: Vossenberg ↔ Vestingstraat"
   },
   {
     "date": "2025-11-15",
@@ -21,4 +20,5 @@ Laatste: Vossenberg ↔ Vestingstraat"
     "desc": "Onderhoudswerken, plaatselijke afsluiting"
   }
 ]
+
 
