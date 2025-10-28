@@ -12,7 +12,20 @@ const urlsToCache = [
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(async cache => {
+      for (const url of urlsToCache) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            await cache.put(url, response);
+          } else {
+            console.warn("⚠️ Niet gecachet (status " + response.status + "):", url);
+          }
+        } catch (err) {
+          console.warn("⚠️ Fout bij cachen:", url, err);
+        }
+      }
+    })
   );
 });
 
@@ -43,9 +56,7 @@ self.addEventListener("fetch", event => {
 
 // Luister naar skipWaiting-commando
 self.addEventListener("message", event => {
-  if (event.data.action === "skipWaiting") {
+  if (event.data && event.data.action === "skipWaiting") {
     self.skipWaiting();
   }
 });
-
-
