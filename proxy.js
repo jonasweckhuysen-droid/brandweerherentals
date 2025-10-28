@@ -23,3 +23,4 @@ app.get("/agenda.ics", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`ICS-proxy draait op http://localhost:${PORT}/agenda.ics`));
+
