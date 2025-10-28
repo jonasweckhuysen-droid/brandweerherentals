@@ -111,7 +111,7 @@
     // Huidige datum tonen
     document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-    const ICS_URL = "http://localhost:3000/agenda.ics";
+    const ICS_URL = "https://agenda-proxy.onrender.com/agenda.ics";
 
     // ICS parser
     function parseICS(data) {
@@ -189,6 +189,7 @@
   </script>
 </body>
 </html>
+
 
 
 
