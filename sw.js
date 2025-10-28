@@ -3,8 +3,8 @@ const urlsToCache = [
   "/brandweerherentals/",
   "/brandweerherentals/index.html",
   "/brandweerherentals/manifest.json",
-  "/brandweerherentals/icons/icon-192x192.png",
-  "/brandweerherentals/icons/icon-512x512.png",
+  "/brandweerherentals/icons/icon-192x192-round.png",
+  "/brandweerherentals/icons/icon-512x512-round.png",
   "/brandweerherentals/bestellingen.html",
   "/brandweerherentals/leden.html",
   "/brandweerherentals/info.html"
@@ -49,3 +49,4 @@ self.addEventListener("message", event => {
     self.skipWaiting();
   }
 });
+
