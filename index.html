@@ -1,51 +1,124 @@
-const CACHE_NAME = "firecrew-cache-" + Date.now();
-const urlsToCache = [
-  "/brandweerherentals/",
-  "/brandweerherentals/index.html",
-  "/brandweerherentals/manifest.json",
-  "/brandweerherentals/icons/icon-192x192.png",
-  "/brandweerherentals/icons/icon-512x512.png",
-  "/brandweerherentals/bestellingen.html",
-  "/brandweerherentals/leden.html",
-  "/brandweerherentals/info.html"
-];
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b00000" />
+  <title>FireCrew Herentals</title>
 
-// Installatie: cache de bestanden
-self.addEventListener("install", event => {
-  self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
-});
+  <!-- Manifest en icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-// Activatie: verwijder oude caches
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      background: #fff4f4;
+    }
+    header {
+      background: #b00000;
+      color: white;
+      padding: 1rem;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    main {
+      padding: 2rem;
+    }
+    button {
+      background: #b00000;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #900;
+    }
+    #updateBanner {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #323232;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      z-index: 1000;
+    }
+    #updateBanner button {
+      background: #b00000;
+      margin-left: 1rem;
+    }
+  </style>
+</head>
 
-// Fetch: eerst netwerk, dan cache
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
-        }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
-});
+<body>
+  <header>🔥 FireCrew Herentals</header>
 
-// Luister naar skipWaiting-commando
-self.addEventListener("message", event => {
-  if (event.data.action === "skipWaiting") {
-    self.skipWaiting();
-  }
-});
+  <main>
+    <h2>Welkom bij de FireCrew Herentals webapp!</h2>
+    <p>Gebruik het menu hieronder om verder te gaan.</p>
+    <button onclick="window.location.href='bestellingen.html'">📦 Bestellingen</button>
+    <br><br>
+    <button onclick="window.location.href='leden.html'">👨‍🚒 Leden</button>
+    <br><br>
+    <button onclick="window.location.href='info.html'">ℹ️ Info</button>
+  </main>
+
+  <!-- Update banner -->
+  <div id="updateBanner">
+    Nieuwe versie beschikbaar.
+    <button id="refreshBtn">Verversen</button>
+  </div>
+
+  <script>
+    // Service Worker registreren
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        console.log('✅ Service Worker geregistreerd');
+
+        // Update-detectie
+        let newWorker;
+        reg.addEventListener('updatefound', () => {
+          newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // Toon update-banner
+              const banner = document.getElementById('updateBanner');
+              banner.style.display = 'block';
+
+              document.getElementById('refreshBtn').addEventListener('click', () => {
+                newWorker.postMessage({ action: 'skipWaiting' });
+              });
+            }
+          });
+        });
+
+        // Als er een nieuwe SW actief wordt, herlaad de pagina
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            window.location.reload();
+            refreshing = true;
+          }
+        });
+      });
+    }
+
+    // iOS installatie detectie
+    if (/iphone|ipad|ipod/i.test(window.navigator.userAgent)) {
+      if (!window.navigator.standalone) {
+        alert('👉 Tip: tik op het deel-icoon en kies "Zet op beginscherm" om de app te installeren.');
+      }
+    }
+  </script>
+</body>
+</html>
