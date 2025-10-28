@@ -118,7 +118,7 @@ updateDateTime();
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
+  e.prompt();
   deferredPrompt = e;
   installBtn.style.display = "block";
 });
@@ -170,3 +170,4 @@ if (isIOS && !isInStandalone && !localStorage.getItem('iosInstallHintShown')) {
 </script>
 </body>
 </html>
+
