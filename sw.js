@@ -1,49 +1,51 @@
-// sw.js — Brandweer Herentals Portal
-
-const CACHE_NAME = "bwh-portal-v" + Date.now(); // nieuwe cache bij elke update
-const URLS_TO_CACHE = [
+const CACHE_NAME = "firecrew-cache-" + Date.now();
+const urlsToCache = [
+  "/brandweerherentals/",
   "/brandweerherentals/index.html",
   "/brandweerherentals/manifest.json",
   "/brandweerherentals/icons/icon-192x192.png",
-  "/brandweerherentals/icons/icon-512x512.png"
+  "/brandweerherentals/icons/icon-512x512.png",
+  "/brandweerherentals/bestellingen.html",
+  "/brandweerherentals/leden.html",
+  "/brandweerherentals/info.html"
 ];
 
-// 🧱 Install: cache bestanden
+// Installatie: cache de bestanden
 self.addEventListener("install", event => {
-  console.log("[SW] Install");
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // meteen activeren, niet wachten
 });
 
-// 🔄 Activate: oude caches verwijderen
+// Activatie: verwijder oude caches
 self.addEventListener("activate", event => {
-  console.log("[SW] Activate & cleanup");
   event.waitUntil(
-    caches.keys().then(names => {
-      return Promise.all(
-        names
-          .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim(); // direct controle nemen over pagina's
 });
 
-// 🌐 Fetch: probeer netwerk, val terug op cache
+// Fetch: eerst netwerk, dan cache
 self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // enkel GET requests cachen
-        if (event.request.method === "GET" && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        if (!response || response.status !== 200 || response.type !== "basic") {
+          return response;
         }
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return response;
       })
       .catch(() => caches.match(event.request))
   );
+});
+
+// Luister naar skipWaiting-commando
+self.addEventListener("message", event => {
+  if (event.data.action === "skipWaiting") {
+    self.skipWaiting();
+  }
 });
