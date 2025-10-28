@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // ICS-feed URL van Outlook
 const ICS_URL =
-  "https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/e5cc3b0e-7304-4c1c-94eb-3974df154403/cid-7FF1D857A9BC86AF/calendar.ics";
+  "https://calendar.google.com/calendar/u/0?cid=ZGYyZmEzNmZiOGVhNDA0NGY4Mjc2Y2YyMGQ5OTIyZDZjMzUwZTdmNzYwNGJiNWFkNGE1MzUyMTMyNGY3ODcyN0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t";
 
 // CORS toelaten zodat werken.html dit mag ophalen
 app.use(cors());
@@ -40,3 +40,4 @@ app.get("/agenda.ics", async (req, res) => {
 app.listen(PORT, () =>
   console.log(`✅ ICS-proxy actief op http://localhost:${PORT}/agenda.ics`)
 );
+
