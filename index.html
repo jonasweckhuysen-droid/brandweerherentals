@@ -62,10 +62,10 @@ footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; bor
       <p>Interne app</p>
     </div>
   </div>
-  <div id="header-right">
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
+ <div id="header-right">
+  <div id="datetime"></div>
+  <div id="ploegOfWeek"></div>
+</div>
 </header>
 <main class="content">
   <div class="grid" id="buttonGrid">
@@ -125,18 +125,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return cyclus[index];
   }
 
-  const datetimeEl = document.getElementById("datetime");
-  const ploegEl = document.getElementById("ploegOfWeek");
+const datetimeEl = document.getElementById("datetime");
+const ploegEl = document.getElementById("ploegOfWeek");
 
-  function updateHeader() {
-    const now = new Date();
-    const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' };
-    datetimeEl.textContent = now.toLocaleString('nl-BE', options);
-    ploegEl.textContent = "Ploeg van de week: " + currentPloegVanWeek();
-  }
+function updateHeader() {
+  const now = new Date();
+  const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' };
+  datetimeEl.textContent = now.toLocaleString('nl-BE', options); // datum boven
+  ploegEl.textContent = "Ploeg van de week: " + currentPloegVanWeek(); // ploeg eronder
+}
 
-  setInterval(updateHeader, 1000);
-  updateHeader();
+setInterval(updateHeader, 1000);
+updateHeader();
 });
 
 // 📲 PWA installatie prompt
@@ -192,3 +192,4 @@ if (isIOS && !isInStandalone && !localStorage.getItem('iosInstallHintShown')) {
 </script>
 </body>
 </html>
+
