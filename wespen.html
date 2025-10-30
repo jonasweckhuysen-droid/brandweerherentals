@@ -1,24 +1,46 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wespenploegen</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Wespenverdelging</h1>
-  </header>
+  <div class="container">
+    <header>
+      <h1>Brandweer Herentals</h1>
+    </header>
 
-  <main>
-    <p id="status">Laden van ploegen...</p>
-    <div id="ploegen-container"></div>
-  </main>
+    <main>
+      <div class="menu">
+        <a href="agenda.html" class="menu-button">Agenda</a>
+        <a href="bestellingen.html" class="menu-button">Bestellingen</a>
+        <a href="wegenwerken.html" class="menu-button">Wegenwerken</a>
+        <a href="wespen.html" class="menu-button active">Wespen</a>
+      </div>
+
+      <section class="content">
+        <h2>Wespenverdelging</h2>
+        <p id="status">Laden van ploegen...</p>
+        <div id="ploegen-container" class="card"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Fire Crew Herentals</p>
+    </footer>
+  </div>
 
   <script>
     const pdfUrl = "data/wespen.pdf";
+
+    // Maanden in het Nederlands omzetten naar nummer
+    const maanden = {
+      januari: 0, februari: 1, maart: 2, april: 3, mei: 4, juni: 5,
+      juli: 6, augustus: 7, september: 8, oktober: 9, november: 10, december: 11
+    };
 
     async function leesPDF() {
       try {
@@ -34,9 +56,12 @@
         // Tekst opschonen
         tekst = tekst.replace(/\s+/g, " ").trim();
 
-        // Zoek naar datum-patronen (zoals 01/05/2025)
-        const regex = /(\d{2}\/\d{2}\/\d{4})/g;
-        const alleDatums = [...tekst.matchAll(regex)].map(m => m[1]);
+        // Herken datums zoals "1 november 2025"
+        const regex = /(\d{1,2})\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+(\d{4})/gi;
+        const alleDatums = [...tekst.matchAll(regex)].map(m => ({
+          raw: m[0],
+          date: new Date(m[3], maanden[m[2].toLowerCase()], m[1])
+        }));
 
         if (alleDatums.length === 0) {
           document.getElementById("status").textContent = "Geen datums gevonden in PDF.";
@@ -46,7 +71,6 @@
         // Zoek dichtstbijzijnde toekomstige datum
         const vandaag = new Date();
         const dichtstbij = alleDatums
-          .map(d => ({ raw: d, date: new Date(d.split("/").reverse().join("-")) }))
           .filter(d => d.date >= vandaag)
           .sort((a, b) => a.date - b.date)[0];
 
@@ -55,15 +79,17 @@
           return;
         }
 
-        // Zoek stuk tekst rond die datum
+        // Zoek stuk tekst rond die datum (ongeveer 200 tekens)
         const zoekVenster = tekst.substring(
           tekst.indexOf(dichtstbij.raw),
           tekst.indexOf(dichtstbij.raw) + 200
         );
 
+        // Resultaat tonen
         document.getElementById("status").textContent = `Ploegen voor ${dichtstbij.raw}:`;
         document.getElementById("ploegen-container").innerHTML =
           "<pre>" + zoekVenster + "</pre>";
+
       } catch (error) {
         console.error(error);
         document.getElementById("status").textContent = "Fout bij laden PDF.";
