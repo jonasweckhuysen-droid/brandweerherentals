@@ -60,6 +60,47 @@ footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; bor
       <p>Interne app</p>
     </div>
   </div>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Cyclus van de ploegen
+    const cyclus = ["A1", "B1", "C1", "A2", "B2", "C2"];
+
+    // Referentiedatum: een vrijdag om 12:00 uur waarbij ploeg A1 startte
+    // Pas deze datum aan naar jouw werkelijke startmoment
+    const referentie = new Date("2025-01-03T12:00:00");  // een vrijdag 3 januari 2025 om 12u
+
+    function currentPloegVanWeek() {
+      const now = new Date();
+      // Bereken hoeveel gehele weken zijn verlopen sinds referentie
+      const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+      // We willen dat op vrijdag 12:00 het switch-moment is, dus als het vóór vrijdag 12u is in die week,
+      // blijven we in de vorige ploeg.
+      const diffMs = now - referentie;
+      const weeksElapsed = Math.floor(diffMs / msPerWeek);
+
+      // Maar we moeten rekening houden met de tijd binnen de week:
+      // Vind het begin van de huidige week (vrijdag 12:00) als pivot.
+      // Eenvoudige benadering: deel in hele weken zoals hierboven.
+
+      const index = ((weeksElapsed % cyclus.length) + cyclus.length) % cyclus.length;
+      return cyclus[index];
+    }
+
+    // Toon in de header (aannemende dat je header een element hebt met id "ploegOfWeek" of iets dergelijks)
+    const header = document.querySelector("header");
+    if (header) {
+      const span = document.createElement("span");
+      span.id = "ploegOfWeek";
+      span.style.marginLeft = "12px";
+      span.style.fontWeight = "600";
+      span.style.fontSize = "14px";
+      span.style.color = "#fff";  // of een passende kleur
+      span.textContent = "Ploeg van de week: " + currentPloegVanWeek();
+      header.appendChild(span);
+    }
+  });
+</script>
+
   <div id="datetime"></div>
 </header>
 <main class="content">
@@ -171,5 +212,6 @@ if (isIOS && !isInStandalone && !localStorage.getItem('iosInstallHintShown')) {
 </script>
 </body>
 </html>
+
 
 
