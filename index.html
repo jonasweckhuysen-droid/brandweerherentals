@@ -132,7 +132,7 @@ function updateHeader() {
   const now = new Date();
   const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' };
   datetimeEl.textContent = now.toLocaleString('nl-BE', options); // datum boven
-  ploegEl.textContent = "Ploeg van de week: " + currentPloegVanWeek(); // ploeg eronder
+  ploegEl.textContent = "Ploeg van week: " + currentPloegVanWeek(); // ploeg eronder
 }
 
 setInterval(updateHeader, 1000);
@@ -192,4 +192,5 @@ if (isIOS && !isInStandalone && !localStorage.getItem('iosInstallHintShown')) {
 </script>
 </body>
 </html>
+
 
