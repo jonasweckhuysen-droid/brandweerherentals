@@ -118,188 +118,115 @@
       <div id="wespenList">Laden…</div>
     </main>
     <footer>
-      <div class="small">Versie 1.0 —</div>
+      <div class="small">Versie 1.1 —</div>
       <div class="small">Laatste update: <span id="today"></span></div>
     </footer>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("today").textContent =
-        new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("today").textContent =
+      new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-      const pdfUrl = "/brandweerherentals/data/wespen.pdf"; // jouw lokale pdf
-      const maanden = {
-        januari:0, februari:1, maart:2, april:3, mei:4, juni:5,
-        juli:6, augustus:7, september:8, oktober:9, november:10, december:11
-      };
-      const weekdays = ['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag',
-                        'ma','di','wo','do','vr','za','zo'];
+    const pdfUrl = "/brandweerherentals/data/wespen.pdf"; // PDF pad
+    const maanden = { januari:0,februari:1,maart:2,april:3,mei:4,juni:5,juli:6,augustus:7,september:8,oktober:9,november:10,december:11 };
+    const weekdays = ['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag','ma','di','wo','do','vr','za','zo'];
 
-      // lees PDF en retourneer één lange 'tekst' (woorden in leesvolgorde, met spaties)
-      async function getPdfText(url) {
-        const pdf = await pdfjsLib.getDocument(url).promise;
-        let out = [];
-        for (let p=1; p<=pdf.numPages; p++){
-          const page = await pdf.getPage(p);
-          const content = await page.getTextContent();
-          // content.items is array van kleine stukken; bewaar ze in volgorde
-          const words = content.items.map(it => it.str);
-          out = out.concat(words);
-        }
-        // return tokens array (woorden), en ook original plain string
-        return {
-          tokens: out,
-          text: out.join(" ")
-        };
+    async function getPdfText(url) {
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      let out = [];
+      for (let p=1;p<=pdf.numPages;p++){
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        out = out.concat(content.items.map(it=>it.str));
       }
+      return { tokens: out, text: out.join(" ") };
+    }
 
-      // detecteer datum op token-niveau: twee varianten:
-      // A) weekday day month year  => tokens[i], tokens[i+1], tokens[i+2], tokens[i+3]
-      // B) day month year (geen weekday) => tokens[i], tokens[i+1], tokens[i+2]
-      function findDatesInTokens(tokens) {
-        const found = [];
-        for (let i=0;i<tokens.length;i++){
-          const t = tokens[i].toLowerCase().replace(/[,:]/g,'').trim();
-          // variant A
-          if (weekdays.includes(t) && i+3 < tokens.length){
-            const day = tokens[i+1].replace(/[^\d]/g,'');
-            const monthWord = tokens[i+2].toLowerCase().replace(/[.,]/g,'');
-            const year = tokens[i+3].replace(/[^\d]/g,'');
-            if (/^\d{1,2}$/.test(day) && /^[0-9]{4}$/.test(year) && maanden.hasOwnProperty(monthWord)){
-              const date = new Date(year, maanden[monthWord], parseInt(day,10));
-              found.push({ index:i, raw: `${tokens[i]} ${tokens[i+1]} ${tokens[i+2]} ${tokens[i+3]}`, date });
-              i += 3; // skip ahead
-              continue;
-            }
-          }
-          // variant B (no weekday)
-          if (i+2 < tokens.length){
-            const day = tokens[i].replace(/[^\d]/g,'');
-            const monthWord = tokens[i+1].toLowerCase().replace(/[.,]/g,'');
-            const year = tokens[i+2].replace(/[^\d]/g,'');
-            if (/^\d{1,2}$/.test(day) && monthsHas(monthWord) && /^[0-9]{4}$/.test(year)){
-              const date = new Date(year, maanden[monthWord], parseInt(day,10));
-              found.push({ index:i, raw: `${tokens[i]} ${tokens[i+1]} ${tokens[i+2]}`, date });
-              i += 2;
-              continue;
-            }
+    function findDatesInTokens(tokens){
+      const found = [];
+      for (let i=0;i<tokens.length;i++){
+        const t = tokens[i].toLowerCase().replace(/[,:]/g,'').trim();
+        if (weekdays.includes(t) && i+3<tokens.length){
+          const day = tokens[i+1].replace(/[^\d]/g,'');
+          const monthWord = tokens[i+2].toLowerCase().replace(/[.,]/g,'');
+          const year = tokens[i+3].replace(/[^\d]/g,'');
+          if(/^\d{1,2}$/.test(day) && /^[0-9]{4}$/.test(year) && maanden.hasOwnProperty(monthWord)){
+            const date = new Date(year, maanden[monthWord], parseInt(day,10));
+            found.push({ index:i, raw:`${tokens[i]} ${tokens[i+1]} ${tokens[i+2]} ${tokens[i+3]}`, date });
+            i+=3; continue;
           }
         }
-        return found;
-      }
-
-      function monthsHas(monthWord) {
-        return Object.prototype.hasOwnProperty.call(maanden, monthWord);
-      }
-
-      // uit chunk (tokens tussen dateIdx en nextDateIdx) halen we kolom2..6
-      // heuristiek: eerste token after date = ploegcode. Resterende tokens -> verdeel in 4 groepen (kolom3..6).
-      function parseRowFromChunk(tokens, dateStartIdx, nextDateStartIdx) {
-        const start = dateStartIdx;
-        const afterDateIdx = start + 4; // safe upper bound (weekday+dd+month+yyyy). If date was shorter, we'll still be ok.
-        const sliceStart = afterDateIdx;
-        const sliceEnd = (nextDateStartIdx === null) ? tokens.length : nextDateStartIdx;
-        let rest = tokens.slice(sliceStart, sliceEnd).map(s => s.trim()).filter(Boolean);
-        if (rest.length === 0) return null;
-        // first token is ploegcode
-        const ploegcode = rest[0] || "";
-        // remaining tokens are names etc
-        let namesTokens = rest.slice(1);
-        // if namesTokens is empty, fallback: maybe date detection used shorter form; try shift start back
-        if (namesTokens.length === 0 && sliceStart-1 >=0) {
-          // try grabbing tokens from sliceStart-1 onward (in case date was only 3 tokens)
-          namesTokens = tokens.slice(sliceStart-1, sliceEnd).map(s=>s.trim()).filter(Boolean).slice(1);
+        if(i+2<tokens.length){
+          const day = tokens[i].replace(/[^\d]/g,'');
+          const monthWord = tokens[i+1].toLowerCase().replace(/[.,]/g,'');
+          const year = tokens[i+2].replace(/[^\d]/g,'');
+          if(/^\d{1,2}$/.test(day) && /^[0-9]{4}$/.test(year) && maanden.hasOwnProperty(monthWord)){
+            const date = new Date(year, maanden[monthWord], parseInt(day,10));
+            found.push({ index:i, raw:`${tokens[i]} ${tokens[i+1]} ${tokens[i+2]}`, date });
+            i+=2; continue;
+          }
         }
-        // divide namesTokens into 4 groups (kolom3..6)
-        const groups = [];
-        const count = namesTokens.length;
-        const per = Math.max(1, Math.ceil(count / 4));
-        let idx = 0;
-        for (let g=0; g<4; g++){
-          const part = namesTokens.slice(idx, idx+per).join(" ");
-          groups.push(part.trim());
-          idx += per;
-        }
-        return {
-          ploegcode,
-          names: groups // array of 4 strings (may be empty)
-        };
       }
+      return found;
+    }
 
-      // hoofdflow
-      (async function(){
-        const output = document.getElementById("wespenList");
-        try {
-          const { tokens, text } = await getPdfText(pdfUrl);
-          if (!tokens || tokens.length === 0){
-            output.innerHTML = "<p>Geen tekst uit PDF kunnen lezen (lege PDF of niet toegankelijk).</p>";
-            return;
-          }
+    function parseRowFromChunk(tokens, dateStartIdx, nextDateStartIdx){
+      const afterDateIdx = dateStartIdx+4;
+      const sliceEnd = nextDateStartIdx===null ? tokens.length : nextDateStartIdx;
+      const rest = tokens.slice(afterDateIdx, sliceEnd).map(s=>s.trim()).filter(Boolean);
+      if(!rest.length) return null;
+      const ploegcode = rest[0]||"";
+      const namesTokens = rest.slice(1);
+      const groups=[]; let idx=0;
+      const per = Math.max(1,Math.ceil(namesTokens.length/4));
+      for(let g=0;g<4;g++){
+        const part = namesTokens.slice(idx, idx+per).join(" ");
+        groups.push(part.trim());
+        idx+=per;
+      }
+      return { ploegcode, names:groups };
+    }
 
-          // Vind alle datum-plaatsen in tokens
-          const foundDates = findDatesInTokens(tokens);
-          if (!foundDates || foundDates.length === 0) {
-            output.innerHTML = "<p>Geen datums gevonden in het document (controleer op 'maandag 1 november 2025' of '1 november 2025').</p>";
-            return;
-          }
-
-          // Sorteer en filter toekomstige
-          const today = new Date(); today.setHours(0,0,0,0);
-          const futureDates = foundDates
-            .filter(f => f.date >= today)
-            .sort((a,b)=> a.date - b.date);
-
-          if (futureDates.length === 0) {
-            output.innerHTML = "<p>Geen toekomstige ploegdagen meer.</p>";
-            return;
-          }
-
-          // kies eerste toekomstige
-          const next = futureDates[0];
-          // find index of this foundDates item inside tokens (we already have index)
-          const idx = next.index;
-          // find next date start idx if any
-          const nextIdxObj = futureDates[1] || null;
-          const nextIdx = nextIdxObj ? nextIdxObj.index : null;
-
-          // parse chunk to extract ploegcode + 4 names (heuristiek)
-          const row = parseRowFromChunk(tokens, idx, nextIdx);
-
-          if (!row) {
-            output.innerHTML = "<p>Geen ploeggegevens gevonden rond de datum.</p>";
-            return;
-          }
-
-          // build HTML table display
-          const dateDisplay = next.raw;
-          const html = `
-            <div class="event">
-              <div class="event-date">${dateDisplay}</div>
-              <div class="event-title">Ploegcode: ${escapeHtml(row.ploegcode)}</div>
-              <div class="event-desc">
-                <table class="wespen">
-                  <tr><td class="col-head">Ploeg 1 - lid 1</td><td>${escapeHtml(row.names[0]||'')}</td></tr>
-                  <tr><td class="col-head">Ploeg 1 - lid 2</td><td>${escapeHtml(row.names[1]||'')}</td></tr>
-                  <tr><td class="col-head">Ploeg 2 - lid 1</td><td>${escapeHtml(row.names[2]||'')}</td></tr>
-                  <tr><td class="col-head">Ploeg 2 - lid 2</td><td>${escapeHtml(row.names[3]||'')}</td></tr>
-                </table>
-              </div>
+    (async function(){
+      const output = document.getElementById("wespenList");
+      try{
+        const { tokens } = await getPdfText(pdfUrl);
+        if(!tokens || !tokens.length){
+          output.innerHTML="<p>Geen tekst uit PDF kunnen lezen (lege PDF of niet toegankelijk).</p>";
+          return;
+        }
+        const foundDates = findDatesInTokens(tokens);
+        if(!foundDates.length){
+          output.innerHTML="<p>Geen datums gevonden in het document.</p>";
+          return;
+        }
+        const today = new Date(); today.setHours(0,0,0,0);
+        const futureDates = foundDates.filter(f=>f.date>=today).sort((a,b)=>a.date-b.date);
+        if(!futureDates.length){ output.innerHTML="<p>Geen toekomstige ploegdagen meer.</p>"; return; }
+        const next = futureDates[0];
+        const nextIdx = futureDates[1] ? futureDates[1].index : null;
+        const row = parseRowFromChunk(tokens,next.index,nextIdx);
+        if(!row){ output.innerHTML="<p>Geen ploeggegevens gevonden rond de datum.</p>"; return; }
+        const html = `
+          <div class="event">
+            <div class="event-date">${next.raw}</div>
+            <div class="event-title">Ploegcode: ${escapeHtml(row.ploegcode)}</div>
+            <div class="event-desc">
+              <table class="wespen">
+                <tr><td class="col-head">Ploeg 1 - lid 1</td><td>${escapeHtml(row.names[0]||'')}</td></tr>
+                <tr><td class="col-head">Ploeg 1 - lid 2</td><td>${escapeHtml(row.names[1]||'')}</td></tr>
+                <tr><td class="col-head">Ploeg 2 - lid 1</td><td>${escapeHtml(row.names[2]||'')}</td></tr>
+                <tr><td class="col-head">Ploeg 2 - lid 2</td><td>${escapeHtml(row.names[3]||'')}</td></tr>
+              </table>
             </div>
-          `;
-          output.innerHTML = html;
+          </div>`;
+        output.innerHTML=html;
+      }catch(err){ console.error(err); output.innerHTML="<p>Kon PDF niet laden of parsen.</p>"; }
+    })();
 
-        } catch (err) {
-          console.error("Fout bij inlezen/parsEN PDF:", err);
-          output.innerHTML = "<p>Kon PDF niet laden of parsen. Controleer console voor details.</p>";
-        }
-      })();
-
-      function escapeHtml(s){
-        return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      }
-
-    });
+    function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  });
   </script>
 </body>
 </html>
