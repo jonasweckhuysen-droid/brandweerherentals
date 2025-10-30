@@ -1,35 +1,32 @@
-const CACHE_NAME = "firecrew-cache-" + Date.now();
+const CACHE_NAME = "firecrew-cache-v2";
 const urlsToCache = [
   "/brandweerherentals/",
   "/brandweerherentals/index.html",
   "/brandweerherentals/manifest.json",
   "/brandweerherentals/icons/icon-192x192-round.png",
   "/brandweerherentals/icons/icon-512x512-round.png",
-  "/brandweerherentals/bestellingen.html"
+  "/brandweerherentals/bestellingen.html",
+  "https://agenda-proxy.onrender.com/agenda.ics"
 ];
 
-// Installatie: cache de bestanden
+// Installatie: bestanden vooraf cachen
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
       for (const url of urlsToCache) {
         try {
-          const response = await fetch(url);
-          if (response.ok) {
-            await cache.put(url, response);
-          } else {
-            console.warn("⚠️ Niet gecachet (status " + response.status + "):", url);
-          }
+          const response = await fetch(url, { cache: "no-store" });
+          if (response.ok) await cache.put(url, response);
         } catch (err) {
-          console.warn("⚠️ Fout bij cachen:", url, err);
+          console.warn("⚠️ Niet gecachet:", url, err);
         }
       }
     })
   );
 });
 
-// Activatie: verwijder oude caches
+// Activatie: oude caches opruimen
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -38,23 +35,36 @@ self.addEventListener("activate", event => {
   );
 });
 
-// Fetch: eerst netwerk, dan cache
+// Fetch: eerst cache tonen, dan netwerk verversen
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
-        }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return response;
+  const url = event.request.url;
+
+  // Alleen onze relevante bestanden cachen
+  if (
+    urlsToCache.some(u => url.includes(u)) ||
+    url.endsWith(".ics") ||
+    url.includes("/brandweerherentals/")
+  ) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async cache => {
+        const cachedResponse = await cache.match(event.request);
+        const fetchPromise = fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse.ok) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(() => cachedResponse);
+
+        // Toon snel cached versie, ververs stilletjes
+        return cachedResponse || fetchPromise;
       })
-      .catch(() => caches.match(event.request))
-  );
+    );
+  }
 });
 
-// Luister naar skipWaiting-commando
+// SkipWaiting vanuit client
 self.addEventListener("message", event => {
   if (event.data && event.data.action === "skipWaiting") {
     self.skipWaiting();
