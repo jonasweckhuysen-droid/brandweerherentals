@@ -1,102 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wespenploegen</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wespen — Brandweer Herentals</title>
+  <link rel="manifest" href="/brandweerherentals/manifest.json">
+  <meta name="theme-color" content="#c71f1f">
+  <style>
+    :root {
+      --red: #c71f1f;
+      --dark: #111;
+      --light: #fff;
+      --muted: #f6f6f6;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html, body { margin:0; padding:0; height:100%; }
+    body {
+      background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
+      display:flex;
+      justify-content:center;
+      padding:20px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .container {
+      width:100%;
+      max-width:780px;
+      background: var(--light);
+      border-radius:18px;
+      border:4px solid var(--red);
+      box-shadow:0 8px 30px rgba(0,0,0,0.08);
+      overflow:hidden;
+    }
+    header {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:18px;
+      background: linear-gradient(90deg, var(--red), #8f1515);
+      color: var(--light);
+    }
+    header .logo {
+      width:52px;
+      height:52px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.08);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:20px;
+    }
+    header h1 { margin:0; font-size:18px; }
+    header p { margin:0; font-size:12px; opacity:0.9; }
+    .content { padding:18px; }
+    .event {
+      background: var(--muted);
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:12px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .event-date {
+      font-weight:700;
+      color:var(--red);
+      font-size:15px;
+    }
+    footer {
+      padding:12px 18px;
+      font-size:13px;
+      color:#444;
+      background:#fff;
+      border-top:1px solid #eee;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    a.back {
+      display:inline-block;
+      color:var(--red);
+      font-weight:700;
+      text-decoration:none;
+      margin-bottom:12px;
+    }
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
-  <div class="container">
+  <div class="container" role="application" aria-label="Wespenplanning Herentals">
     <header>
-      <h1>Brandweer Herentals</h1>
-    </header>
-
-    <main>
-      <div class="menu">
-        <a href="agenda.html" class="menu-button">Agenda</a>
-        <a href="bestellingen.html" class="menu-button">Bestellingen</a>
-        <a href="wegenwerken.html" class="menu-button">Wegenwerken</a>
-        <a href="wespen.html" class="menu-button active">Wespen</a>
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <h1>Wespenverdelging</h1>
+        <p>Wie staat op voor de volgende dag</p>
       </div>
-
-      <section class="content">
-        <h2>Wespenverdelging</h2>
-        <p id="status">Laden van ploegen...</p>
-        <div id="ploegen-container" class="card"></div>
-      </section>
+    </header>
+    <main class="content">
+      <a href="/brandweerherentals/" class="back">← Terug naar start</a>
+      <div id="wespenList">Laden…</div>
     </main>
-
     <footer>
-      <p>&copy; 2025 Fire Crew Herentals</p>
+      <div class="small">Versie 1.0 —</div>
+      <div class="small">Laatste update: <span id="today"></span></div>
     </footer>
   </div>
 
   <script>
-    const pdfUrl = "data/wespen.pdf";
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("today").textContent =
+        new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-    // Maanden in het Nederlands omzetten naar nummer
-    const maanden = {
-      januari: 0, februari: 1, maart: 2, april: 3, mei: 4, juni: 5,
-      juli: 6, augustus: 7, september: 8, oktober: 9, november: 10, december: 11
-    };
+      const pdfUrl = "/brandweerherentals/data/wespen.pdf";
 
-    async function leesPDF() {
-      try {
-        const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
-        let tekst = "";
+      const maanden = {
+        januari: 0, februari: 1, maart: 2, april: 3, mei: 4, juni: 5,
+        juli: 6, augustus: 7, september: 8, oktober: 9, november: 10, december: 11
+      };
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          tekst += content.items.map(item => item.str).join(" ");
+      async function leesPDF() {
+        const list = document.getElementById("wespenList");
+        try {
+          const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+          let tekst = "";
+
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            tekst += content.items.map(it => it.str).join(" ");
+          }
+
+          // Tekst normaliseren
+          tekst = tekst.replace(/\s+/g, " ").trim();
+
+          // Herken "maandag 1 november 2025" of "ma 1 november 2025"
+          const regex = /(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|ma|di|wo|do|vr|za|zo)\s+(\d{1,2})\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+(\d{4})/gi;
+          const alleDatums = [...tekst.matchAll(regex)].map(m => ({
+            raw: m[0],
+            date: new Date(m[4], maanden[m[3].toLowerCase()], m[2])
+          }));
+
+          if (alleDatums.length === 0) {
+            list.innerHTML = "<p>Geen datums gevonden in het document.</p>";
+            return;
+          }
+
+          const vandaag = new Date();
+          const dichtstbij = alleDatums.filter(d => d.date >= vandaag).sort((a,b) => a.date - b.date)[0];
+
+          if (!dichtstbij) {
+            list.innerHTML = "<p>Geen toekomstige ploegdagen meer.</p>";
+            return;
+          }
+
+          // Zoek de namen rond die datum in de tekst
+          const index = tekst.indexOf(dichtstbij.raw);
+          const context = tekst.substring(index, index + 200);
+
+          list.innerHTML = `
+            <div class="event">
+              <div class="event-date">${dichtstbij.raw}</div>
+              <div class="event-title">Ingelogde ploegen:</div>
+              <div class="event-desc">${context.replace(dichtstbij.raw, "").trim()}</div>
+            </div>
+          `;
+        } catch (err) {
+          console.error("Fout bij PDF:", err);
+          list.innerHTML = "<p>Kon PDF niet laden.</p>";
         }
-
-        // Tekst opschonen
-        tekst = tekst.replace(/\s+/g, " ").trim();
-
-        // Herken datums zoals "1 november 2025"
-        const regex = /(\d{1,2})\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+(\d{4})/gi;
-        const alleDatums = [...tekst.matchAll(regex)].map(m => ({
-          raw: m[0],
-          date: new Date(m[3], maanden[m[2].toLowerCase()], m[1])
-        }));
-
-        if (alleDatums.length === 0) {
-          document.getElementById("status").textContent = "Geen datums gevonden in PDF.";
-          return;
-        }
-
-        // Zoek dichtstbijzijnde toekomstige datum
-        const vandaag = new Date();
-        const dichtstbij = alleDatums
-          .filter(d => d.date >= vandaag)
-          .sort((a, b) => a.date - b.date)[0];
-
-        if (!dichtstbij) {
-          document.getElementById("status").textContent = "Geen toekomstige ploegen gevonden.";
-          return;
-        }
-
-        // Zoek stuk tekst rond die datum (ongeveer 200 tekens)
-        const zoekVenster = tekst.substring(
-          tekst.indexOf(dichtstbij.raw),
-          tekst.indexOf(dichtstbij.raw) + 200
-        );
-
-        // Resultaat tonen
-        document.getElementById("status").textContent = `Ploegen voor ${dichtstbij.raw}:`;
-        document.getElementById("ploegen-container").innerHTML =
-          "<pre>" + zoekVenster + "</pre>";
-
-      } catch (error) {
-        console.error(error);
-        document.getElementById("status").textContent = "Fout bij laden PDF.";
       }
-    }
 
-    leesPDF();
+      leesPDF();
+    });
   </script>
 </body>
 </html>
