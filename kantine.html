@@ -7,11 +7,30 @@
 <link rel="stylesheet" href="/brandweerherentals/kantine.css">
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
+<style>
+/* Extra meldingskadertjes */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #c71f1f;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  display: none;
+}
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
+.toast.info { background: #ffc107; color: #111; }
+</style>
 </head>
 <body>
 <div class="container">
   <header>Kantine — Bestelling</header>
-  <a href="/brandweerherentals/" class="back">← Terug naar start</a>
 
   <main>
     <div class="product-grid" id="productGrid"></div>
@@ -26,84 +45,58 @@
   <footer>Brandweer Herentals — Kantinebeheer</footer>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+// 🌐 Google Apps Script Web App URL
 const webAppUrl = "https://script.google.com/macros/s/AKfycbyJ-dqNiQ7Z187DIidfJahBFNB5RQcWFDQdZIxGKyzS3_Xf831SdsRSFyDxPFLQcTE/exec";
 
 // Productenlijst
-let producten = [
-  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png", stock: 0 },
-  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png", stock: 0 },
-  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png", stock: 0 },
-  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png", stock: 0 },
-  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png", stock: 0 },
-  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png", stock: 0 }
+const producten = [
+  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png" },
+  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png" },
+  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png" },
+  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png" },
+  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png" },
+  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png" }
 ];
 
 const grid = document.getElementById("productGrid");
 const cartList = document.getElementById("cartList");
 const confirmBtn = document.getElementById("confirmOrder");
+const toast = document.getElementById("toast");
+
 let cart = {};
 
-// 🧃 Haal actuele stock op bij laden
-async function fetchStock() {
-  try {
-    const res = await fetch(webAppUrl);
-    const data = await res.json();
-    // Stock updaten in producten array
-    producten.forEach(p => {
-      const prod = data.find(d => d.name === p.naam);
-      p.stock = prod ? prod.stock : 0;
-    });
-    renderProducts();
-  } catch(err) {
-    console.error("Kan stock niet laden:", err);
-  }
-}
-
 // 🧃 Producten tonen
-function renderProducts() {
-  grid.innerHTML = "";
-  producten.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="${p.img}" alt="${p.naam}">
-      <h3>${p.naam}</h3>
-      <p>€${p.prijs.toFixed(2)} | Voorraad: ${p.stock}</p>
-      <div class="controls">
-        <button class="minus">−</button>
-        <span>0</span>
-        <button class="plus">+</button>
-      </div>
-    `;
+producten.forEach(p => {
+  const card = document.createElement("div");
+  card.className = "product-card";
+  card.innerHTML = `
+    <img src="${p.img}" alt="${p.naam}">
+    <h3>${p.naam}</h3>
+    <p>€${p.prijs.toFixed(2)}</p>
+    <div class="controls">
+      <button class="minus">−</button>
+      <span>0</span>
+      <button class="plus">+</button>
+    </div>
+  `;
 
-    const countEl = card.querySelector("span");
-    const minusBtn = card.querySelector(".minus");
-    const plusBtn = card.querySelector(".plus");
+  const countEl = card.querySelector("span");
+  const minusBtn = card.querySelector(".minus");
+  const plusBtn = card.querySelector(".plus");
 
-    plusBtn.onclick = () => {
-      if (cart[p.naam] >= p.stock) return alert("Niet genoeg voorraad!");
-      cart[p.naam] = (cart[p.naam] || 0) + 1;
-      updateCart();
-    };
+  plusBtn.onclick = () => { cart[p.naam] = (cart[p.naam] || 0) + 1; updateCart(); };
+  minusBtn.onclick = () => { if(cart[p.naam]) { cart[p.naam]--; if(cart[p.naam]<=0) delete cart[p.naam]; updateCart(); } };
 
-    minusBtn.onclick = () => {
-      if (cart[p.naam]) {
-        cart[p.naam]--;
-        if (cart[p.naam] <= 0) delete cart[p.naam];
-        updateCart();
-      }
-    };
-
-    grid.appendChild(card);
-  });
-}
+  grid.appendChild(card);
+});
 
 // 🧾 Winkelmandje bijwerken
 function updateCart() {
   cartList.innerHTML = "";
   let totaal = 0;
-
   for (const [naam, aantal] of Object.entries(cart)) {
     const product = producten.find(p => p.naam === naam);
     const subtotaal = product.prijs * aantal;
@@ -117,62 +110,57 @@ function updateCart() {
     cartList.appendChild(li);
   }
 
-  if (totaal === 0) {
-    cartList.innerHTML = "<li>Geen producten geselecteerd.</li>";
-    confirmBtn.disabled = true;
-  } else {
+  if(totaal===0) { cartList.innerHTML="<li>Geen producten geselecteerd.</li>"; confirmBtn.disabled=true; }
+  else {
     const totalLi = document.createElement("li");
     totalLi.innerHTML = `<strong>Totaal</strong><span><strong>€${totaal.toFixed(2)}</strong></span>`;
     cartList.appendChild(totalLi);
-    confirmBtn.disabled = false;
+    confirmBtn.disabled=false;
   }
-
-  // Teller in kaarten updaten
-  document.querySelectorAll(".product-card").forEach(card => {
-    const name = card.querySelector("h3").textContent;
-    const countEl = card.querySelector("span");
-    countEl.textContent = cart[name] || 0;
-  });
 }
 
-// 💾 Bestelling bevestigen
-confirmBtn.addEventListener("click", async () => {
-  if (Object.keys(cart).length === 0) return;
+// 💾 Toon meldingsbalk
+function showToast(message, type="info") {
+  toast.textContent = message;
+  toast.className = "toast " + type;
+  toast.style.display = "block";
+  setTimeout(()=>{ toast.style.display="none"; }, 3000);
+}
 
-  const naam = prompt("Vul je naam in:");
-  if (!naam) return alert("Naam verplicht!");
+// 💻 Bestelling verzenden
+confirmBtn.addEventListener("click", async () => {
+  if(Object.keys(cart).length===0) return;
+
+  const name = prompt("Vul je naam in:");
+  if(!name) { showToast("Naam verplicht!", "error"); return; }
 
   try {
-    for (const [product, quantity] of Object.entries(cart)) {
+    // Stuur bestelling naar Google Apps Script
+    for(const [product, quantity] of Object.entries(cart)){
       const response = await fetch(webAppUrl, {
         method: "POST",
-        body: JSON.stringify({ name: naam, product, quantity }),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({name, product, quantity})
       });
+
       const result = await response.json();
-      if (result.status !== "ok") throw new Error(result.message || "Fout bij verzenden");
+      if(result.status!=="ok") throw new Error(result.message||"Fout bij verzenden");
     }
 
-    // Betaalopties
+    // Betaling prompt
     const keuze = confirm("Wil je betalen via Payconiq (OK) of Cash (Annuleren)?");
-    if (keuze) {
-      window.open("https://payconiq.com", "_blank");
-    } else {
-      alert("💶 Betaling geregistreerd als contant.");
-    }
+    if(keuze) showToast("💳 Redirect naar Payconiq...", "info");
+    else showToast("💶 Betaling geregistreerd als contant", "success");
 
+    // Winkelmandje leegmaken
     cart = {};
-    await fetchStock(); // Stock bijwerken
     updateCart();
-  } catch(err) {
-    alert("Fout bij bestelling: " + err.message);
+  }
+  catch(err){
     console.error(err);
+    showToast("❌ Bestelling niet verzonden: "+err.message, "error");
   }
 });
-
-// Init
-fetchStock();
 </script>
 </body>
 </html>
-
