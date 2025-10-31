@@ -1,136 +1,92 @@
 <!doctype html>
 <html lang="nl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kantine — Brandweer Herentals</title>
-<link rel="stylesheet" href="/brandweerherentals/kantine.css">
+<link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
 <style>
-/* --- header layout gelijk aan index --- */
 :root {
-  --red: #c71f1f; --dark:#111; --light:#fff;
+  --red: #c71f1f;
+  --dark: #111;
+  --light: #fff;
+  --muted: #f6f6f6;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
-html,body{margin:0;padding:0;min-height:100%;background:linear-gradient(180deg,#fff 0%,#f8f8f8 100%);-webkit-font-smoothing:antialiased}
-.container{width:100%;max-width:780px;margin:20px auto; background:var(--light); border-radius:18px; border:4px solid var(--red); box-shadow:0 8px 30px rgba(0,0,0,.08); overflow:hidden; display:flex;flex-direction:column}
-header{display:flex;align-items:center;justify-content:space-between;padding:18px;background:linear-gradient(90deg,var(--red),#8f1515);color:var(--light)}
-.header-left{display:flex;align-items:center;gap:12px}
-.logo{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
-.header-left h1{margin:0;font-size:18px}
-.header-left p{margin:0;font-size:12px;opacity:.95}
-#header-right{text-align:right}
-#datetime{font-size:14px;opacity:.95}
-#ploegOfWeek{font-weight:600;font-size:14px;color:#fff;margin-top:2px}
-
-/* rest of page */
-main{padding:18px}
-.back-link{display:block;margin:10px 0 18px 0;color:var(--red);font-weight:700;text-decoration:none}
-.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
-.product-card{background:#fff;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);text-align:center;padding:12px}
-.product-card img{width:60px;height:60px;object-fit:contain}
-.product-card h3{margin:8px 0 4px;font-size:1em}
-.product-card p{margin:0 0 8px;color:#555}
-.controls button{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 8px;cursor:pointer;font-weight:700}
-.controls span{display:inline-block;width:28px;text-align:center;font-weight:700}
-.cart{background:#fff;margin-top:18px;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
-.cart ul{list-style:none;padding:0;margin:0}
-.cart li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}
-#cartTotal{text-align:right;font-weight:700;margin:10px 0;font-size:16px}
-#confirmOrder{width:100%;padding:10px;font-size:1em;font-weight:700;border:none;border-radius:6px;background:var(--red);color:#fff;cursor:pointer}
-footer{padding:12px 18px;font-size:13px;color:#444;background:#fff;border-top:1px solid #eee;text-align:center}
-
-/* overlay */
-.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999}
-.overlay-content{background:#fff;padding:20px;border-radius:12px;max-width:460px;width:92%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.2)}
-.overlay-content h2{margin-top:0}
-#qrCode img{width:200px;height:200px;border-radius:8px;border:2px solid var(--red);margin-top:8px}
-.notice{background:#e7f3ff;border:1px solid #90caf9;color:#0d47a1;padding:10px;border-radius:8px;margin-top:10px;font-size:.95em}
-.small-muted{font-size:0.9em;color:#666;margin-top:8px}
+html, body { margin:0; padding:0; min-height:100%; }
+body { background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%); display: flex; justify-content: center; padding: 20px; -webkit-font-smoothing: antialiased; }
+.container { width: 100%; max-width: 780px; background: var(--light); border-radius: 18px; border: 4px solid var(--red); box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; overflow: hidden; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 18px; background: linear-gradient(90deg, var(--red), #8f1515); color: var(--light); }
+.header-left { display: flex; align-items: center; gap: 12px; }
+header .logo { width: 52px; height: 52px; border-radius: 10px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; }
+header h1 { margin: 0; font-size: 18px; }
+header p { margin: 0; font-size: 12px; opacity: 0.9; }
+#header-right { text-align: right; }
+main.content { flex: 1 1 auto; padding: 18px; }
+.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; }
+.product-card { background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); text-align:center; padding:10px; }
+.product-card img { width:60px; height:60px; object-fit:contain; }
+.product-card h3 { margin:8px 0 4px; font-size:1em; }
+.product-card p { margin:0 0 8px; color:#555; }
+.controls button { background:var(--red); color:#fff; border:none; border-radius:5px; padding:4px 8px; cursor:pointer; font-weight:700; }
+.controls span { display:inline-block; width:24px; text-align:center; font-weight:700; }
+.cart { background:#fff; margin-top:20px; padding:12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+.cart ul { list-style:none; padding:0; margin:0; }
+.cart li { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #eee; }
+#cartTotal { text-align:right; font-weight:700; margin:10px 0; font-size:16px; }
+button#confirmOrder { width:100%; padding:10px; font-size:1em; font-weight:700; border:none; border-radius:6px; background:var(--red); color:#fff; cursor:pointer; }
+footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: center; align-items: center; }
+.overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:9999; }
+.overlay-content { background:#fff; padding:24px; border-radius:12px; max-width:420px; width:90%; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+.overlay-content h2 { margin-top:0; }
+.overlay-content button { margin:6px; padding:12px 20px; font-weight:700; border:none; border-radius:8px; cursor:pointer; }
+#qrCode img { margin-top:10px; width:200px; height:200px; }
+.notice { background:#e7f3ff; border:1px solid #90caf9; color:#0d47a1; padding:10px; border-radius:8px; margin-top:10px; font-size:0.95em; }
 </style>
 </head>
 <body>
-<div class="container" role="application" aria-label="Kantine Brandweer Herentals">
-  <header>
-    <div class="header-left">
-      <div class="logo" aria-hidden="true">BWH</div>
-      <div>
-        <h1>Brandweer Herentals</h1>
-        <p>Kantine — Bestellingen</p>
-      </div>
+<div class="container" role="application" aria-label="Fire Crew Herentals Kantine">
+<header>
+  <div class="header-left">
+    <div class="logo">BWH</div>
+    <div>
+      <h1>Brandweer Herentals</h1>
+      <p>Kantine</p>
     </div>
-    <div id="header-right">
-      <div id="datetime"></div>
-      <div id="ploegOfWeek"></div>
-    </div>
-  </header>
+  </div>
+ <div id="header-right"></div>
+</header>
 
-  <main>
-    <a href="/brandweerherentals/" class="back-link">← Terug naar start</a>
+<main class="content">
+  <div class="product-grid" id="productGrid"></div>
 
-    <div class="product-grid" id="productGrid" aria-live="polite"></div>
+  <div class="cart" id="cartSection">
+    <h2>🧾 Jouw bestelling</h2>
+    <ul id="cartList"></ul>
+    <div id="cartTotal"></div>
+    <button id="confirmOrder">Bevestig bestelling</button>
+  </div>
+</main>
 
-    <div class="cart" id="cartSection" aria-live="polite">
-      <h2>🧾 Jouw bestelling</h2>
-      <ul id="cartList"><li>Geen producten geselecteerd.</li></ul>
-      <div id="cartTotal"></div>
-      <button id="confirmOrder" disabled>Bevestig bestelling</button>
-      <div class="small-muted">Na bevestiging kies je de betaalmethode. De winkelkar wordt pas gewist nadat je betaalmethode gekozen hebt.</div>
-    </div>
-  </main>
-
-  <footer>Brandweer Herentals — Kantinebeheer</footer>
+<footer>Brandweer Herentals — Kantinebeheer</footer>
 </div>
 
-<!-- Overlay voor betaling -->
 <div id="paymentOverlay" class="overlay" style="display:none;">
-  <div class="overlay-content" role="dialog" aria-modal="true" aria-labelledby="payTitle">
-    <h2 id="payTitle">💳 Kies betaalmethode</h2>
-    <p id="overlayTotal" style="font-weight:700;margin:8px 0;"></p>
-
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;">
-      <button id="payPayconiq" style="background:#00b0ff;color:#fff;padding:8px 14px;border-radius:8px;border:none;font-weight:700;">Payconiq</button>
-      <button id="payCash" style="background:#ffbb00;color:#111;padding:8px 14px;border-radius:8px;border:none;font-weight:700;">Cash</button>
-      <button id="payTransfer" style="background:#00c853;color:#fff;padding:8px 14px;border-radius:8px;border:none;font-weight:700;">Overschrijving</button>
-    </div>
-
-    <div id="qrSection" style="margin-top:6px;">
-      <div id="qrCode" aria-hidden="false"></div>
-    </div>
-
+  <div class="overlay-content">
+    <h2>💳 Kies betaalmethode</h2>
+    <p id="overlayTotal" style="font-weight:700;"></p>
+    <button id="payPayconiq" style="background:#00b0ff;color:#fff;">Payconiq</button>
+    <button id="payCash" style="background:#ffbb00;color:#111;">Cash</button>
+    <button id="payTransfer" style="background:#00c853;color:#fff;">Bankoverschrijving</button>
+    <div id="qrCode"></div>
     <div id="noticeMsg"></div>
-
-    <div style="margin-top:12px;">
-      <button id="closeOverlay" style="background:#ccc;color:#111;padding:8px 14px;border-radius:8px;border:none;">Sluiten</button>
-    </div>
+    <button id="closeOverlay" style="margin-top:12px;background:#ccc;color:#111;">Sluiten</button>
   </div>
 </div>
 
 <script>
-/* ---------- Header datetime + ploeg (zelfde logica als index) ---------- */
-(function headerInit(){
-  const cyclus=["A1","B1","C1","A2","B2","C2"];
-  const referentie=new Date("2025-01-03T12:00:00");
-  function currentPloegVanWeek(){
-    const now=new Date();
-    const msPerWeek=7*24*60*60*1000;
-    const weeksElapsed=Math.floor((now - referentie)/msPerWeek);
-    const index = ((weeksElapsed % cyclus.length)+cyclus.length)%cyclus.length;
-    return cyclus[index];
-  }
-  const dtEl=document.getElementById("datetime");
-  const pEl=document.getElementById("ploegOfWeek");
-  function updateHeader(){
-    const now=new Date();
-    const opt={ weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' };
-    dtEl.textContent = now.toLocaleString('nl-BE', opt);
-    pEl.textContent = "Ploeg van week: " + currentPloegVanWeek();
-  }
-  updateHeader();
-  setInterval(updateHeader, 1000);
-})();
-
-/* ---------- Producten & cart logic ---------- */
+// Producten
 const producten = [
   { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png" },
   { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png" },
@@ -144,177 +100,63 @@ const grid = document.getElementById("productGrid");
 const cartList = document.getElementById("cartList");
 const cartTotal = document.getElementById("cartTotal");
 const confirmBtn = document.getElementById("confirmOrder");
-let cart = {}; // { "Pintje": 2, ... }
+let cart = {};
 
-// Render product cards
-function renderProducts(){
-  grid.innerHTML = "";
-  producten.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="${p.img}" alt="${p.naam}">
-      <h3>${p.naam}</h3>
-      <p>€${p.prijs.toFixed(2)}</p>
-      <div class="controls" aria-label="${p.naam} keuze">
-        <button class="minus" aria-label="verwijder één ${p.naam}">−</button>
-        <span aria-live="polite">0</span>
-        <button class="plus" aria-label="voeg één ${p.naam} toe">+</button>
-      </div>
-    `;
-    const plus = card.querySelector(".plus");
-    const minus = card.querySelector(".minus");
-    const countEl = card.querySelector("span");
+// Producten tonen
+producten.forEach(p => {
+  const card = document.createElement("div");
+  card.className="product-card";
+  card.innerHTML=`
+    <img src="${p.img}" alt="${p.naam}">
+    <h3>${p.naam}</h3>
+    <p>€${p.prijs.toFixed(2)}</p>
+    <div class="controls">
+      <button class="minus">−</button>
+      <span>0</span>
+      <button class="plus">+</button>
+    </div>
+  `;
+  const countEl = card.querySelector("span");
+  const minusBtn = card.querySelector(".minus");
+  const plusBtn = card.querySelector(".plus");
 
-    plus.addEventListener("click", () => {
-      cart[p.naam] = (cart[p.naam] || 0) + 1;
-      countEl.textContent = cart[p.naam];
-      updateCart();
-    });
-    minus.addEventListener("click", () => {
-      if (!cart[p.naam]) return;
+  plusBtn.onclick = () => {
+    cart[p.naam] = (cart[p.naam]||0) + 1;
+    countEl.textContent = cart[p.naam];
+    updateCart();
+  };
+  minusBtn.onclick = () => {
+    if(cart[p.naam]){
       cart[p.naam]--;
-      if (cart[p.naam] <= 0) {
-        delete cart[p.naam];
-        countEl.textContent = 0;
-      } else {
-        countEl.textContent = cart[p.naam];
-      }
+      if(cart[p.naam]<=0){ delete cart[p.naam]; countEl.textContent=0; } 
+      else countEl.textContent = cart[p.naam];
       updateCart();
-    });
+    }
+  };
+  grid.appendChild(card);
+});
 
-    grid.appendChild(card);
-  });
-}
-
-/* Update cart display and total */
+// Winkelmandje updaten
 function updateCart(){
-  cartList.innerHTML = "";
-  let totaal = 0;
-  const entries = Object.entries(cart);
-  if (entries.length === 0) {
-    cartList.innerHTML = "<li>Geen producten geselecteerd.</li>";
-    cartTotal.textContent = "";
-    confirmBtn.disabled = true;
-    return;
-  }
-
-  for (const [naam,aantal] of entries) {
-    const p = producten.find(x => x.naam === naam);
-    const subtotaal = p.prijs * aantal;
+  cartList.innerHTML="";
+  let totaal=0;
+  for(const [naam,aantal] of Object.entries(cart)){
+    const product = producten.find(p => p.naam===naam);
+    const subtotaal = product.prijs*aantal;
     totaal += subtotaal;
+
     const li = document.createElement("li");
-    li.innerHTML = `${aantal} × ${naam} <span>€${subtotaal.toFixed(2)}</span>`;
+    li.textContent=`${aantal} × ${naam}`;
+    const price = document.createElement("span");
+    price.textContent=`€${subtotaal.toFixed(2)}`;
+    li.appendChild(price);
     cartList.appendChild(li);
   }
 
-  const totalLi = document.createElement("li");
-  totalLi.innerHTML = `<strong>Totaal</strong> <span><strong>€${totaal.toFixed(2)}</strong></span>`;
-  cartList.appendChild(totalLi);
-
-  cartTotal.textContent = `Totaal te betalen: €${totaal.toFixed(2)}`;
-  confirmBtn.disabled = false;
-}
-
-/* ---------- Payment overlay & QR logic ---------- */
-const overlay = document.getElementById("paymentOverlay");
-const overlayTotal = document.getElementById("overlayTotal");
-const qrCodeDiv = document.getElementById("qrCode");
-const noticeMsg = document.getElementById("noticeMsg");
-const IBAN = "BE12345678901234"; // zet hier je echte IBAN (zonder spaties)
-const mededeling = "Kantine Brandweer Herentals";
-
-function buildEpcPayload(iban, amount, message){
-  // EPC QR format (basic): label lines, we include minimal required fields
-  // Use period decimal with dot, amount as e.g. 12.34
-  const amountStr = parseFloat(amount).toFixed(2);
-  // Basic EPC content
-  const lines = [
-    "BCD",
-    "002",
-    "1",
-    "SCT",
-    "",           // BIC optional (empty)
-    iban.replace(/\s+/g,''), // IBAN
-    "",           // beneficiary name (optional)
-    amountStr,
-    "EUR",
-    message || ""
-  ];
-  return lines.join("\n");
-}
-
-function showOverlayAndQR(){
-  // compute total
-  const totaal = Object.entries(cart).reduce((s,[naam,aantal])=>{
-    const p = producten.find(x=>x.naam===naam);
-    return s + (p.prijs * aantal);
-  },0);
-  overlayTotal.textContent = `💰 Totaal te betalen: €${totaal.toFixed(2)}`;
-
-  // build EPC payload and QR
-  const payload = buildEpcPayload(IBAN, totaal.toFixed(2), mededeling);
-  const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(payload);
-
-  qrCodeDiv.innerHTML = `<img src="${qrUrl}" alt="QR Betaling (overschrijving)"><div class="small-muted">Scan met je bank-app om de overschrijving te starten</div>`;
-  noticeMsg.innerHTML = "";
-  overlay.style.display = "flex";
-}
-
-/* When user confirms (opens overlay) */
-confirmBtn.addEventListener("click", () => {
-  // safety: do nothing if cart empty (button is disabled anyway)
-  if (Object.keys(cart).length === 0) return;
-  showOverlayAndQR();
-});
-
-/* Payment method handlers - these will process and then clear cart */
-document.getElementById("payPayconiq").addEventListener("click", () => {
-  // For Payconiq we show instructions (Payconiq deep links require merchant setup).
-  const totaal = overlayTotal.textContent;
-  noticeMsg.innerHTML = `<div class="notice">📲 Open je Payconiq-app en scan/of volg de instructies om <strong>${totaal}</strong> te betalen.</div>`;
-  // mark as paid and clear local cart & saved orders (simulate)
-  clearCartAfterPayment();
-});
-
-document.getElementById("payCash").addEventListener("click", () => {
-  const totaal = overlayTotal.textContent;
-  noticeMsg.innerHTML = `<div class="notice">💶 Contant ontvangen: <strong>${totaal}</strong>. Bedankt!</div>`;
-  clearCartAfterPayment();
-});
-
-document.getElementById("payTransfer").addEventListener("click", () => {
-  const totaal = overlayTotal.textContent;
-  noticeMsg.innerHTML = `<div class="notice">🏦 Maak een overschrijving naar:<br><strong>IBAN:</strong> ${IBAN}<br><strong>Mededeling:</strong> ${mededeling}<br>${totaal}</div>`;
-  clearCartAfterPayment();
-});
-
-/* Close overlay */
-document.getElementById("closeOverlay").addEventListener("click", () => {
-  overlay.style.display = "none";
-  noticeMsg.innerHTML = "";
-});
-
-/* Clear cart and persist order (simple local logging) */
-function clearCartAfterPayment(){
-  // Save order record in localStorage
-  const timestamp = new Date().toLocaleString('nl-BE');
-  const order = { tijd: timestamp, items: {...cart} };
-  const existing = JSON.parse(localStorage.getItem("kantine_bestellingen") || "[]");
-  existing.push(order);
-  localStorage.setItem("kantine_bestellingen", JSON.stringify(existing));
-
-  // clear cart UI
-  cart = {};
-  renderProducts(); // reset counters on cards
-  updateCart();
-  // keep overlay open to show notice, but disable confirm button
-  confirmBtn.disabled = true;
-}
-
-/* init */
-renderProducts();
-updateCart(); // show empty state
-</script>
-</body>
-</html>
+  if(totaal===0){
+    cartList.innerHTML="<li>Geen producten geselecteerd.</li>";
+    cartTotal.textContent="";
+    confirmBtn.disabled=true;
+  } else {
+    const totalLi = document.createElement("li");
+    totalLi.innerHTML=`<strong>Totaal</strong><span><strong>€${totaal
