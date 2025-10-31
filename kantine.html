@@ -131,7 +131,7 @@ function renderCart() {
   }
 }
 
-// 💾 Bestelling bevestigen
+// 💾 Bestelling bevestigen met betaalopties
 confirmBtn.onclick = () => {
   if (Object.keys(cart).length === 0) return;
 
@@ -145,18 +145,65 @@ confirmBtn.onclick = () => {
   // Save order
   const timestamp = new Date().toLocaleString("nl-BE");
   const bestellingen = JSON.parse(localStorage.getItem(LS_ORDERS) || "[]");
-  bestellingen.push({ tijd: timestamp, items: { ...cart } });
+  bestellingen.push({ tijd: timestamp, items: { ...cart }, betaald: null });
   localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
 
-  // ✅ Melding
-  alert("✅ Bestelling bevestigd! Stock is bijgewerkt.");
+  // ✨ Visueel kader voor betaalopties
+  const overlay = document.createElement("div");
+  overlay.style = `
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center;
+    z-index:9999;
+  `;
+  
+  const box = document.createElement("div");
+  box.style = `
+    background:#fff; padding:20px; border-radius:12px; width:90%; max-width:400px; text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  `;
+  box.innerHTML = `
+    <h2>💰 Kies betaalmethode</h2>
+    <button id="payPayconiq" style="margin:5px;padding:10px 20px;border-radius:8px;background:#c71f1f;color:white;font-weight:700;">Payconiq</button>
+    <button id="payCash" style="margin:5px;padding:10px 20px;border-radius:8px;background:#444;color:white;font-weight:700;">Cash</button>
+    <button id="payBank" style="margin:5px;padding:10px 20px;border-radius:8px;background:#0073e6;color:white;font-weight:700;">Overschrijving</button>
+    <p style="margin-top:10px;font-size:12px;color:#666;">Je bestelling is nog niet verwijderd.</p>
+  `;
+  
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 
-  // Clear cart
-  cart = {};
-  localStorage.setItem(LS_CART, "{}");
-  renderCart();
-  renderProducts();
+  // Functies voor knoppen
+  document.getElementById("payPayconiq").onclick = () => {
+    // Markeer als betaald via Payconiq
+    bestellingen[bestellingen.length-1].betaald = "Payconiq";
+    localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
+    window.open("https://payconiq.com", "_blank");
+    cleanup();
+  };
+
+  document.getElementById("payCash").onclick = () => {
+    bestellingen[bestellingen.length-1].betaald = "Cash";
+    localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
+    alert("💶 Betaling geregistreerd als contant.");
+    cleanup();
+  };
+
+  document.getElementById("payBank").onclick = () => {
+    bestellingen[bestellingen.length-1].betaald = "Overschrijving";
+    localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
+    alert("🏦 Gebruik bankoverschrijving met mededeling:\n\nKantine Brandweer Herentals");
+    cleanup();
+  };
+
+  function cleanup() {
+    cart = {};
+    localStorage.setItem(LS_CART, "{}");
+    renderCart();
+    renderProducts();
+    document.body.removeChild(overlay);
+  }
 };
+
 
 // 📥 Export stock als CSV
 exportBtn.onclick = () => {
@@ -179,3 +226,4 @@ renderCart();
 </script>
 </body>
 </html>
+
