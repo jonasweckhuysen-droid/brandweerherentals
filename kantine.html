@@ -26,17 +26,16 @@
 </div>
 
 <script>
-// Apps Script endpoint
-const endpoint = "https://script.google.com/macros/s/AKfycbyJ-dqNiQ7Z187DIidfJahBFNB5RQcWFDQdZIxGKyzS3_Xf831SdsRSFyDxPFLQcTE/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbyJ-dqNiQ7Z187DIidfJahBFNB5RQcWFDQdZIxGKyzS3_Xf831SdsRSFyDxPFLQcTE/exec";
 
 // Productenlijst
-const producten = [
-  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png" },
-  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png" },
-  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png" },
-  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png" },
-  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png" },
-  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png" }
+let producten = [
+  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png", stock: 0 },
+  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png", stock: 0 },
+  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png", stock: 0 },
+  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png", stock: 0 },
+  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png", stock: 0 },
+  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png", stock: 0 }
 ];
 
 const grid = document.getElementById("productGrid");
@@ -44,39 +43,71 @@ const cartList = document.getElementById("cartList");
 const confirmBtn = document.getElementById("confirmOrder");
 let cart = {};
 
-// Producten tonen
-producten.forEach(p => {
-  const card = document.createElement("div");
-  card.className = "product-card";
-  card.innerHTML = `
-    <img src="${p.img}" alt="${p.naam}">
-    <h3>${p.naam}</h3>
-    <p>€${p.prijs.toFixed(2)}</p>
-    <div class="controls">
-      <button class="minus">−</button>
-      <span>0</span>
-      <button class="plus">+</button>
-    </div>
-  `;
+// 🧃 Haal actuele stock op bij laden
+async function fetchStock() {
+  try {
+    const res = await fetch(webAppUrl);
+    const data = await res.json();
+    // Stock updaten in producten array
+    producten.forEach(p => {
+      const prod = data.find(d => d.name === p.naam);
+      p.stock = prod ? prod.stock : 0;
+    });
+    renderProducts();
+  } catch(err) {
+    console.error("Kan stock niet laden:", err);
+  }
+}
 
-  const countEl = card.querySelector("span");
-  const minusBtn = card.querySelector(".minus");
-  const plusBtn = card.querySelector(".plus");
+// 🧃 Producten tonen
+function renderProducts() {
+  grid.innerHTML = "";
+  producten.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <img src="${p.img}" alt="${p.naam}">
+      <h3>${p.naam}</h3>
+      <p>€${p.prijs.toFixed(2)} | Voorraad: ${p.stock}</p>
+      <div class="controls">
+        <button class="minus">−</button>
+        <span>0</span>
+        <button class="plus">+</button>
+      </div>
+    `;
 
-  plusBtn.onclick = () => { cart[p.naam] = (cart[p.naam]||0)+1; updateCart(); };
-  minusBtn.onclick = () => { if(cart[p.naam]) { cart[p.naam]--; if(cart[p.naam]<=0) delete cart[p.naam]; updateCart(); } };
+    const countEl = card.querySelector("span");
+    const minusBtn = card.querySelector(".minus");
+    const plusBtn = card.querySelector(".plus");
 
-  grid.appendChild(card);
-});
+    plusBtn.onclick = () => {
+      if (cart[p.naam] >= p.stock) return alert("Niet genoeg voorraad!");
+      cart[p.naam] = (cart[p.naam] || 0) + 1;
+      updateCart();
+    };
 
-// Winkelmandje bijwerken
+    minusBtn.onclick = () => {
+      if (cart[p.naam]) {
+        cart[p.naam]--;
+        if (cart[p.naam] <= 0) delete cart[p.naam];
+        updateCart();
+      }
+    };
+
+    grid.appendChild(card);
+  });
+}
+
+// 🧾 Winkelmandje bijwerken
 function updateCart() {
   cartList.innerHTML = "";
   let totaal = 0;
+
   for (const [naam, aantal] of Object.entries(cart)) {
     const product = producten.find(p => p.naam === naam);
     const subtotaal = product.prijs * aantal;
     totaal += subtotaal;
+
     const li = document.createElement("li");
     li.textContent = `${aantal} × ${naam}`;
     const price = document.createElement("span");
@@ -94,43 +125,52 @@ function updateCart() {
     cartList.appendChild(totalLi);
     confirmBtn.disabled = false;
   }
+
+  // Teller in kaarten updaten
+  document.querySelectorAll(".product-card").forEach(card => {
+    const name = card.querySelector("h3").textContent;
+    const countEl = card.querySelector("span");
+    countEl.textContent = cart[name] || 0;
+  });
 }
 
-// Bestelling bevestigen
+// 💾 Bestelling bevestigen
 confirmBtn.addEventListener("click", async () => {
   if (Object.keys(cart).length === 0) return;
 
   const naam = prompt("Vul je naam in:");
-  if (!naam) return alert("Naam is verplicht!");
-
-  const tijd = new Date().toLocaleString("nl-BE");
-  const items = Object.entries(cart).map(([product,aantal]) => ({ product, aantal }));
+  if (!naam) return alert("Naam verplicht!");
 
   try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      body: JSON.stringify({ naam, tijd, items }),
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await res.json();
-    if(data.status === "ok") {
-      alert("✅ Bestelling succesvol geregistreerd!");
-    } else {
-      alert("❌ Fout bij registratie: " + data.message);
+    for (const [product, quantity] of Object.entries(cart)) {
+      const response = await fetch(webAppUrl, {
+        method: "POST",
+        body: JSON.stringify({ name: naam, product, quantity }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const result = await response.json();
+      if (result.status !== "ok") throw new Error(result.message || "Fout bij verzenden");
     }
+
+    // Betaalopties
+    const keuze = confirm("Wil je betalen via Payconiq (OK) of Cash (Annuleren)?");
+    if (keuze) {
+      window.open("https://payconiq.com", "_blank");
+    } else {
+      alert("💶 Betaling geregistreerd als contant.");
+    }
+
+    cart = {};
+    await fetchStock(); // Stock bijwerken
+    updateCart();
   } catch(err) {
-    alert("❌ Kan bestelling niet versturen: " + err);
+    alert("Fout bij bestelling: " + err.message);
+    console.error(err);
   }
-
-  // Betaalopties
-  const betaal = confirm("Wil je betalen via Payconiq (OK) of Cash (Annuleren)?");
-  if(betaal) window.open("https://payconiq.com", "_blank");
-  else alert("💶 Betaling geregistreerd als contant.");
-
-  // Winkelmandje reset
-  cart = {};
-  updateCart();
 });
+
+// Init
+fetchStock();
 </script>
 </body>
 </html>
