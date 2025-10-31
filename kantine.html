@@ -3,81 +3,134 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kantine Bestellen — Brandweer Herentals</title>
-<link rel="stylesheet" href="/brandweerherentals/css/kantine.css">
+<title>Kantine — Brandweer Herentals</title>
+<link rel="stylesheet" href="/brandweerherentals/kantine.css">
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
 </head>
 <body>
 <div class="container">
-  <header>
-    <h1>Kantine Bestellen</h1>
-  </header>
-  <main class="content">
-    <label>Naam: <input type="text" id="name"></label>
-    <label>Product:
-      <select id="productSelect"></select>
-    </label>
-    <label>Aantal: <input type="number" id="quantity" value="1" min="1"></label>
-    <label>Betaalwijze:
-      <select id="payment">
-        <option value="cash">Cash</option>
-        <option value="payconiq">Payconiq</option>
-      </select>
-    </label>
-    <button id="orderBtn">Bestel</button>
-    <div id="msg" style="margin-top:10px;"></div>
+  <header>Kantine — Bestelling</header>
+
+  <main>
+    <div class="product-grid" id="productGrid"></div>
+
+    <div class="cart" id="cartSection">
+      <h2>🧾 Jouw bestelling</h2>
+      <ul id="cartList"></ul>
+      <button id="confirmOrder">Bevestig bestelling</button>
+    </div>
   </main>
+
+  <footer>Brandweer Herentals — Kantinebeheer</footer>
 </div>
 
 <script>
-// 📡 Apps Script endpoint
+// Apps Script endpoint
 const endpoint = "https://script.google.com/macros/s/AKfycbyJ-dqNiQ7Z187DIidfJahBFNB5RQcWFDQdZIxGKyzS3_Xf831SdsRSFyDxPFLQcTE/exec";
 
-// 🛒 Producten laden
-async function loadProducts() {
-  try {
-    const res = await fetch(endpoint);
-    const products = await res.json();
-    const sel = document.getElementById("productSelect");
-    sel.innerHTML = "";
-    products.forEach(p => {
-      const opt = document.createElement("option");
-      opt.value = p.name;
-      opt.textContent = `${p.name} (${p.stock} stuks beschikbaar)`;
-      sel.appendChild(opt);
-    });
-  } catch(err) {
-    document.getElementById("msg").textContent = "❌ Kan producten niet laden: " + err;
+// Productenlijst
+const producten = [
+  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png" },
+  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png" },
+  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png" },
+  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png" },
+  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png" },
+  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png" }
+];
+
+const grid = document.getElementById("productGrid");
+const cartList = document.getElementById("cartList");
+const confirmBtn = document.getElementById("confirmOrder");
+let cart = {};
+
+// Producten tonen
+producten.forEach(p => {
+  const card = document.createElement("div");
+  card.className = "product-card";
+  card.innerHTML = `
+    <img src="${p.img}" alt="${p.naam}">
+    <h3>${p.naam}</h3>
+    <p>€${p.prijs.toFixed(2)}</p>
+    <div class="controls">
+      <button class="minus">−</button>
+      <span>0</span>
+      <button class="plus">+</button>
+    </div>
+  `;
+
+  const countEl = card.querySelector("span");
+  const minusBtn = card.querySelector(".minus");
+  const plusBtn = card.querySelector(".plus");
+
+  plusBtn.onclick = () => { cart[p.naam] = (cart[p.naam]||0)+1; updateCart(); };
+  minusBtn.onclick = () => { if(cart[p.naam]) { cart[p.naam]--; if(cart[p.naam]<=0) delete cart[p.naam]; updateCart(); } };
+
+  grid.appendChild(card);
+});
+
+// Winkelmandje bijwerken
+function updateCart() {
+  cartList.innerHTML = "";
+  let totaal = 0;
+  for (const [naam, aantal] of Object.entries(cart)) {
+    const product = producten.find(p => p.naam === naam);
+    const subtotaal = product.prijs * aantal;
+    totaal += subtotaal;
+    const li = document.createElement("li");
+    li.textContent = `${aantal} × ${naam}`;
+    const price = document.createElement("span");
+    price.textContent = `€${subtotaal.toFixed(2)}`;
+    li.appendChild(price);
+    cartList.appendChild(li);
+  }
+
+  if (totaal === 0) {
+    cartList.innerHTML = "<li>Geen producten geselecteerd.</li>";
+    confirmBtn.disabled = true;
+  } else {
+    const totalLi = document.createElement("li");
+    totalLi.innerHTML = `<strong>Totaal</strong><span><strong>€${totaal.toFixed(2)}</strong></span>`;
+    cartList.appendChild(totalLi);
+    confirmBtn.disabled = false;
   }
 }
 
-// 📝 Bestelling versturen
-document.getElementById("orderBtn").addEventListener("click", async () => {
-  const name = document.getElementById("name").value.trim();
-  const product = document.getElementById("productSelect").value;
-  const quantity = parseInt(document.getElementById("quantity").value,10);
-  const paid = document.getElementById("payment").value;
+// Bestelling bevestigen
+confirmBtn.addEventListener("click", async () => {
+  if (Object.keys(cart).length === 0) return;
 
-  if (!name || !product || quantity < 1) return alert("Vul alles correct in!");
+  const naam = prompt("Vul je naam in:");
+  if (!naam) return alert("Naam is verplicht!");
+
+  const tijd = new Date().toLocaleString("nl-BE");
+  const items = Object.entries(cart).map(([product,aantal]) => ({ product, aantal }));
 
   try {
     const res = await fetch(endpoint, {
       method: "POST",
-      body: JSON.stringify({name, product, quantity, paid})
+      body: JSON.stringify({ naam, tijd, items }),
+      headers: { "Content-Type": "application/json" }
     });
     const data = await res.json();
-    if (data.status === "ok") {
-      document.getElementById("msg").textContent = "✅ Bestelling geplaatst!";
-      loadProducts(); // voorraad update in dropdown
+    if(data.status === "ok") {
+      alert("✅ Bestelling succesvol geregistreerd!");
     } else {
-      document.getElementById("msg").textContent = "❌ Fout: " + data.message;
+      alert("❌ Fout bij registratie: " + data.message);
     }
   } catch(err) {
-    document.getElementById("msg").textContent = "❌ Kan bestelling niet plaatsen: " + err;
+    alert("❌ Kan bestelling niet versturen: " + err);
   }
-});
 
-// Initialiseer
-loadProducts();
+  // Betaalopties
+  const betaal = confirm("Wil je betalen via Payconiq (OK) of Cash (Annuleren)?");
+  if(betaal) window.open("https://payconiq.com", "_blank");
+  else alert("💶 Betaling geregistreerd als contant.");
+
+  // Winkelmandje reset
+  cart = {};
+  updateCart();
+});
 </script>
 </body>
 </html>
