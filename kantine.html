@@ -10,6 +10,7 @@
 <body>
 <div class="container">
   <header>Kantine — Bestelling</header>
+
   <main>
     <div class="product-grid" id="productGrid"></div>
 
@@ -17,95 +18,164 @@
       <h2>🧾 Jouw bestelling</h2>
       <ul id="cartList"></ul>
       <button id="confirmOrder">Bevestig bestelling</button>
+      <button id="exportStock">📥 Export stock (CSV)</button>
     </div>
   </main>
+
   <footer>Brandweer Herentals — Kantinebeheer</footer>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwAh04hNcIIuAvlP_MnH9kXDPmGxGuYRlR1GlUMUakruBGkISSyr1-rs3o_DsAiXa79/exec"; // ← Apps Script URL
+// ✅ Productenlijst + stock (initialisatie)
+const producten = [
+  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png", stock: 20 },
+  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png", stock: 20 },
+  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png", stock: 20 },
+  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png", stock: 20 },
+  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png", stock: 20 },
+  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png", stock: 20 }
+];
 
-let producten = [];
-let cart = {};
+// 🌟 LocalStorage keys
+const LS_CART = "kantine_cart";
+const LS_STOCK = "kantine_stock";
+const LS_ORDERS = "kantine_bestellingen";
+
+// 📦 Haal stock op of initialiseer
+let stock = JSON.parse(localStorage.getItem(LS_STOCK) || "null");
+if (!stock) {
+  stock = {};
+  producten.forEach(p => stock[p.naam] = p.stock);
+  localStorage.setItem(LS_STOCK, JSON.stringify(stock));
+}
+
+// 🛒 Winkelmandje
+let cart = JSON.parse(localStorage.getItem(LS_CART) || "{}");
 
 const grid = document.getElementById("productGrid");
 const cartList = document.getElementById("cartList");
 const confirmBtn = document.getElementById("confirmOrder");
+const exportBtn = document.getElementById("exportStock");
 
-// 🌟 Haal producten + stock van Apps Script
-fetch(API_URL)
-.then(res => res.json())
-.then(data => {
-  producten = data;
-  renderProducts();
-});
-
+// 🧃 Producten tonen
 function renderProducts() {
   grid.innerHTML = "";
   producten.forEach(p => {
     const card = document.createElement("div");
     card.className = "product-card";
     card.innerHTML = `
-      <img src="/brandweerherentals/icons/drinks/${p.name.toLowerCase()}.png" alt="${p.name}">
-      <h3>${p.name}</h3>
-      <p>€1.50</p>
+      <img src="${p.img}" alt="${p.naam}">
+      <h3>${p.naam}</h3>
+      <p>€${p.prijs.toFixed(2)}</p>
+      <p>Voorraad: <span id="stock-${p.naam}">${stock[p.naam]}</span></p>
       <div class="controls">
         <button class="minus">−</button>
-        <span>0</span>
+        <span>${cart[p.naam] || 0}</span>
         <button class="plus">+</button>
       </div>
-      <p>Voorraad: ${p.stock}</p>
     `;
+
     const countEl = card.querySelector("span");
-    card.querySelector(".plus").onclick = () => {
-      if((cart[p.name]||0) < p.stock) {
-        cart[p.name] = (cart[p.name]||0)+1;
-        updateCart();
-      } else alert("❌ Niet genoeg voorraad!");
+    const minusBtn = card.querySelector(".minus");
+    const plusBtn = card.querySelector(".plus");
+
+    plusBtn.onclick = () => {
+      if (cart[p.naam] >= stock[p.naam]) {
+        alert("❌ Niet genoeg stock!");
+        return;
+      }
+      cart[p.naam] = (cart[p.naam] || 0) + 1;
+      localStorage.setItem(LS_CART, JSON.stringify(cart));
+      renderCart();
+      countEl.textContent = cart[p.naam];
     };
-    card.querySelector(".minus").onclick = () => {
-      if(cart[p.name]) { cart[p.name]--; if(cart[p.name]<=0) delete cart[p.name]; updateCart(); }
+
+    minusBtn.onclick = () => {
+      if (!cart[p.naam]) return;
+      cart[p.naam]--;
+      if (cart[p.naam] <= 0) delete cart[p.naam];
+      localStorage.setItem(LS_CART, JSON.stringify(cart));
+      renderCart();
+      countEl.textContent = cart[p.naam] || 0;
     };
+
     grid.appendChild(card);
   });
 }
 
-function updateCart() {
+// 🧾 Winkelmandje bijwerken
+function renderCart() {
   cartList.innerHTML = "";
   let totaal = 0;
-  for(const [name, qty] of Object.entries(cart)){
+  for (const [naam, aantal] of Object.entries(cart)) {
+    const product = producten.find(p => p.naam === naam);
+    const subtotaal = product.prijs * aantal;
+    totaal += subtotaal;
+
     const li = document.createElement("li");
-    li.textContent = `${qty} × ${name}`;
+    li.textContent = `${aantal} × ${naam}`;
+    const price = document.createElement("span");
+    price.textContent = `€${subtotaal.toFixed(2)}`;
+    li.appendChild(price);
     cartList.appendChild(li);
-    totaal += qty * 1.5;
   }
-  if(totaal===0){ confirmBtn.disabled=true; cartList.innerHTML="<li>Geen producten geselecteerd.</li>"; }
-  else confirmBtn.disabled=false;
+
+  if (totaal === 0) {
+    cartList.innerHTML = "<li>Geen producten geselecteerd.</li>";
+    confirmBtn.disabled = true;
+  } else {
+    const totalLi = document.createElement("li");
+    totalLi.innerHTML = `<strong>Totaal</strong><span><strong>€${totaal.toFixed(2)}</strong></span>`;
+    cartList.appendChild(totalLi);
+    confirmBtn.disabled = false;
+  }
 }
 
-// 💾 Bevestig bestelling en stuur naar Apps Script
-confirmBtn.onclick = async () => {
-  if(Object.keys(cart).length===0) return;
+// 💾 Bestelling bevestigen
+confirmBtn.onclick = () => {
+  if (Object.keys(cart).length === 0) return;
 
-  const naam = prompt("Wat is je naam?");
-  for(const [product, quantity] of Object.entries(cart)){
-    try{
-      const res = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({name: naam, product, quantity, paid: "Nee"}),
-        headers: {'Content-Type':'application/json'}
-      });
-      const result = await res.json();
-      alert(result.status==="ok" ? `✅ ${quantity}× ${product} toegevoegd!` : `❌ Fout: ${result.message}`);
-    } catch(err){
-      alert("❌ Kan bestelling niet versturen: "+err.message);
-    }
+  // Update stock
+  for (const [naam, aantal] of Object.entries(cart)) {
+    stock[naam] -= aantal;
+    if (stock[naam] < 0) stock[naam] = 0;
   }
+  localStorage.setItem(LS_STOCK, JSON.stringify(stock));
 
-  // Leeg winkelmandje
-  cart={};
-  updateCart();
+  // Save order
+  const timestamp = new Date().toLocaleString("nl-BE");
+  const bestellingen = JSON.parse(localStorage.getItem(LS_ORDERS) || "[]");
+  bestellingen.push({ tijd: timestamp, items: { ...cart } });
+  localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
+
+  // ✅ Melding
+  alert("✅ Bestelling bevestigd! Stock is bijgewerkt.");
+
+  // Clear cart
+  cart = {};
+  localStorage.setItem(LS_CART, "{}");
+  renderCart();
+  renderProducts();
 };
+
+// 📥 Export stock als CSV
+exportBtn.onclick = () => {
+  let csv = "Product,Stock\n";
+  for (const [naam, aantal] of Object.entries(stock)) {
+    csv += `${naam},${aantal}\n`;
+  }
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "kantine_stock.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ✨ Init
+renderProducts();
+renderCart();
 </script>
 </body>
 </html>
