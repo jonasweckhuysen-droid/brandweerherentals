@@ -139,58 +139,65 @@ setInterval(updateHeader, 1000);
 updateHeader();
 });
 
-// 📲 PWA installatie prompt
+<!-- 📲 Universele installatieknop -->
+<script>
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
-window.addEventListener("beforeinstallprompt", e => {
-  e.prompt();
-  deferredPrompt = e;
+
+function showInstallButton() {
   installBtn.style.display = "block";
+}
+
+// 🟢 Android & Windows (Edge, Chrome)
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton();
 });
+
 installBtn.addEventListener("click", async () => {
+  const ua = navigator.userAgent.toLowerCase();
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isEdge = ua.includes("edg");
+
+  // 🍎 iOS → handmatige uitleg
+  if (isIOS) {
+    alert("📲 Op iPhone of iPad: tik op het deel-icoon (vierkant met pijltje omhoog) en kies ‘Zet op beginscherm’ om de app te installeren.");
+    installBtn.style.display = "none";
+    return;
+  }
+
+  // 🪟 Edge → ondersteuning via beforeinstallprompt (soms vertraagd)
+  if (isEdge && !deferredPrompt) {
+    alert("ℹ️ In Microsoft Edge kan je deze app installeren via de menuknop (…) → ‘Apps’ → ‘Deze site installeren’.");
+    installBtn.style.display = "none";
+    return;
+  }
+
+  // 🤖 Android of Chrome
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log("Installatiekeuze:", outcome);
     deferredPrompt = null;
     installBtn.style.display = "none";
   }
 });
 
-// ⚙️ Service worker met update melding
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/brandweerherentals/sw.js")
-    .then(reg => {
-      console.log("✅ Service Worker geregistreerd");
-      reg.addEventListener("updatefound", () => {
-        const newWorker = reg.installing;
-        newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-            const banner = document.getElementById("updateBanner");
-            banner.style.display = "block";
-            banner.onclick = () => location.reload();
-          }
-        });
-      });
-    })
-    .catch(err => console.error("❌ SW fout:", err));
+// 🍏 iOS fallback als er geen beforeinstallprompt komt
+window.addEventListener("load", () => {
+  const ua = navigator.userAgent.toLowerCase();
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isStandalone = window.navigator.standalone === true;
 
-  let refreshing;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (refreshing) return;
-    refreshing = true;
-    window.location.reload();
-  });
-}
-
-// 🍎 iPhone/iPad melding (éénmalig)
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-const isInStandalone = window.navigator.standalone === true;
-if (isIOS && !isInStandalone && !localStorage.getItem('iosInstallHintShown')) {
-  alert("📲 Tip: Druk op het deel-icoon (vierkant met pijltje omhoog) en kies 'Zet op beginscherm' om deze app te installeren.");
-  localStorage.setItem('iosInstallHintShown', 'true');
-}
+  if (isIOS && !isStandalone && !localStorage.getItem("iosInstallHintShown")) {
+    showInstallButton();
+    localStorage.setItem("iosInstallHintShown", "true");
+  }
+});
 </script>
 </body>
 </html>
+
 
 
