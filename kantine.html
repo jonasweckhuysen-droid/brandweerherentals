@@ -5,108 +5,115 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kantine — Brandweer Herentals</title>
 <link rel="stylesheet" href="/brandweerherentals/kantine.css">
+<link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
+<style>
+/* Extra styling voor overlay en totaal */
+#cartTotal { text-align:right; font-weight:700; margin:10px 0; font-size:16px; }
+.overlay {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 9999;
+}
+.overlay-content {
+  background:#fff;
+  padding:24px;
+  border-radius:12px;
+  max-width:400px;
+  width:90%;
+  text-align:center;
+}
+.overlay-content h2 { margin-top:0; }
+.overlay-content button { margin:6px; padding:12px 20px; font-weight:700; border:none; border-radius:8px; cursor:pointer; }
+#qrCode { margin-top:12px; }
+.back-link { display:block; margin:10px 0; color:#c71f1f; font-weight:700; text-decoration:none; }
+</style>
 </head>
 <body>
 <div class="container">
-  <header>Kantine — Bestelling</header>
-<a href="/brandweerherentals/" class="back">← Terug naar start</a>
+  <header>
+    Kantine — Bestelling
+    <a href="/brandweerherentals/" class="back-link">← Terug naar start</a>
+  </header>
+
   <main>
     <div class="product-grid" id="productGrid"></div>
 
     <div class="cart" id="cartSection">
       <h2>🧾 Jouw bestelling</h2>
       <ul id="cartList"></ul>
+      <div id="cartTotal"></div>
       <button id="confirmOrder">Bevestig bestelling</button>
-      <button id="exportStock">📥 Export stock (CSV)</button>
     </div>
   </main>
 
   <footer>Brandweer Herentals — Kantinebeheer</footer>
 </div>
 
+<!-- Overlay voor betaalkeuze -->
+<div id="paymentOverlay" class="overlay" style="display:none;">
+  <div class="overlay-content">
+    <h2>💳 Kies betaalmethode</h2>
+    <button id="payPayconiq" style="background:#00b0ff;color:#fff;">Payconiq</button>
+    <button id="payCash" style="background:#ffbb00;color:#111;">Cash</button>
+    <button id="payTransfer" style="background:#00c853;color:#fff;">Bankoverschrijving</button>
+    <div id="qrCode"></div>
+    <button id="closeOverlay" style="margin-top:12px;background:#ccc;color:#111;">Sluiten</button>
+  </div>
+</div>
+
 <script>
-// ✅ Productenlijst + stock (initialisatie)
+// Productenlijst
 const producten = [
-  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png", stock: 20 },
-  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png", stock: 20 },
-  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png", stock: 20 },
-  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png", stock: 20 },
-  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png", stock: 20 },
-  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png", stock: 20 }
+  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png" },
+  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png" },
+  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png" },
+  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png" },
+  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png" },
+  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png" }
 ];
-
-// 🌟 LocalStorage keys
-const LS_CART = "kantine_cart";
-const LS_STOCK = "kantine_stock";
-const LS_ORDERS = "kantine_bestellingen";
-
-// 📦 Haal stock op of initialiseer
-let stock = JSON.parse(localStorage.getItem(LS_STOCK) || "null");
-if (!stock) {
-  stock = {};
-  producten.forEach(p => stock[p.naam] = p.stock);
-  localStorage.setItem(LS_STOCK, JSON.stringify(stock));
-}
-
-// 🛒 Winkelmandje
-let cart = JSON.parse(localStorage.getItem(LS_CART) || "{}");
 
 const grid = document.getElementById("productGrid");
 const cartList = document.getElementById("cartList");
+const cartTotal = document.getElementById("cartTotal");
 const confirmBtn = document.getElementById("confirmOrder");
-const exportBtn = document.getElementById("exportStock");
+
+let cart = {};
 
 // 🧃 Producten tonen
-function renderProducts() {
-  grid.innerHTML = "";
-  producten.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="${p.img}" alt="${p.naam}">
-      <h3>${p.naam}</h3>
-      <p>€${p.prijs.toFixed(2)}</p>
-      <p>Voorraad: <span id="stock-${p.naam}">${stock[p.naam]}</span></p>
-      <div class="controls">
-        <button class="minus">−</button>
-        <span>${cart[p.naam] || 0}</span>
-        <button class="plus">+</button>
-      </div>
-    `;
+producten.forEach(p => {
+  const card = document.createElement("div");
+  card.className = "product-card";
+  card.innerHTML = `
+    <img src="${p.img}" alt="${p.naam}">
+    <h3>${p.naam}</h3>
+    <p>€${p.prijs.toFixed(2)}</p>
+    <div class="controls">
+      <button class="minus">−</button>
+      <span>0</span>
+      <button class="plus">+</button>
+    </div>
+  `;
 
-    const countEl = card.querySelector("span");
-    const minusBtn = card.querySelector(".minus");
-    const plusBtn = card.querySelector(".plus");
+  const countEl = card.querySelector("span");
+  const minusBtn = card.querySelector(".minus");
+  const plusBtn = card.querySelector(".plus");
 
-    plusBtn.onclick = () => {
-      if (cart[p.naam] >= stock[p.naam]) {
-        alert("❌ Niet genoeg stock!");
-        return;
-      }
-      cart[p.naam] = (cart[p.naam] || 0) + 1;
-      localStorage.setItem(LS_CART, JSON.stringify(cart));
-      renderCart();
-      countEl.textContent = cart[p.naam];
-    };
+  plusBtn.onclick = () => { cart[p.naam] = (cart[p.naam] || 0) + 1; updateCart(); };
+  minusBtn.onclick = () => { if(cart[p.naam]) { cart[p.naam]--; if(cart[p.naam]<=0) delete cart[p.naam]; updateCart(); } };
 
-    minusBtn.onclick = () => {
-      if (!cart[p.naam]) return;
-      cart[p.naam]--;
-      if (cart[p.naam] <= 0) delete cart[p.naam];
-      localStorage.setItem(LS_CART, JSON.stringify(cart));
-      renderCart();
-      countEl.textContent = cart[p.naam] || 0;
-    };
-
-    grid.appendChild(card);
-  });
-}
+  grid.appendChild(card);
+});
 
 // 🧾 Winkelmandje bijwerken
-function renderCart() {
+function updateCart() {
   cartList.innerHTML = "";
   let totaal = 0;
+
   for (const [naam, aantal] of Object.entries(cart)) {
     const product = producten.find(p => p.naam === naam);
     const subtotaal = product.prijs * aantal;
@@ -120,111 +127,62 @@ function renderCart() {
     cartList.appendChild(li);
   }
 
-  if (totaal === 0) {
-    cartList.innerHTML = "<li>Geen producten geselecteerd.</li>";
-    confirmBtn.disabled = true;
+  if(totaal===0){
+    cartList.innerHTML="<li>Geen producten geselecteerd.</li>";
+    cartTotal.textContent="";
+    confirmBtn.disabled=true;
   } else {
     const totalLi = document.createElement("li");
-    totalLi.innerHTML = `<strong>Totaal</strong><span><strong>€${totaal.toFixed(2)}</strong></span>`;
+    totalLi.innerHTML=`<strong>Totaal</strong><span><strong>€${totaal.toFixed(2)}</strong></span>`;
     cartList.appendChild(totalLi);
-    confirmBtn.disabled = false;
+    cartTotal.textContent=`Totaal te betalen: €${totaal.toFixed(2)}`;
+    confirmBtn.disabled=false;
   }
 }
 
-// 💾 Bestelling bevestigen met betaalopties
-confirmBtn.onclick = () => {
-  if (Object.keys(cart).length === 0) return;
+// 💾 Bestelling bevestigen
+confirmBtn.addEventListener("click", () => {
+  if(Object.keys(cart).length===0) return;
 
-  // Update stock
-  for (const [naam, aantal] of Object.entries(cart)) {
-    stock[naam] -= aantal;
-    if (stock[naam] < 0) stock[naam] = 0;
-  }
-  localStorage.setItem(LS_STOCK, JSON.stringify(stock));
-
-  // Save order
+  // LocalStorage opslaan
   const timestamp = new Date().toLocaleString("nl-BE");
-  const bestellingen = JSON.parse(localStorage.getItem(LS_ORDERS) || "[]");
-  bestellingen.push({ tijd: timestamp, items: { ...cart }, betaald: null });
-  localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
+  const bestelling = { tijd: timestamp, items: { ...cart } };
+  const bestellingen = JSON.parse(localStorage.getItem("kantine_bestellingen")||"[]");
+  bestellingen.push(bestelling);
+  localStorage.setItem("kantine_bestellingen", JSON.stringify(bestellingen));
 
-  // ✨ Visueel kader voor betaalopties
-  const overlay = document.createElement("div");
-  overlay.style = `
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center;
-    z-index:9999;
-  `;
+  // Overlay tonen
+  document.getElementById("paymentOverlay").style.display="flex";
+
+  // QR-code genereren
+  const totaal = Object.entries(cart).reduce((sum,[naam,aantal])=>{
+    const p = producten.find(x=>x.naam===naam); return sum+p.prijs*aantal;
+  },0);
+  const IBAN="BE12345678901234";
+  const mededeling="Kantine Brandweer Herentals";
+
+  // QR-code URL
+  const qrURL=`https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=BCD%0A002%0ABE%0A${IBAN}%0A%0A${totaal.toFixed(2)}%0AEUR%0A${mededeling}`;
   
-  const box = document.createElement("div");
-  box.style = `
-    background:#fff; padding:20px; border-radius:12px; width:90%; max-width:400px; text-align:center;
-    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  // Klikbare QR-code
+  document.getElementById("qrCode").innerHTML=`
+    <a href="https://www.abnamro.nl/nl/persoonlijk/betaalproducten/ideal/index.html" target="_blank" title="Klik hier om te betalen">
+      <img src="${qrURL}" alt="QR Betaling">
+      <div>Klik hier om te betalen</div>
+    </a>
   `;
-  box.innerHTML = `
-    <h2>💰 Kies betaalmethode</h2>
-    <button id="payPayconiq" style="margin:5px;padding:10px 20px;border-radius:8px;background:#c71f1f;color:white;font-weight:700;">Payconiq</button>
-    <button id="payCash" style="margin:5px;padding:10px 20px;border-radius:8px;background:#444;color:white;font-weight:700;">Cash</button>
-    <button id="payBank" style="margin:5px;padding:10px 20px;border-radius:8px;background:#0073e6;color:white;font-weight:700;">Overschrijving</button>
-    <p style="margin-top:10px;font-size:12px;color:#666;">Je bestelling is nog niet verwijderd.</p>
-  `;
-  
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
 
-  // Functies voor knoppen
-  document.getElementById("payPayconiq").onclick = () => {
-    // Markeer als betaald via Payconiq
-    bestellingen[bestellingen.length-1].betaald = "Payconiq";
-    localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
-    window.open("https://payconiq.com", "_blank");
-    cleanup();
-  };
+  // Leeg winkelmandje
+  cart={};
+  updateCart();
+});
 
-  document.getElementById("payCash").onclick = () => {
-    bestellingen[bestellingen.length-1].betaald = "Cash";
-    localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
-    alert("💶 Betaling geregistreerd als contant.");
-    cleanup();
-  };
+// 💳 Betaalbuttons
+document.getElementById("payPayconiq").onclick=()=>window.open("https://payconiq.com","_blank");
+document.getElementById("payCash").onclick=()=>alert("💶 Betaling geregistreerd als contant.");
+document.getElementById("payTransfer").onclick=()=>alert("📲 Scan de QR-code in je bank-app om te betalen.");
 
-  document.getElementById("payBank").onclick = () => {
-    bestellingen[bestellingen.length-1].betaald = "Overschrijving";
-    localStorage.setItem(LS_ORDERS, JSON.stringify(bestellingen));
-    alert("🏦 Gebruik bankoverschrijving met mededeling:\n\nKantine Brandweer Herentals");
-    cleanup();
-  };
-
-  function cleanup() {
-    cart = {};
-    localStorage.setItem(LS_CART, "{}");
-    renderCart();
-    renderProducts();
-    document.body.removeChild(overlay);
-  }
-};
-
-
-// 📥 Export stock als CSV
-exportBtn.onclick = () => {
-  let csv = "Product,Stock\n";
-  for (const [naam, aantal] of Object.entries(stock)) {
-    csv += `${naam},${aantal}\n`;
-  }
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "kantine_stock.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-// ✨ Init
-renderProducts();
-renderCart();
+document.getElementById("closeOverlay").onclick=()=>document.getElementById("paymentOverlay").style.display="none";
 </script>
 </body>
 </html>
-
-
