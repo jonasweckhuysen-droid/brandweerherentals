@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kantine | FireCrew Herentals</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="kantine.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>FireCrew Herentals</h1>
+    <h2>Kantine</h2>
+  </header>
+
+  <main class="content">
+    <div id="producten" class="product-grid"></div>
+
+    <div class="cart">
+      <h3>Winkelmandje</h3>
+      <ul id="cart-list"></ul>
+      <p><strong>Totaal:</strong> €<span id="cart-total">0.00</span></p>
+
+      <label>Betaalwijze:</label>
+      <select id="betaling">
+        <option value="cash">💶 Cash</option>
+        <option value="payconiq">📱 Payconiq</option>
+      </select>
+
+      <button id="confirm">✅ Bevestigen</button>
+      <p id="status"></p>
+    </div>
+  </main>
+
+  <footer class="bottombar">
+    <a href="index.html">⬅️ Terug</a>
+  </footer>
+</body>
+</html>
