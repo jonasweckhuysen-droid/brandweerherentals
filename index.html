@@ -34,6 +34,17 @@ main.content { flex: 1 1 auto; padding: 18px; }
 .btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
 .btn small { display: block; font-size: 12px; opacity: 0.8; margin-top: 4px; }
 footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+footer button {
+  background: none;
+  border: none;
+  color: #c71f1f;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 #installBtn, #updateBanner {
   display: none;
   position: fixed;
@@ -49,7 +60,33 @@ footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; bor
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   cursor: pointer;
 }
-#updateBanner { bottom: 70px; }
+#iosOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+}
+#iosOverlay .box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+}
+#iosOverlay button {
+  margin-top: 12px;
+  background: #c71f1f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -68,140 +105,106 @@ footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; bor
 </div>
 </header>
 <main class="content">
-  <div class="grid" id="buttonGrid">
-    <!-- Knoppen worden dynamisch alfabetisch toegevoegd -->
-  </div>
+  <div class="grid" id="buttonGrid"></div>
 </main>
 <footer>
   <div>Versie 1.1</div>
-  <div>📱 Voeg toe aan startscherm</div>
+  <button id="footerInstall">📱 Voeg toe aan startscherm</button>
 </footer>
 </div>
 
 <div id="installBtn">📲 App toevoegen aan startscherm</div>
 <div id="updateBanner">🔄 Nieuwe update beschikbaar, klik om te herladen</div>
 
+<!-- Overlay voor iOS -->
+<div id="iosOverlay">
+  <div class="box">
+    <h3>📲 Voeg toe aan beginscherm</h3>
+    <p>Open het <strong>deel-icoon</strong> (⬆️) onderaan je scherm en kies <em>‘Zet op beginscherm’</em>.</p>
+    <button onclick="document.getElementById('iosOverlay').style.display='none'">Sluiten</button>
+  </div>
+</div>
+
 <script>
 // 🔗 Links instellen
 const links = {
-  abiweb: { title: "Abiweb", icon: "/brandweerherentals/icons/buttons/abiweb.png", desc: "Oefeningen en prestaties", url: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },
+  abiweb: { title: "Abiweb", icon: "/brandweerherentals/icons/buttons/abiweb.png", desc: "Oefeningen en prestaties", url: "https://identity.brandweerzonekempen.be/" },
   agenda: { title: "Agenda", icon: "📅", desc: "Belangrijke data en evenementen", url: "/brandweerherentals/agenda.html" },
-  defect: { title: "Defectmelding", icon: "🔧", desc: "Meld snel defecten aan materiaal of voertuigen", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" },
-  kantine: { title: "Kantine", icon: "🍻", desc: "Bestel en betaal drank & snacks", url: "/brandweerherentals/kantine.html" },
-  logistiek: { title: "Logistiek", icon: "/brandweerherentals/icons/buttons/winkelkar.png", desc: "Meld een logistiek transport aan", url: "https://form.jotform.com/230682691731055" },
-  order: { title: "Bestelling", icon: "📦", desc: "Bestel materiaal of verbruiksgoederen", url: "https://forms.cloud.microsoft/e/GjHr1Kym0w" },
-  vehicle: { title: "Voertuigreservatie", icon: "🚒", desc: "Reserveer een voertuig of controleer beschikbaarheid", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },
-  verdi: { title: "Verdi", icon: "/brandweerherentals/icons/buttons/verdi.png", desc: "Oproepen en status aanpassen", url: "https://kempen.verdi.cloud/" },
-  wegenwerken: { title: "Wegenwerken", icon: "🚧", desc: "Actuele info over werken in Herentals", url: "/brandweerherentals/wegenwerken.html" },
-  wespen: { title: "Wespen", icon: "🐝", desc: "Ploeg van dienst wespenverdelging", url: "/brandweerherentals/wespen.html" }
+  defect: { title: "Defectmelding", icon: "🔧", desc: "Meld defecten", url: "https://forms.cloud.microsoft/" },
+  kantine: { title: "Kantine", icon: "🍻", desc: "Bestel drank & snacks", url: "/brandweerherentals/kantine.html" }
 };
-
-// 🔤 Alfabetisch sorteren & tonen
-const sorted = Object.values(links).sort((a, b) => a.title.localeCompare(b.title, 'nl'));
-const grid = document.getElementById("buttonGrid");
-sorted.forEach(item => {
-  const a = document.createElement("a");
-  a.className = "btn";
-  a.href = item.url;
-  a.innerHTML = `
-    <div class="icon">${item.icon.endsWith(".png") ? `<img src="${item.icon}" alt="${item.title}">` : item.icon}</div>
-    <div>
-      <div>${item.title}</div>
-      <small>${item.desc}</small>
-    </div>`;
+const sorted = Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,'nl'));
+const grid=document.getElementById("buttonGrid");
+sorted.forEach(item=>{
+  const a=document.createElement("a");
+  a.className="btn";
+  a.href=item.url;
+  a.innerHTML=`<div class="icon">${item.icon.endsWith(".png")?`<img src="${item.icon}">`:item.icon}</div>
+  <div><div>${item.title}</div><small>${item.desc}</small></div>`;
   grid.appendChild(a);
 });
 
-// 🕒 Datum & tijd updaten + ploeg van week
-document.addEventListener("DOMContentLoaded", () => {
-  const cyclus = ["A1", "B1", "C1", "A2", "B2", "C2"];
-  const referentie = new Date("2025-01-03T12:00:00"); // vrijdag 3 januari 2025 om 12u
-
-  function currentPloegVanWeek() {
-    const now = new Date();
-    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-    const diffMs = now - referentie;
-    const weeksElapsed = Math.floor(diffMs / msPerWeek);
-    const index = ((weeksElapsed % cyclus.length) + cyclus.length) % cyclus.length;
-    return cyclus[index];
+// 🕒 Header
+document.addEventListener("DOMContentLoaded",()=>{
+  const datetimeEl=document.getElementById("datetime");
+  const ploegEl=document.getElementById("ploegOfWeek");
+  const cyclus=["A1","B1","C1","A2","B2","C2"];
+  const ref=new Date("2025-01-03T12:00:00");
+  function ploeg(){
+    const diff=(Date.now()-ref)/604800000;
+    return cyclus[Math.floor(diff)%cyclus.length];
   }
-
-const datetimeEl = document.getElementById("datetime");
-const ploegEl = document.getElementById("ploegOfWeek");
-
-function updateHeader() {
-  const now = new Date();
-  const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' };
-  datetimeEl.textContent = now.toLocaleString('nl-BE', options); // datum boven
-  ploegEl.textContent = "Ploeg van week: " + currentPloegVanWeek(); // ploeg eronder
-}
-
-setInterval(updateHeader, 1000);
-updateHeader();
+  function update(){
+    const n=new Date();
+    datetimeEl.textContent=n.toLocaleString('nl-BE',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    ploegEl.textContent="Ploeg van week: "+ploeg();
+  }
+  setInterval(update,1000);
+  update();
 });
 
-// 📲 Universele installatieknop
+// 📲 Installatie
 let deferredPrompt;
-const installBtn = document.getElementById("installBtn");
+const footerBtn=document.getElementById("footerInstall");
+const iosOverlay=document.getElementById("iosOverlay");
+function showInstallButton(){footerBtn.style.display="flex";}
 
-function showInstallButton() {
-  installBtn.style.display = "block";
-}
-
-// 🟢 Android & Windows (Edge, Chrome)
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallButton();
+// Android & Windows
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); deferredPrompt=e; showInstallButton();
 });
 
-installBtn.addEventListener("click", async () => {
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-  const isEdge = ua.includes("edg");
+footerBtn.addEventListener("click",async()=>{
+  const ua=navigator.userAgent.toLowerCase();
+  const isIOS=/iphone|ipad|ipod/.test(ua);
+  const isEdge=ua.includes("edg");
 
-  // 🍎 iOS → handmatige uitleg
-  if (isIOS) {
-    alert("📲 Op iPhone of iPad: tik op het deel-icoon (vierkant met pijltje omhoog) en kies ‘Zet op beginscherm’ om de app te installeren.");
-    installBtn.style.display = "none";
+  if(isIOS){
+    iosOverlay.style.display="flex";
     return;
   }
 
-  // 🪟 Edge → ondersteuning via beforeinstallprompt (soms vertraagd)
-  if (isEdge && !deferredPrompt) {
-    alert("ℹ️ In Microsoft Edge kan je deze app installeren via de menuknop (…) → ‘Apps’ → ‘Deze site installeren’.");
-    installBtn.style.display = "none";
+  if(isEdge && !deferredPrompt){
+    alert("ℹ️ In Edge: menu (…) → ‘Apps’ → ‘Deze site installeren’.");
     return;
   }
 
-  // 🤖 Android of Chrome
-  if (deferredPrompt) {
+  if(deferredPrompt){
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log("Installatiekeuze:", outcome);
-    deferredPrompt = null;
-    installBtn.style.display = "none";
+    const {outcome}=await deferredPrompt.userChoice;
+    deferredPrompt=null;
+  } else {
+    alert("ℹ️ Gebruik het browsermenu om de app te installeren.");
   }
 });
 
-// 🍏 iOS fallback als er geen beforeinstallprompt komt
-window.addEventListener("load", () => {
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-  const isStandalone = window.navigator.standalone === true;
-
-  if (isIOS && !isStandalone && !localStorage.getItem("iosInstallHintShown")) {
-    showInstallButton();
-    localStorage.setItem("iosInstallHintShown", "true");
-  }
+// iOS Fallback
+window.addEventListener("load",()=>{
+  const ua=navigator.userAgent.toLowerCase();
+  const isIOS=/iphone|ipad|ipod/.test(ua);
+  const isStandalone=window.navigator.standalone===true;
+  if(isIOS && !isStandalone) showInstallButton();
 });
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
