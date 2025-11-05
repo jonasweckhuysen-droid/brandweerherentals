@@ -14,42 +14,62 @@
   --muted: #f6f6f6;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
-html, body { margin:0; padding:0; min-height:100%; }
-body { background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%); display:flex; justify-content:center; align-items:flex-start; padding:20px; -webkit-font-smoothing: antialiased; overflow-y:auto; }
-.container { width:100%; max-width:780px; background:var(--light); border-radius:18px; border:4px solid var(--red); box-shadow:0 8px 30px rgba(0,0,0,0.08); display:flex; flex-direction:column; height:auto; overflow:hidden; }
-header { display:flex; align-items:center; justify-content:space-between; padding:18px; background: linear-gradient(90deg, var(--red), #8f1515); color:var(--light); }
-.header-left { display:flex; align-items:center; gap:12px; }
-header .logo { width:52px; height:52px; border-radius:10px; background: rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; }
-header h1 { margin:0; font-size:18px; }
-header p { margin:0; font-size:12px; opacity:0.9; }
-#header-right { text-align:right; }
-#datetime { font-size:14px; opacity:0.9; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body { background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%); display: flex; justify-content: center; align-items: flex-start; padding: 20px; -webkit-font-smoothing: antialiased; overflow-y: auto; }
+.container { width: 100%; max-width: 780px; background: var(--light); border-radius: 18px; border: 4px solid var(--red); box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: auto; overflow: hidden; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 18px; background: linear-gradient(90deg, var(--red), #8f1515); color: var(--light); }
+.header-left { display: flex; align-items: center; gap: 12px; }
+header .logo { width: 52px; height: 52px; border-radius: 10px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; }
+header h1 { margin: 0; font-size: 18px; }
+header p { margin: 0; font-size: 12px; opacity: 0.9; }
+#header-right { text-align: right; }
+#datetime { font-size: 14px; opacity: 0.9; }
 #ploegOfWeek { font-weight:600; font-size:14px; color:#fff; margin-top:2px; }
-main.content { flex:1 1 auto; padding:18px; }
-.grid { display:grid; gap:12px; grid-template-columns:1fr; }
-@media (min-width:620px) { .grid { grid-template-columns:1fr 1fr; } }
-.btn { display:flex; align-items:center; gap:14px; padding:16px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 8px rgba(0,0,0,0.04); transition:0.06s; color:var(--dark); background:var(--muted); }
-.btn:active { transform:translateY(1px); }
-.btn .icon { width:52px; height:52px; min-width:52px; border-radius:10px; background: linear-gradient(180deg, #fff, #f0f0f0); display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 2px 6px rgba(0,0,0,0.06); overflow:hidden; }
-.btn img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
-.btn small { display:block; font-size:12px; opacity:0.8; margin-top:4px; }
-footer { padding:12px 18px; font-size:13px; color:#444; background:#fff; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
-#installBtn, #updateBanner {
+main.content { flex: 1 1 auto; padding: 18px; }
+.grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 620px) { .grid { grid-template-columns: 1fr 1fr; } }
+.btn { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.04); transition: 0.06s; color: var(--dark); background: var(--muted); }
+.btn:active { transform: translateY(1px); }
+.btn .icon { width: 52px; height: 52px; min-width: 52px; border-radius: 10px; background: linear-gradient(180deg, #fff, #f0f0f0); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); overflow: hidden; }
+.btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.btn small { display: block; font-size: 12px; opacity: 0.8; margin-top: 4px; }
+footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+
+/* Install prompt */
+#installPrompt {
   display:none;
   position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
+  bottom:0;
+  left:0;
+  right:0;
   background:#c71f1f;
   color:white;
-  padding:12px 20px;
-  border-radius:12px;
+  padding:12px 16px;
+  text-align:center;
   font-weight:700;
   z-index:9999;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  font-size:14px;
+  border-top-left-radius:12px;
+  border-top-right-radius:12px;
+  box-shadow:0 -2px 8px rgba(0,0,0,0.3);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+}
+#installPrompt button {
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:white;
+  color:#c71f1f;
+  font-weight:700;
   cursor:pointer;
 }
-#updateBanner { bottom:70px; }
+#installPrompt span.close {
+  cursor:pointer;
+  font-weight:700;
+}
 </style>
 </head>
 <body>
@@ -62,10 +82,10 @@ footer { padding:12px 18px; font-size:13px; color:#444; background:#fff; border-
       <p>Interne app</p>
     </div>
   </div>
-  <div id="header-right">
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
+ <div id="header-right">
+  <div id="datetime"></div>
+  <div id="ploegOfWeek"></div>
+</div>
 </header>
 <main class="content">
   <div class="grid" id="buttonGrid"></div>
@@ -76,22 +96,26 @@ footer { padding:12px 18px; font-size:13px; color:#444; background:#fff; border-
 </footer>
 </div>
 
-<div id="installBtn">📲 App toevoegen aan startscherm</div>
-<div id="updateBanner">🔄 Nieuwe update beschikbaar, klik om te herladen</div>
+<!-- Install prompt -->
+<div id="installPrompt">
+  <span id="installText">📲 Voeg de app toe aan je startscherm</span>
+  <button id="installNow">Toevoegen</button>
+  <span class="close" id="installClose">✖</span>
+</div>
 
 <script>
-// 🔗 Links instellen (alle knoppen, alfabetisch inclusief Kantine)
+// 🔗 Links instellen (inclusief kantine)
 const links = {
-  abiweb: { title:"Abiweb", icon:"/brandweerherentals/icons/buttons/abiweb.png", desc:"Oefeningen en prestaties", url:"https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },
-  agenda: { title:"Agenda", icon:"📅", desc:"Belangrijke data en evenementen", url:"/brandweerherentals/agenda.html" },
-  defect: { title:"Defectmelding", icon:"🔧", desc:"Meld snel defecten aan materiaal of voertuigen", url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" },
-  kantine: { title:"Kantine", icon:"🍻", desc:"Bestel en betaal drank & snacks", url:"/brandweerherentals/kantine.html" },
-  logistiek: { title:"Logistiek", icon:"/brandweerherentals/icons/buttons/winkelkar.png", desc:"Meld een logistiek transport aan", url:"https://form.jotform.com/230682691731055" },
-  order: { title:"Bestelling", icon:"📦", desc:"Bestel materiaal of verbruiksgoederen", url:"https://forms.cloud.microsoft/e/GjHr1Kym0w" },
-  vehicle: { title:"Voertuigreservatie", icon:"🚒", desc:"Reserveer een voertuig of controleer beschikbaarheid", url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },
-  verdi: { title:"Verdi", icon:"/brandweerherentals/icons/buttons/verdi.png", desc:"Oproepen en status aanpassen", url:"https://kempen.verdi.cloud/" },
-  wegenwerken: { title:"Wegenwerken", icon:"🚧", desc:"Actuele info over werken in Herentals", url:"/brandweerherentals/wegenwerken.html" },
-  wespen: { title:"Wespen", icon:"🐝", desc:"Ploeg van dienst wespenverdelging", url:"/brandweerherentals/wespen.html" }
+  abiweb: { title: "Abiweb", icon: "/brandweerherentals/icons/buttons/abiweb.png", desc: "Oefeningen en prestaties", url: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },
+  agenda: { title: "Agenda", icon: "📅", desc: "Belangrijke data en evenementen", url: "/brandweerherentals/agenda.html" },
+  defect: { title: "Defectmelding", icon: "🔧", desc: "Meld snel defecten aan materiaal of voertuigen", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" },
+  kantine: { title: "Kantine", icon: "🍻", desc: "Bestel en betaal drank & snacks", url: "/brandweerherentals/kantine.html" },
+  logistiek: { title: "Logistiek", icon: "/brandweerherentals/icons/buttons/winkelkar.png", desc: "Meld een logistiek transport aan", url: "https://form.jotform.com/230682691731055" },
+  order: { title: "Bestelling", icon: "📦", desc: "Bestel materiaal of verbruiksgoederen", url: "https://forms.cloud.microsoft/e/GjHr1Kym0w" },
+  vehicle: { title: "Voertuigreservatie", icon: "🚒", desc: "Reserveer een voertuig of controleer beschikbaarheid", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },
+  verdi: { title: "Verdi", icon: "/brandweerherentals/icons/buttons/verdi.png", desc: "Oproepen en status aanpassen", url: "https://kempen.verdi.cloud/" },
+  wegenwerken: { title: "Wegenwerken", icon: "🚧", desc: "Actuele info over werken in Herentals", url: "/brandweerherentals/wegenwerken.html" },
+  wespen: { title: "Wespen", icon: "🐝", desc: "Ploeg van dienst wespenverdelging", url: "/brandweerherentals/wespen.html" }
 };
 
 // 🔤 Alfabetisch sorteren & tonen
@@ -110,21 +134,24 @@ sorted.forEach(item => {
   grid.appendChild(a);
 });
 
-// 🕒 Datum & tijd updaten + ploeg van week
-document.addEventListener("DOMContentLoaded",()=>{
+// 🕒 Datum & ploeg
+document.addEventListener("DOMContentLoaded", () => {
   const cyclus = ["A1","B1","C1","A2","B2","C2"];
   const referentie = new Date("2025-01-03T12:00:00");
-  function currentPloegVanWeek() {
+
+  function currentPloegVanWeek(){
     const now = new Date();
     const msPerWeek = 7*24*60*60*1000;
     const diffMs = now - referentie;
     const weeksElapsed = Math.floor(diffMs / msPerWeek);
-    const index = ((weeksElapsed % cyclus.length)+cyclus.length) % cyclus.length;
+    const index = ((weeksElapsed % cyclus.length)+cyclus.length)%cyclus.length;
     return cyclus[index];
   }
+
   const datetimeEl = document.getElementById("datetime");
   const ploegEl = document.getElementById("ploegOfWeek");
-  function updateHeader() {
+
+  function updateHeader(){
     const now = new Date();
     const options = { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' };
     datetimeEl.textContent = now.toLocaleString('nl-BE',options);
@@ -134,45 +161,59 @@ document.addEventListener("DOMContentLoaded",()=>{
   updateHeader();
 });
 
-// 📲 Universele installatieknop
+// 📲 Universele installatieprompt
 let deferredPrompt;
-const installBtn = document.getElementById("installBtn");
-function showInstallButton() { installBtn.style.display = "block"; }
-window.addEventListener("beforeinstallprompt", (e)=>{
+const installPrompt = document.getElementById("installPrompt");
+const installBtnNow = document.getElementById("installNow");
+const installClose = document.getElementById("installClose");
+
+function showInstallPrompt(text){
+  document.getElementById("installText").textContent = text;
+  installPrompt.style.display = "flex";
+}
+function hideInstallPrompt(){
+  installPrompt.style.display = "none";
+}
+
+// Android / Chrome / Edge
+window.addEventListener('beforeinstallprompt', (e)=>{
   e.preventDefault();
   deferredPrompt = e;
-  showInstallButton();
+  showInstallPrompt("📲 Installeer deze app op je startscherm");
 });
 
-installBtn.addEventListener("click", async ()=>{
+installBtnNow.addEventListener('click', async ()=>{
   const ua = navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(ua);
-  const isEdge = ua.includes("edg");
+
   if(isIOS){
     alert("📲 Op iPhone of iPad: tik op het deel-icoon (vierkant met pijltje omhoog) en kies ‘Zet op beginscherm’ om de app te installeren.");
-    installBtn.style.display="none"; return;
+    hideInstallPrompt();
+    return;
   }
-  if(isEdge && !deferredPrompt){
-    alert("ℹ️ In Microsoft Edge kan je deze app installeren via de menuknop (…) → ‘Apps’ → ‘Deze site installeren’.");
-    installBtn.style.display="none"; return;
-  }
+
   if(deferredPrompt){
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    console.log("Installatiekeuze:", outcome);
-    deferredPrompt=null;
-    installBtn.style.display="none";
+    console.log("Installatie keuze:", outcome);
+    deferredPrompt = null;
+    hideInstallPrompt();
   }
 });
 
-// 🍏 iOS fallback als er geen beforeinstallprompt komt
+installClose.addEventListener('click', hideInstallPrompt);
+
+// iOS fallback
 window.addEventListener("load", ()=>{
   const ua = navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(ua);
   const isStandalone = window.navigator.standalone === true;
+
   if(isIOS && !isStandalone && !localStorage.getItem("iosInstallHintShown")){
-    showInstallButton();
+    showInstallPrompt("📲 Voeg de app toe aan je startscherm via 'Deel' → 'Zet op beginscherm'");
     localStorage.setItem("iosInstallHintShown","true");
   }
 });
-  </script>
+</script>
+</body>
+</html>
