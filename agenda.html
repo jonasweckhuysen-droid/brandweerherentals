@@ -38,6 +38,7 @@
       padding:18px;
       background: linear-gradient(90deg, var(--red), #8f1515);
       color: var(--light);
+      position: relative;
     }
     header .logo {
       width:52px;
@@ -52,6 +53,14 @@
     }
     header h1 { margin:0; font-size:18px; }
     header p { margin:0; font-size:12px; opacity:0.9; }
+    .greeting {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      font-weight:600;
+      font-size:14px;
+      opacity:0.9;
+    }
     .content { padding:18px; }
     .event {
       background: var(--muted);
@@ -86,6 +95,40 @@
       text-decoration:none;
       margin-bottom:12px;
     }
+    #loginOverlay {
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+    #loginBox {
+      background:#fff;
+      padding:24px;
+      border-radius:12px;
+      width:90%;
+      max-width:400px;
+      text-align:center;
+    }
+    #loginBox input[type=text] {
+      width:100%;
+      padding:10px;
+      margin-bottom:12px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:16px;
+    }
+    #loginBox button {
+      background:var(--red);
+      color:#fff;
+      font-weight:700;
+      padding:10px 18px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -96,6 +139,7 @@
         <h1>Agenda</h1>
         <p>Brandweer Kalender</p>
       </div>
+      <div class="greeting" id="greeting"></div>
     </header>
     <main class="content">
       <a href="/brandweerherentals/" class="back">← Terug naar start</a>
@@ -107,71 +151,112 @@
     </footer>
   </div>
 
+  <!-- Login overlay -->
+  <div id="loginOverlay">
+    <div id="loginBox">
+      <h2>Firecrew Login</h2>
+      <input type="text" id="memberName" placeholder="Vul je naam in" />
+      <div style="margin-bottom:12px;"><input type="checkbox" id="rememberMe"> Onthoud mij</div>
+      <button id="loginBtn">Login</button>
+      <p style="margin-top:12px; font-size:12px; color:#888;">Alleen voor brandweerleden</p>
+    </div>
+  </div>
+
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+    const ICS_URL = "/brandweerherentals/agenda.php";
+    const CACHE_KEY = "agenda-cache-v1";
 
-      const ICS_PROXY_URL = "/brandweerherentals/agenda.php"; // jouw server-side proxy naar Google iCal
-      const CACHE_KEY = "agenda-cache-v1";
+    // 🔒 Firecrew login
+    const loginOverlay = document.getElementById("loginOverlay");
+    const loginBtn = document.getElementById("loginBtn");
+    const memberInput = document.getElementById("memberName");
+    const rememberMe = document.getElementById("rememberMe");
+    const greetingEl = document.getElementById("greeting");
 
-      function formatDateISO(dateStr, allDay=false) {
-        const d = new Date(dateStr);
-        if(allDay){
-          return d.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" }) + " (Hele dag)";
-        } else {
-          return d.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
-        }
+    function checkLogin() {
+      const stored = localStorage.getItem("firecrewMember");
+      if (stored) {
+        showGreeting(stored);
+        loginOverlay.style.display = "none";
+        return true;
       }
+      return false;
+    }
 
-      async function loadAgenda() {
-        const list = document.getElementById("agendaList");
+    function showGreeting(name) {
+      greetingEl.textContent = `Welkom, ${name}!`;
+    }
 
-        // Eerst cache tonen
-        const cached = localStorage.getItem(CACHE_KEY);
-        if(cached){
-          renderAgenda(JSON.parse(cached));
-        }
-
-        try {
-          const res = await fetch(ICS_PROXY_URL, { cache:"no-store" });
-          if(res.ok){
-            const events = await res.json();
-            localStorage.setItem(CACHE_KEY, JSON.stringify(events));
-            renderAgenda(events);
-          }
-        } catch(err){
-          console.warn("Kon agenda niet verversen:", err);
-          if(!cached){
-            list.innerHTML = "<p>Kan agenda niet laden.</p>";
-          }
-        }
-      }
-
-      function renderAgenda(events){
-        const list = document.getElementById("agendaList");
-        list.innerHTML = "";
-
-        if(!events.length){
-          list.innerHTML = "<p>Geen aankomende evenementen.</p>";
-          return;
-        }
-
-        events.forEach(ev => {
-          const el = document.createElement("div");
-          el.className = "event";
-          el.innerHTML = `
-            <div class="event-date">${formatDateISO(ev.start)}</div>
-            <div class="event-title">${ev.summary}</div>
-            <div class="event-desc">${ev.description || ""}</div>
-          `;
-          list.appendChild(el);
-        });
-      }
-
-      loadAgenda();
-      setInterval(loadAgenda, 15*60*1000); // refresh elke 15 min
+    loginBtn.addEventListener("click", () => {
+      const name = memberInput.value.trim();
+      if (!name) { alert("Vul je naam in."); return; }
+      showGreeting(name);
+      loginOverlay.style.display = "none";
+      if (rememberMe.checked) localStorage.setItem("firecrewMember", name);
     });
+
+    if (!checkLogin()) loginOverlay.style.display = "flex";
+
+    document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { 
+      weekday:"long", year:"numeric", month:"long", day:"numeric" 
+    });
+
+    async function showCachedAgenda() {
+      if ('caches' in window) {
+        const cache = await caches.open(CACHE_KEY);
+        const cached = await cache.match(ICS_URL);
+        if (cached) {
+          const json = await cached.json();
+          renderAgenda(json);
+        }
+      }
+    }
+
+    async function updateAgenda() {
+      try {
+        const res = await fetch(ICS_URL, { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          renderAgenda(json);
+          const cache = await caches.open(CACHE_KEY);
+          cache.put(ICS_URL, new Response(JSON.stringify(json)));
+        }
+      } catch (err) {
+        console.warn("Kon agenda niet verversen:", err);
+        document.getElementById("agendaList").innerHTML = "<p>Kon agenda niet laden.</p>";
+      }
+    }
+
+    function renderAgenda(data) {
+      const list = document.getElementById("agendaList");
+      if (!data || !data.length) {
+        list.innerHTML = "<p>Geen aankomende evenementen.</p>";
+        return;
+      }
+
+      list.innerHTML = "";
+      data.forEach(ev => {
+        const startDate = new Date(ev.start);
+        const dateStr = startDate.toLocaleDateString("nl-BE", { 
+          weekday: "short", day: "2-digit", month: "short", 
+          hour: "2-digit", minute: "2-digit" 
+        });
+
+        const el = document.createElement("div");
+        el.className = "event";
+        el.innerHTML = `
+          <div class="event-date">${dateStr}</div>
+          <div class="event-title">${ev.summary}</div>
+          <div class="event-desc">${ev.description || ""}</div>
+        `;
+        list.appendChild(el);
+      });
+    }
+
+    // Eerst cache tonen, dan update op achtergrond
+    showCachedAgenda();
+    updateAgenda();
+    setInterval(updateAgenda, 15 * 60 * 1000);
   </script>
 </body>
 </html>
-
