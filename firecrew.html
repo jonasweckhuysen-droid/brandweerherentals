@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firecrew — Brandweer Herentals</title>
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
+<style>
+:root {
+  --red: #c71f1f;
+  --dark: #111;
+  --light: #fff;
+  --muted: #f6f6f6;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body { background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%); display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+.container { width: 100%; max-width: 780px; background: var(--light); border-radius: 18px; border: 4px solid var(--red); box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; overflow: hidden; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 18px; background: linear-gradient(90deg, var(--red), #8f1515); color: var(--light); }
+.header-left { display: flex; align-items: center; gap: 12px; }
+header .logo { width: 52px; height: 52px; border-radius: 10px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; }
+header h1 { margin: 0; font-size: 18px; }
+header p { margin: 0; font-size: 12px; opacity: 0.9; }
+#header-right { text-align: right; }
+#datetime { font-size: 14px; opacity: 0.9; }
+#ploegOfWeek { font-weight:600; font-size:14px; color:#fff; margin-top:2px; }
+main.content { padding: 18px; }
+.grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 620px) { .grid { grid-template-columns: 1fr 1fr; } }
+.btn { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.04); color: var(--dark); background: var(--muted); transition: 0.06s; }
+.btn:active { transform: translateY(1px); }
+.btn .icon { width: 52px; height: 52px; border-radius: 10px; background: linear-gradient(180deg, #fff, #f0f0f0); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-between; }
+.backlink { display:block; text-align:center; margin:10px 0; text-decoration:none; color:#c71f1f; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="header-left">
+    <div class="logo">🔥</div>
+    <div>
+      <h1>Firecrew</h1>
+      <p>VZW-sectie Brandweer Herentals</p>
+    </div>
+  </div>
+ <div id="header-right">
+  <div id="datetime"></div>
+  <div id="ploegOfWeek"></div>
+</div>
+</header>
+<a href="/brandweerherentals/index.html" class="backlink">← Terug naar start</a>
+<main class="content">
+  <div class="grid" id="fireGrid"></div>
+</main>
+<footer>
+  <div>Firecrew v1.0</div>
+  <div>🧯 Interne toegang</div>
+</footer>
+</div>
+
+<script>
+const links = {
+  agenda: { title: "Agenda", icon: "🗓️", desc: "Evenementen & vergaderingen", url: "/brandweerherentals/firecrew/agenda.html" },
+  boekhouding: { title: "Boekhouding", icon: "💰", desc: "Financieel overzicht en uitgaven", url: "/brandweerherentals/firecrew/boekhouding.html" },
+  documenten: { title: "Documenten", icon: "📄", desc: "Notulen, verslagen en statuten", url: "/brandweerherentals/firecrew/documenten.html" },
+  werkgroepen: { title: "Werkgroepen", icon: "👥", desc: "Overzicht van werkgroepen", url: "/brandweerherentals/firecrew/werkgroepen.html" }
+};
+
+Object.values(links).forEach(item => {
+  const a = document.createElement("a");
+  a.className = "btn";
+  a.href = item.url;
+  a.innerHTML = `<div class="icon">${item.icon}</div><div><div>${item.title}</div><small>${item.desc}</small></div>`;
+  document.getElementById("fireGrid").appendChild(a);
+});
+
+// Datum en ploeg
+function currentPloeg(){
+  const cyclus = ["A1","B1","C1","A2","B2","C2"];
+  const ref = new Date("2025-01-03T12:00:00");
+  const diff = Math.floor((Date.now() - ref) / (7*24*60*60*1000));
+  return cyclus[(diff % cyclus.length + cyclus.length) % cyclus.length];
+}
+function updateHeader(){
+  const now = new Date();
+  document.getElementById("datetime").textContent = now.toLocaleString('nl-BE',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  document.getElementById("ploegOfWeek").textContent = "Ploeg van week: " + currentPloeg();
+}
+setInterval(updateHeader,1000); updateHeader();
+</script>
+</body>
+</html>
