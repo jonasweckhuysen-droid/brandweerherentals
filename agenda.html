@@ -1,262 +1,83 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agenda — Brandweer Herentals</title>
-  <link rel="manifest" href="/brandweerherentals/manifest.json">
-  <meta name="theme-color" content="#c71f1f">
-  <style>
-    :root {
-      --red: #c71f1f;
-      --dark: #111;
-      --light: #fff;
-      --muted: #f6f6f6;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-    html, body { margin:0; padding:0; height:100%; }
-    body {
-      background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
-      display:flex;
-      justify-content:center;
-      padding:20px;
-      -webkit-font-smoothing:antialiased;
-    }
-    .container {
-      width:100%;
-      max-width:780px;
-      background: var(--light);
-      border-radius:18px;
-      border:4px solid var(--red);
-      box-shadow:0 8px 30px rgba(0,0,0,0.08);
-      overflow:hidden;
-    }
-    header {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:18px;
-      background: linear-gradient(90deg, var(--red), #8f1515);
-      color: var(--light);
-      position: relative;
-    }
-    header .logo {
-      width:52px;
-      height:52px;
-      border-radius:10px;
-      background: rgba(255,255,255,0.08);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:700;
-      font-size:20px;
-    }
-    header h1 { margin:0; font-size:18px; }
-    header p { margin:0; font-size:12px; opacity:0.9; }
-    .greeting {
-      position: absolute;
-      right: 18px;
-      top: 18px;
-      font-weight:600;
-      font-size:14px;
-      opacity:0.9;
-    }
-    .content { padding:18px; }
-    .event {
-      background: var(--muted);
-      border-radius:12px;
-      padding:14px;
-      margin-bottom:12px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .event-date {
-      font-weight:700;
-      color:var(--red);
-      font-size:15px;
-    }
-    .event-title { font-size:16px; font-weight:600; }
-    .event-desc { font-size:14px; opacity:0.8; }
-    footer {
-      padding:12px 18px;
-      font-size:13px;
-      color:#444;
-      background:#fff;
-      border-top:1px solid #eee;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-    a.back {
-      display:inline-block;
-      color:var(--red);
-      font-weight:700;
-      text-decoration:none;
-      margin-bottom:12px;
-    }
-    #loginOverlay {
-      position:fixed;
-      top:0; left:0; right:0; bottom:0;
-      background:rgba(0,0,0,0.6);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-    }
-    #loginBox {
-      background:#fff;
-      padding:24px;
-      border-radius:12px;
-      width:90%;
-      max-width:400px;
-      text-align:center;
-    }
-    #loginBox input[type=text] {
-      width:100%;
-      padding:10px;
-      margin-bottom:12px;
-      border-radius:8px;
-      border:1px solid #ccc;
-      font-size:16px;
-    }
-    #loginBox button {
-      background:var(--red);
-      color:#fff;
-      font-weight:700;
-      padding:10px 18px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda — Brandweer Herentals</title>
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
+<style>
+:root {
+  --red: #c71f1f;
+  --dark: #111;
+  --light: #fff;
+  --muted: #f6f6f6;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+html, body { margin:0; padding:0; height:100%; }
+body { background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%); display:flex; justify-content:center; padding:20px; -webkit-font-smoothing:antialiased; }
+.container { width:100%; max-width:780px; background: var(--light); border-radius:18px; border:4px solid var(--red); box-shadow:0 8px 30px rgba(0,0,0,0.08); overflow:hidden; }
+header { display:flex; align-items:center; gap:12px; padding:18px; background: linear-gradient(90deg, var(--red), #8f1515); color: var(--light); }
+header .logo { width:52px; height:52px; border-radius:10px; background: rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; }
+header h1 { margin:0; font-size:18px; }
+header p { margin:0; font-size:12px; opacity:0.9; }
+.content { padding:18px; }
+.event { background: var(--muted); border-radius:12px; padding:14px; margin-bottom:12px; display:flex; flex-direction:column; gap:6px; }
+.event-date { font-weight:700; color:var(--red); font-size:15px; }
+.event-title { font-size:16px; font-weight:600; }
+.event-desc { font-size:14px; opacity:0.8; }
+footer { padding:12px 18px; font-size:13px; color:#444; background:#fff; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+a.back { display:inline-block; color:var(--red); font-weight:700; text-decoration:none; margin-bottom:12px; }
+</style>
 </head>
 <body>
-  <div class="container" role="application" aria-label="Agenda Herentals">
-    <header>
-      <div class="logo" aria-hidden="true">BWH</div>
-      <div>
-        <h1>Agenda</h1>
-        <p>Brandweer Kalender</p>
-      </div>
-      <div class="greeting" id="greeting"></div>
-    </header>
-    <main class="content">
-      <a href="/brandweerherentals/" class="back">← Terug naar start</a>
-      <div id="agendaList">Laden…</div>
-    </main>
-    <footer>
-      <div class="small">Versie 1.3 —</div>
-      <div class="small">Laatste update: <span id="today"></span></div>
-    </footer>
-  </div>
-
-  <!-- Login overlay -->
-  <div id="loginOverlay">
-    <div id="loginBox">
-      <h2>Firecrew Login</h2>
-      <input type="text" id="memberName" placeholder="Vul je naam in" />
-      <div style="margin-bottom:12px;"><input type="checkbox" id="rememberMe"> Onthoud mij</div>
-      <button id="loginBtn">Login</button>
-      <p style="margin-top:12px; font-size:12px; color:#888;">Alleen voor brandweerleden</p>
+<div class="container" role="application" aria-label="Agenda Herentals">
+  <header>
+    <div class="logo" aria-hidden="true">BWH</div>
+    <div>
+      <h1>Agenda</h1>
+      <p>Brandweer Kalender</p>
     </div>
-  </div>
+  </header>
+  <main class="content">
+    <a href="/brandweerherentals/" class="back">← Terug naar start</a>
+    <div id="agendaList">Laden…</div>
+  </main>
+  <footer>
+    <div class="small">Versie 1.3 —</div>
+    <div class="small">Laatste update: <span id="today"></span></div>
+  </footer>
+</div>
 
-  <script>
-    const ICS_URL = "/brandweerherentals/agenda.php";
-    const CACHE_KEY = "agenda-cache-v1";
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-    // 🔒 Firecrew login
-    const loginOverlay = document.getElementById("loginOverlay");
-    const loginBtn = document.getElementById("loginBtn");
-    const memberInput = document.getElementById("memberName");
-    const rememberMe = document.getElementById("rememberMe");
-    const greetingEl = document.getElementById("greeting");
-
-    function checkLogin() {
-      const stored = localStorage.getItem("firecrewMember");
-      if (stored) {
-        showGreeting(stored);
-        loginOverlay.style.display = "none";
-        return true;
-      }
-      return false;
-    }
-
-    function showGreeting(name) {
-      greetingEl.textContent = `Welkom, ${name}!`;
-    }
-
-    loginBtn.addEventListener("click", () => {
-      const name = memberInput.value.trim();
-      if (!name) { alert("Vul je naam in."); return; }
-      showGreeting(name);
-      loginOverlay.style.display = "none";
-      if (rememberMe.checked) localStorage.setItem("firecrewMember", name);
-    });
-
-    if (!checkLogin()) loginOverlay.style.display = "flex";
-
-    document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { 
-      weekday:"long", year:"numeric", month:"long", day:"numeric" 
-    });
-
-    async function showCachedAgenda() {
-      if ('caches' in window) {
-        const cache = await caches.open(CACHE_KEY);
-        const cached = await cache.match(ICS_URL);
-        if (cached) {
-          const json = await cached.json();
-          renderAgenda(json);
-        }
-      }
-    }
-
-    async function updateAgenda() {
-      try {
-        const res = await fetch(ICS_URL, { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          renderAgenda(json);
-          const cache = await caches.open(CACHE_KEY);
-          cache.put(ICS_URL, new Response(JSON.stringify(json)));
-        }
-      } catch (err) {
-        console.warn("Kon agenda niet verversen:", err);
-        document.getElementById("agendaList").innerHTML = "<p>Kon agenda niet laden.</p>";
-      }
-    }
-
-    function renderAgenda(data) {
-      const list = document.getElementById("agendaList");
-      if (!data || !data.length) {
-        list.innerHTML = "<p>Geen aankomende evenementen.</p>";
-        return;
-      }
-
+  async function loadAgenda() {
+    const list = document.getElementById("agendaList");
+    try {
+      const res = await fetch('/brandweerherentals/agenda.php');
+      if (!res.ok) throw new Error("Netwerkfout");
+      const events = await res.json();
+      if (!events.length) { list.innerHTML = "<p>Geen aankomende evenementen.</p>"; return; }
       list.innerHTML = "";
-      data.forEach(ev => {
+      events.forEach(ev => {
         const startDate = new Date(ev.start);
-        const dateStr = startDate.toLocaleDateString("nl-BE", { 
-          weekday: "short", day: "2-digit", month: "short", 
-          hour: "2-digit", minute: "2-digit" 
-        });
-
+        const dateStr = startDate.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
         const el = document.createElement("div");
         el.className = "event";
-        el.innerHTML = `
-          <div class="event-date">${dateStr}</div>
-          <div class="event-title">${ev.summary}</div>
-          <div class="event-desc">${ev.description || ""}</div>
-        `;
+        el.innerHTML = `<div class="event-date">${dateStr}</div><div class="event-title">${ev.summary}</div><div class="event-desc">${ev.description || ""}</div>`;
         list.appendChild(el);
       });
+    } catch(err) {
+      console.warn("Kon agenda niet laden:", err);
+      list.innerHTML = "<p>Kon agenda niet laden.</p>";
     }
+  }
 
-    // Eerst cache tonen, dan update op achtergrond
-    showCachedAgenda();
-    updateAgenda();
-    setInterval(updateAgenda, 15 * 60 * 1000);
-  </script>
+  loadAgenda();
+  setInterval(loadAgenda, 15*60*1000);
+});
+</script>
 </body>
 </html>
