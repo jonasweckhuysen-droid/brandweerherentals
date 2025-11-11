@@ -111,7 +111,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-      const ICS_PROXY_URL = "agenda.php"; // jouw server-side proxy naar Google iCal
+      const ICS_PROXY_URL = "/brandweerherentals/agenda.php"; // jouw server-side proxy naar Google iCal
       const CACHE_KEY = "agenda-cache-v1";
 
       function formatDateISO(dateStr, allDay=false) {
@@ -174,3 +174,4 @@
   </script>
 </body>
 </html>
+
