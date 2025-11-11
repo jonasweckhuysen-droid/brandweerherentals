@@ -34,46 +34,13 @@ main.content { flex: 1 1 auto; padding: 18px; }
 .btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
 .btn small { display: block; font-size: 12px; opacity: 0.8; margin-top: 4px; }
 footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-
-/* Install prompt */
-#installPrompt {
-  display:none;
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#c71f1f;
-  color:white;
-  padding:12px 16px;
-  text-align:center;
-  font-weight:700;
-  z-index:9999;
-  font-size:14px;
-  border-top-left-radius:12px;
-  border-top-right-radius:12px;
-  box-shadow:0 -2px 8px rgba(0,0,0,0.3);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:12px;
-}
-#installPrompt button {
-  padding:6px 12px;
-  border:none;
-  border-radius:8px;
-  background:white;
-  color:#c71f1f;
-  font-weight:700;
-  cursor:pointer;
-}
-#installPrompt span.close {
-  cursor:pointer;
-  font-weight:700;
-}
+#installPrompt { display:none; position:fixed; bottom:0; left:0; right:0; background:#c71f1f; color:white; padding:12px 16px; text-align:center; font-weight:700; z-index:9999; font-size:14px; border-top-left-radius:12px; border-top-right-radius:12px; box-shadow:0 -2px 8px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; gap:12px;}
+#installPrompt button { padding:6px 12px; border:none; border-radius:8px; background:white; color:#c71f1f; font-weight:700; cursor:pointer;}
+#installPrompt span.close { cursor:pointer; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="container" role="application" aria-label="Fire Crew Herentals portal">
+<div class="container">
 <header>
   <div class="header-left">
     <div class="logo">BWH</div>
@@ -96,7 +63,6 @@ footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; bor
 </footer>
 </div>
 
-<!-- Install prompt -->
 <div id="installPrompt">
   <span id="installText">📲 Voeg de app toe aan je startscherm</span>
   <button id="installNow">Toevoegen</button>
@@ -104,21 +70,18 @@ footer { padding: 12px 18px; font-size: 13px; color: #444; background: #fff; bor
 </div>
 
 <script>
-// 🔗 Links instellen (inclusief kantine)
+// 🔗 Links instellen (met Firecrew)
 const links = {
-  abiweb: { title: "Abiweb", icon: "/brandweerherentals/icons/buttons/abiweb.png", desc: "Oefeningen en prestaties", url: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },
+  abiweb: { title: "Abiweb", icon: "/brandweerherentals/icons/buttons/abiweb.png", desc: "Oefeningen en prestaties", url: "https://identity.brandweerzonekempen.be/Identity/Account/Login" },
   agenda: { title: "Agenda", icon: "📅", desc: "Belangrijke data en evenementen", url: "/brandweerherentals/agenda.html" },
-  defect: { title: "Defectmelding", icon: "🔧", desc: "Meld snel defecten aan materiaal of voertuigen", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" },
+  defect: { title: "Defectmelding", icon: "🔧", desc: "Meld defecten aan materiaal of voertuigen", url: "https://forms.cloud.microsoft" },
   kantine: { title: "Kantine", icon: "🍻", desc: "Bestel en betaal drank & snacks", url: "/brandweerherentals/kantine.html" },
   logistiek: { title: "Logistiek", icon: "/brandweerherentals/icons/buttons/winkelkar.png", desc: "Meld een logistiek transport aan", url: "https://form.jotform.com/230682691731055" },
-  order: { title: "Bestelling", icon: "📦", desc: "Bestel materiaal of verbruiksgoederen", url: "https://forms.cloud.microsoft/e/GjHr1Kym0w" },
-  vehicle: { title: "Voertuigreservatie", icon: "🚒", desc: "Reserveer een voertuig of controleer beschikbaarheid", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },
   verdi: { title: "Verdi", icon: "/brandweerherentals/icons/buttons/verdi.png", desc: "Oproepen en status aanpassen", url: "https://kempen.verdi.cloud/" },
-  wegenwerken: { title: "Wegenwerken", icon: "🚧", desc: "Actuele info over werken in Herentals", url: "/brandweerherentals/wegenwerken.html" },
-  wespen: { title: "Wespen", icon: "🐝", desc: "Ploeg van dienst wespenverdelging", url: "/brandweerherentals/wespen.html" }
+  firecrew: { title: "Firecrew", icon: "🔥", desc: "Exclusieve VZW-sectie", url: "/brandweerherentals/firecrew.html" }
 };
 
-// 🔤 Alfabetisch sorteren & tonen
+// 🔤 Sorteren en tonen
 const sorted = Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,'nl'));
 const grid = document.getElementById("buttonGrid");
 sorted.forEach(item => {
@@ -127,93 +90,23 @@ sorted.forEach(item => {
   a.href = item.url;
   a.innerHTML = `
     <div class="icon">${item.icon.endsWith(".png") ? `<img src="${item.icon}" alt="${item.title}">` : item.icon}</div>
-    <div>
-      <div>${item.title}</div>
-      <small>${item.desc}</small>
-    </div>`;
+    <div><div>${item.title}</div><small>${item.desc}</small></div>`;
   grid.appendChild(a);
 });
 
-// 🕒 Datum & ploeg
-document.addEventListener("DOMContentLoaded", () => {
+// 🕒 Datum + ploeg
+function currentPloeg(){
   const cyclus = ["A1","B1","C1","A2","B2","C2"];
-  const referentie = new Date("2025-01-03T12:00:00");
-
-  function currentPloegVanWeek(){
-    const now = new Date();
-    const msPerWeek = 7*24*60*60*1000;
-    const diffMs = now - referentie;
-    const weeksElapsed = Math.floor(diffMs / msPerWeek);
-    const index = ((weeksElapsed % cyclus.length)+cyclus.length)%cyclus.length;
-    return cyclus[index];
-  }
-
-  const datetimeEl = document.getElementById("datetime");
-  const ploegEl = document.getElementById("ploegOfWeek");
-
-  function updateHeader(){
-    const now = new Date();
-    const options = { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' };
-    datetimeEl.textContent = now.toLocaleString('nl-BE',options);
-    ploegEl.textContent = "Ploeg van week: " + currentPloegVanWeek();
-  }
-  setInterval(updateHeader,1000);
-  updateHeader();
-});
-
-// 📲 Universele installatieprompt
-let deferredPrompt;
-const installPrompt = document.getElementById("installPrompt");
-const installBtnNow = document.getElementById("installNow");
-const installClose = document.getElementById("installClose");
-
-function showInstallPrompt(text){
-  document.getElementById("installText").textContent = text;
-  installPrompt.style.display = "flex";
+  const ref = new Date("2025-01-03T12:00:00");
+  const diff = Math.floor((Date.now() - ref) / (7*24*60*60*1000));
+  return cyclus[(diff % cyclus.length + cyclus.length) % cyclus.length];
 }
-function hideInstallPrompt(){
-  installPrompt.style.display = "none";
+function updateHeader(){
+  const now = new Date();
+  document.getElementById("datetime").textContent = now.toLocaleString('nl-BE',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  document.getElementById("ploegOfWeek").textContent = "Ploeg van week: " + currentPloeg();
 }
-
-// Android / Chrome / Edge
-window.addEventListener('beforeinstallprompt', (e)=>{
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallPrompt("📲 Installeer deze app op je startscherm");
-});
-
-installBtnNow.addEventListener('click', async ()=>{
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-
-  if(isIOS){
-    alert("📲 Op iPhone of iPad: tik op het deel-icoon (vierkant met pijltje omhoog) en kies ‘Zet op beginscherm’ om de app te installeren.");
-    hideInstallPrompt();
-    return;
-  }
-
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log("Installatie keuze:", outcome);
-    deferredPrompt = null;
-    hideInstallPrompt();
-  }
-});
-
-installClose.addEventListener('click', hideInstallPrompt);
-
-// iOS fallback
-window.addEventListener("load", ()=>{
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-  const isStandalone = window.navigator.standalone === true;
-
-  if(isIOS && !isStandalone && !localStorage.getItem("iosInstallHintShown")){
-    showInstallPrompt("📲 Voeg de app toe aan je startscherm via 'Deel' → 'Zet op beginscherm'");
-    localStorage.setItem("iosInstallHintShown","true");
-  }
-});
+setInterval(updateHeader,1000); updateHeader();
 </script>
 </body>
 </html>
