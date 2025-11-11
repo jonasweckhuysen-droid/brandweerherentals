@@ -1,210 +1,223 @@
 <!doctype html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agenda — Brandweer Herentals</title>
-<link rel="manifest" href="/brandweerherentals/manifest.json">
-<meta name="theme-color" content="#c71f1f">
-<style>
-:root {
-  --red: #c71f1f;
-  --dark: #111;
-  --light: #fff;
-  --muted: #f6f6f6;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-}
-html, body { margin:0; padding:0; height:100%; }
-body {
-  background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
-  display:flex;
-  justify-content:center;
-  padding:20px;
-  -webkit-font-smoothing:antialiased;
-}
-.container {
-  width:100%;
-  max-width:780px;
-  background: var(--light);
-  border-radius:18px;
-  border:4px solid var(--red);
-  box-shadow:0 8px 30px rgba(0,0,0,0.08);
-  overflow:hidden;
-}
-header {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:18px;
-  background: linear-gradient(90deg, var(--red), #8f1515);
-  color: var(--light);
-}
-header .logo {
-  width:52px;
-  height:52px;
-  border-radius:10px;
-  background: rgba(255,255,255,0.08);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:700;
-  font-size:20px;
-}
-header h1 { margin:0; font-size:18px; }
-header p { margin:0; font-size:12px; opacity:0.9; }
-.content { padding:18px; }
-.event {
-  background: var(--muted);
-  border-radius:12px;
-  padding:14px;
-  margin-bottom:12px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.event-date { font-weight:700; color:var(--red); font-size:15px; }
-.event-title { font-size:16px; font-weight:600; }
-.event-desc { font-size:14px; opacity:0.8; }
-footer {
-  padding:12px 18px;
-  font-size:13px;
-  color:#444;
-  background:#fff;
-  border-top:1px solid #eee;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-a.back {
-  display:inline-block;
-  color:var(--red);
-  font-weight:700;
-  text-decoration:none;
-  margin-bottom:12px;
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda — Brandweer Herentals</title>
+  <link rel="manifest" href="/brandweerherentals/manifest.json">
+  <meta name="theme-color" content="#c71f1f">
+  <style>
+    :root {
+      --red: #c71f1f;
+      --dark: #111;
+      --light: #fff;
+      --muted: #f6f6f6;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html, body { margin:0; padding:0; height:100%; }
+    body {
+      background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
+      display:flex;
+      justify-content:center;
+      padding:20px;
+      -webkit-font-smoothing:antialiased;
+    }
+    .container {
+      width:100%;
+      max-width:780px;
+      background: var(--light);
+      border-radius:18px;
+      border:4px solid var(--red);
+      box-shadow:0 8px 30px rgba(0,0,0,0.08);
+      overflow:hidden;
+    }
+    header {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:18px;
+      background: linear-gradient(90deg, var(--red), #8f1515);
+      color: var(--light);
+    }
+    header .logo {
+      width:52px;
+      height:52px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.08);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      font-size:20px;
+    }
+    header h1 { margin:0; font-size:18px; }
+    header p { margin:0; font-size:12px; opacity:0.9; }
+    .content { padding:18px; }
+    .event {
+      background: var(--muted);
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:12px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .event-date {
+      font-weight:700;
+      color:var(--red);
+      font-size:15px;
+    }
+    .event-title { font-size:16px; font-weight:600; }
+    .event-desc { font-size:14px; opacity:0.8; }
+    footer {
+      padding:12px 18px;
+      font-size:13px;
+      color:#444;
+      background:#fff;
+      border-top:1px solid #eee;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    a.back {
+      display:inline-block;
+      color:var(--red);
+      font-weight:700;
+      text-decoration:none;
+      margin-bottom:12px;
+    }
+  </style>
 </head>
 <body>
-<div class="container" role="application" aria-label="Agenda Herentals">
-  <header>
-    <div class="logo" aria-hidden="true">BWH</div>
-    <div>
-      <h1>Agenda</h1>
-      <p>Brandweer Kalender</p>
-    </div>
-  </header>
-  <main class="content">
-    <a href="/brandweerherentals/" class="back">← Terug naar start</a>
-    <div id="agendaList">Laden…</div>
-  </main>
-  <footer>
-    <div class="small">Versie 1.3 —</div>
-    <div class="small">Laatste update: <span id="today"></span></div>
-  </footer>
-</div>
+  <div class="container" role="application" aria-label="Agenda Herentals">
+    <header>
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <h1>Agenda</h1>
+        <p>Brandweer Kalender</p>
+      </div>
+    </header>
+    <main class="content">
+      <a href="/brandweerherentals/" class="back">← Terug naar start</a>
+      <div id="agendaList">Laden…</div>
+    </main>
+    <footer>
+      <div class="small">Versie 1.4 —</div>
+      <div class="small">Laatste update: <span id="today"></span></div>
+    </footer>
+  </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", {
-    weekday:"long", year:"numeric", month:"long", day:"numeric"
-  });
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Vandaag tonen in footer
+      document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
-  const ICS_URL = "/brandweerherentals/agenda.php"; // je eigen PHP proxy
-  const CACHE_KEY = "agenda-cache-v1";
+      const ICS_URL = "agenda.php"; // jouw PHP-proxy
+      const CACHE_KEY = "agenda-cache-v2";
 
-  function parseICSDatetime(str) {
-    if (/^\d{8}T\d{6}Z$/.test(str)) {
-      const [, y,m,d,h,min,s] = str.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
-      return { date: new Date(Date.UTC(y, m-1, d, h, min, s)), allDay: false };
-    } else if (/^\d{8}$/.test(str)) {
-      const [, y,m,d] = str.match(/^(\d{4})(\d{2})(\d{2})$/);
-      return { date: new Date(y, m-1, d), allDay: true };
-    } else {
-      return { date: new Date(str), allDay: false };
-    }
-  }
-
-  function parseICS(data) {
-    const lines = data.split(/\r?\n/);
-    const events = [];
-    let current = null;
-
-    lines.forEach(line => {
-      if (line.startsWith("BEGIN:VEVENT")) current = {};
-      else if (line.startsWith("END:VEVENT")) { if (current) events.push(current); current = null; }
-      else if (current) {
-        if (line.startsWith("SUMMARY:")) current.summary = line.replace("SUMMARY:", "");
-        else if (line.startsWith("DTSTART")) current.start = parseICSDatetime(line.split(":")[1]);
-        else if (line.startsWith("DTEND")) current.end = parseICSDatetime(line.split(":")[1]);
-        else if (line.startsWith("LOCATION:")) current.location = line.replace("LOCATION:", "");
+      function parseICSDatetime(str) {
+        if (/^\d{8}$/.test(str)) {
+          const y = parseInt(str.slice(0,4),10);
+          const m = parseInt(str.slice(4,6),10) - 1;
+          const d = parseInt(str.slice(6,8),10);
+          return { date: new Date(y,m,d), allDay:true };
+        } else if (/^\d{8}T\d{6}Z$/.test(str)) {
+          const y = parseInt(str.slice(0,4),10);
+          const m = parseInt(str.slice(4,6),10) - 1;
+          const d = parseInt(str.slice(6,8),10);
+          const h = parseInt(str.slice(9,11),10);
+          const min = parseInt(str.slice(11,13),10);
+          const s = parseInt(str.slice(13,15),10);
+          return { date: new Date(Date.UTC(y,m,d,h,min,s)), allDay:false };
+        } else {
+          return { date: new Date(str), allDay:false };
+        }
       }
+
+      function parseICS(data) {
+        const lines = data.split(/\r?\n/);
+        const events = [];
+        let current = null;
+
+        lines.forEach(line => {
+          if (line.startsWith("BEGIN:VEVENT")) current = {};
+          else if (line.startsWith("END:VEVENT")) { if(current) events.push(current); current=null; }
+          else if(current) {
+            if (line.startsWith("SUMMARY:")) current.summary = line.replace("SUMMARY:","");
+            else if (line.startsWith("DTSTART")) current.start = parseICSDatetime(line.split(":")[1]);
+            else if (line.startsWith("DTEND")) current.end = parseICSDatetime(line.split(":")[1]);
+            else if (line.startsWith("LOCATION:")) current.location = line.replace("LOCATION:","");
+            else if (line.startsWith("DESCRIPTION:")) current.desc = line.replace("DESCRIPTION:","");
+          }
+        });
+
+        const now = new Date();
+        return events.filter(ev => ev.start && (ev.start.date >= now || ev.start.allDay))
+                     .sort((a,b) => a.start.date - b.start.date);
+      }
+
+      function formatDate(ev) {
+        if (ev.start.allDay) {
+          return ev.start.date.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" }) + " (Hele dag)";
+        } else {
+          return ev.start.date.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+        }
+      }
+
+      function renderAgenda(txt) {
+        const list = document.getElementById("agendaList");
+        const events = parseICS(txt);
+
+        if (!events.length) {
+          list.innerHTML = "<p>Geen aankomende evenementen.</p>";
+          return;
+        }
+
+        list.innerHTML = "";
+        events.forEach(ev => {
+          const el = document.createElement("div");
+          el.className = "event";
+          el.innerHTML = `
+            <div class="event-date">${formatDate(ev)}</div>
+            <div class="event-title">${ev.summary}</div>
+            <div class="event-desc">${ev.location || ev.desc || ""}</div>
+          `;
+          list.appendChild(el);
+        });
+      }
+
+      async function showCachedAgenda() {
+        if('caches' in window){
+          const cache = await caches.open(CACHE_KEY);
+          const cached = await cache.match(ICS_URL);
+          if(cached){
+            const txt = await cached.text();
+            renderAgenda(txt);
+          }
+        }
+      }
+
+      async function updateAgenda() {
+        try {
+          const res = await fetch(ICS_URL, { cache: "no-store" });
+          if(res.ok){
+            const txt = await res.text();
+            renderAgenda(txt);
+            const cache = await caches.open(CACHE_KEY);
+            cache.put(ICS_URL, new Response(txt));
+          } else {
+            document.getElementById("agendaList").textContent = "Kan agenda niet laden.";
+          }
+        } catch(err){
+          console.warn("Kon agenda niet verversen:", err);
+          document.getElementById("agendaList").textContent = "Kan agenda niet laden.";
+        }
+      }
+
+      showCachedAgenda();
+      updateAgenda();
+      setInterval(updateAgenda, 15*60*1000); // elke 15 min
     });
-
-    const now = new Date();
-    return events.filter(ev => ev.start && ev.start.date >= now)
-                 .sort((a,b) => a.start.date - b.start.date);
-  }
-
-  function formatDate(ev) {
-    if (ev.start.allDay) {
-      return ev.start.date.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" }) + " (Hele dag)";
-    } else {
-      return ev.start.date.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
-    }
-  }
-
-  async function showCachedAgenda() {
-    if ('caches' in window) {
-      const cache = await caches.open(CACHE_KEY);
-      const cached = await cache.match(ICS_URL);
-      if (cached) {
-        const txt = await cached.text();
-        renderAgenda(txt);
-      }
-    }
-  }
-
-  async function updateAgenda() {
-    try {
-      const res = await fetch(ICS_URL, { cache: "no-store" });
-      if (res.ok) {
-        const txt = await res.text();
-        renderAgenda(txt);
-        const cache = await caches.open(CACHE_KEY);
-        cache.put(ICS_URL, new Response(txt));
-      } else {
-        document.getElementById("agendaList").innerText = "Kan agenda niet laden.";
-      }
-    } catch (err) {
-      console.warn("Kon agenda niet verversen:", err);
-      document.getElementById("agendaList").innerText = "Kan agenda niet laden.";
-    }
-  }
-
-  function renderAgenda(txt) {
-    const list = document.getElementById("agendaList");
-    const events = parseICS(txt);
-    if (!events.length) {
-      list.innerHTML = "<p>Geen aankomende evenementen.</p>";
-      return;
-    }
-    list.innerHTML = "";
-    events.forEach(ev => {
-      const el = document.createElement("div");
-      el.className = "event";
-      el.innerHTML = `
-        <div class="event-date">${formatDate(ev)}</div>
-        <div class="event-title">${ev.summary}</div>
-        <div class="event-desc">${ev.location || ""}</div>
-      `;
-      list.appendChild(el);
-    });
-  }
-
-  showCachedAgenda();
-  updateAgenda();
-  setInterval(updateAgenda, 15 * 60 * 1000);
-});
-</script>
+  </script>
 </body>
 </html>
