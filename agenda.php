@@ -1,30 +1,51 @@
 <?php
-header('Content-Type: application/json');
-$icsUrl = 'https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/private-17d5bd8642d7c8b8e6f0e05b731579ac/basic.ics';
-$icsContent = file_get_contents($icsUrl);
+// agenda.php — PHP-proxy voor Google Agenda ICS
 
-function parseICSToJSON($ics) {
-    $lines = explode("\n", $ics);
-    $events = [];
-    $current = [];
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if ($line === 'BEGIN:VEVENT') $current = [];
-        elseif ($line === 'END:VEVENT') {
-            $events[] = $current;
-            $current = [];
-        } else {
-            if (strpos($line, 'SUMMARY:') === 0) $current['summary'] = substr($line, 8);
-            elseif (strpos($line, 'DTSTART') === 0) $current['start'] = substr($line, strpos($line, ':')+1);
-            elseif (strpos($line, 'DTEND') === 0) $current['end'] = substr($line, strpos($line, ':')+1);
-            elseif (strpos($line, 'LOCATION:') === 0) $current['description'] = substr($line, 9);
-        }
+// Jouw Google Agenda ICS URL
+$ics_url = "https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/private-17d5bd8642d7c8b8e6f0e05b731579ac/basic.ics";
+
+// Cache-bestand op de server
+$cache_file = __DIR__ . '/agenda_cache.ics';
+$cache_time = 15 * 60; // 15 minuten
+
+// Functie om ICS te cachen
+function fetchICS($url, $cache_file, $cache_time) {
+    // Als cache recent genoeg is, geef het door
+    if (file_exists($cache_file) && (time() - filemtime($cache_file) < $cache_time)) {
+        return file_get_contents($cache_file);
     }
-    $now = new DateTime();
-    return array_values(array_filter($events, function($e) use ($now){
-        return isset($e['start']) && new DateTime($e['start']) >= $now;
-    }));
+
+    // Anders download ICS
+    $options = [
+        "http" => [
+            "header" => "User-Agent: Mozilla/5.0\r\n"
+        ]
+    ];
+    $context = stream_context_create($options);
+    $data = @file_get_contents($url, false, $context);
+
+    if ($data) {
+        // Cache lokaal
+        file_put_contents($cache_file, $data);
+        return $data;
+    } elseif (file_exists($cache_file)) {
+        // Als download faalt, gebruik oude cache
+        return file_get_contents($cache_file);
+    } else {
+        return false;
+    }
 }
 
-echo json_encode(parseICSToJSON($icsContent));
-?>
+// ICS ophalen
+$ics_data = fetchICS($ics_url, $cache_file, $cache_time);
+
+if ($ics_data === false) {
+    http_response_code(500);
+    echo "Kan agenda niet laden.";
+    exit;
+}
+
+// Headers instellen voor frontend
+header("Content-Type: text/calendar; charset=utf-8");
+header("Cache-Control: max-age=60"); // korte caching aan browserzijde
+echo $ics_data;
