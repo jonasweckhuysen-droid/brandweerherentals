@@ -2,7 +2,7 @@
 // agenda.php — PHP-proxy voor Google Agenda ICS
 
 // Jouw Google Agenda ICS URL
-$ics_url = "https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/private-17d5bd8642d7c8b8e6f0e05b731579ac/basic.ics";
+$ics_url = "https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/public/basic.ics";
 
 // Cache-bestand op de server
 $cache_file = __DIR__ . '/agenda_cache.ics';
@@ -49,3 +49,4 @@ if ($ics_data === false) {
 header("Content-Type: text/calendar; charset=utf-8");
 header("Cache-Control: max-age=60"); // korte caching aan browserzijde
 echo $ics_data;
+
