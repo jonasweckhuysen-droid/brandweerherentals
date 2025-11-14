@@ -46,7 +46,9 @@ if ($ics_data === false) {
 }
 
 // Headers instellen voor frontend
+header("Access-Control-Allow-Origin: *");
 header("Content-Type: text/calendar; charset=utf-8");
-header("Cache-Control: max-age=60"); // korte caching aan browserzijde
+header("Cache-Control: max-age=60");
 echo $ics_data;
+
 
