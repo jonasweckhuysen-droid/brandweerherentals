@@ -8,19 +8,28 @@
 <!-- Centrale layout -->
 <link rel="stylesheet" href="style.css">
 
-<!-- Dynamische header -->
-<script src="/brandweerherentals/app-header.js" defer></script>
-
 </head>
 <body>
 
 <div class="container" role="application" aria-label="Brandweer Herentals agenda">
 
 <!-- -----------------------------------
-       DYNAMISCHE HEADER
+       HEADER
 ------------------------------------ -->
-<header id="appHeader"></header>
-
+<header>
+  <div class="header-left">
+    <div class="logo" aria-hidden="true">BWH</div>
+    <div>
+      <h1>Brandweer Herentals</h1>
+      <p>Agenda</p>
+    </div>
+  </div>
+  <div id="header-right">
+    <div id="greeting"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
+</header>
 
 <!-- -----------------------------------
        CONTENT
@@ -37,7 +46,6 @@
 
 </main>
 
-
 <!-- -----------------------------------
        FOOTER
 ------------------------------------ -->
@@ -45,9 +53,11 @@
 
 </div>
 
+<!-- -----------------------------------
+       SCRIPTS
+------------------------------------ -->
 <script src="agenda.js"></script>
 <script src="/brandweerherentals/header.js"></script>
 
 </body>
 </html>
-
