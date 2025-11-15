@@ -4,10 +4,79 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Wegenwerken</title>
+
+<!-- Manifest & thema -->
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
+
+<!-- Centrale CSS -->
 <link rel="stylesheet" href="/brandweerherentals/style.css">
+
+<style>
+/* ==============================
+   WEGENWERKEN SPECIFIEK
+============================== */
+.werken-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.event-card {
+  background: #fff;
+  border-left: 6px solid #c71f1f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.1s;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+}
+
+.event-date {
+  font-weight: 700;
+  color: #c71f1f;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.event-date::before {
+  content: "🚧";
+  display: inline-block;
+}
+
+.event-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.event-desc {
+  font-size: 13px;
+  color: #333;
+}
+
+@media (max-width: 600px) {
+  .event-card {
+    padding: 10px 12px;
+  }
+  .event-title {
+    font-size: 14px;
+  }
+  .event-desc {
+    font-size: 12px;
+  }
+}
+</style>
 </head>
+
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
 
@@ -29,11 +98,17 @@
     </div>
   </header>
 
+  <!-- -----------------------------------
+       CONTENT
+  ------------------------------------ -->
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
-    <div id="werkenList">Laden…</div>
+    <div id="werkenList" class="werken-list">Laden…</div>
   </main>
 
+  <!-- -----------------------------------
+       FOOTER
+  ------------------------------------ -->
   <footer>
     <div class="small">Versie 1.1 —</div>
     <div class="small">Laatste update: <span id="today"></span></div>
@@ -46,7 +121,7 @@
     weekday:"long", year:"numeric", month:"long", day:"numeric"
   });
 
-  // Functie om werken te tonen
+  // Render werken
   function renderWorks(works) {
     const list = document.getElementById("werkenList");
     const now = new Date();
@@ -64,7 +139,7 @@
       const start = new Date(w.start).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
       const end = new Date(w.end).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
       const el = document.createElement("div");
-      el.className = "event";
+      el.className = "event-card";
       el.innerHTML = `
         <div class="event-date">${start}${start !== end ? " – " + end : ""}</div>
         <div class="event-title">${w.location}</div>
@@ -89,7 +164,7 @@
   setInterval(loadWorks, 60000);
 </script>
 
-<!-- Header.js zorgt voor greeting, datetime & ploeg -->
+<!-- Header.js voor greeting, datetime & ploeg -->
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
