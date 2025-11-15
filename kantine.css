@@ -1,6 +1,6 @@
 /* ==============================
    KANTINE STIJLEN — BRANDWEER HERENTALS
-   ============================== */
+============================== */
 
 /* ------------------------------
    ROOT VARIABLES & BODY
@@ -85,22 +85,16 @@ main {
   transform: translateY(-2px);
 }
 
-/* ------------------------------
-   PRODUCT IMAGE
---------------------------------*/
+/* ----------- PRODUCT IMAGE FIX ----------- */
 .product-card img {
-  max-width: 60px;
-  max-height: 60px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  margin: 0 auto 8px;
+  width: 50px;           /* vaste breedte */
+  height: 50px;          /* vaste hoogte */
+  object-fit: contain;   /* behoud aspect ratio */
+  margin: 0 auto 8px;    /* centreren + marge onder */
   display: block;
 }
 
-/* ------------------------------
-   PRODUCT INFO
---------------------------------*/
+/* Product titel en prijs */
 .product-card h3 {
   font-size: 15px;
   margin: 6px 0 4px;
@@ -218,8 +212,8 @@ footer {
   }
 
   .product-card img {
-    max-width: 50px;
-    max-height: 50px;
+    width: 40px;
+    height: 40px;
   }
 
   .product-card h3 {
