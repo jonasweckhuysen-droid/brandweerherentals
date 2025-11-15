@@ -9,14 +9,14 @@
   <link rel="manifest" href="/brandweerherentals/manifest.json">
   <meta name="theme-color" content="#c71f1f">
 
-  <!-- ALGEMENE CSS (jij hebt style.css in de hoofdmap staan) -->
+  <!-- ALGEMENE CSS -->
   <link rel="stylesheet" href="/brandweerherentals/style.css">
 </head>
 
 <body>
 <div class="container">
 
-  <!-- HEADER (komt volledig uit style.css) -->
+  <!-- UNIFORME HEADER VOOR ALLE PAGINA’S -->
   <header class="app-header">
     <div class="header-left">
       <div class="logo">🔥</div>
@@ -28,6 +28,7 @@
     </div>
 
     <div id="header-right">
+      <div id="greeting"></div>
       <div id="datetime"></div>
       <div id="ploegOfWeek"></div>
     </div>
@@ -90,35 +91,10 @@ Object.values(links).forEach(item => {
 
   document.getElementById("fireGrid").appendChild(a);
 });
-
-
-// DATUM & PLOEG VAN WEEK
-function currentPloeg() {
-  const cyclus = ["A1","B1","C1","A2","B2","C2"];
-  const ref = new Date("2025-01-03T12:00:00");
-  const diff = Math.floor((Date.now() - ref) / (7*24*60*60*1000));
-  return cyclus[(diff % cyclus.length + cyclus.length) % cyclus.length];
-}
-
-function updateHeader() {
-  const now = new Date();
-  document.getElementById("datetime").textContent =
-    now.toLocaleString('nl-BE', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-  document.getElementById("ploegOfWeek").textContent =
-    "Ploeg van week: " + currentPloeg();
-}
-
-setInterval(updateHeader, 1000);
-updateHeader();
 </script>
-<script src="header.js"></script>
+
+<!-- BELANGRIJK: header.js MOET ALS LAATSTE -->
+<script src="/brandweerherentals/header.js"></script>
+
 </body>
 </html>
-
