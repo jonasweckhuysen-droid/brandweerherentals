@@ -3,80 +3,93 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Portal</title>
+<title>Brandweer Herentals — Wegenwerken</title>
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/brandweerherentals/style.css">
 </head>
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
-    <header>
+
+  <!-- -----------------------------------
+       HEADER
+  ------------------------------------ -->
+  <header>
+    <div class="header-left">
       <div class="logo" aria-hidden="true">BWH</div>
       <div>
         <h1>Wegenwerken</h1>
         <p>Actuele werken in Herentals</p>
       </div>
-    </header>
-    <main class="content">
-      <a href="/brandweerherentals/" class="back">← Terug naar start</a>
-      <div id="werkenList">Laden…</div>
-    </main>
-    <footer>
-      <div class="small">Versie 1.1 —</div>
-      <div class="small">Laatste update: <span id="today"></span></div>
-    </footer>
-  </div>
+    </div>
+    <div id="header-right">
+      <div id="greeting"></div>
+      <div id="datetime"></div>
+      <div id="ploegOfWeek"></div>
+    </div>
+  </header>
 
-  <script>
-    // Toon huidige datum in footer
-    document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  <main class="content">
+    <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
+    <div id="werkenList">Laden…</div>
+  </main>
 
-    // Functie om werken te tonen
-    function renderWorks(works) {
-      const list = document.getElementById("werkenList");
-      const now = new Date();
+  <footer>
+    <div class="small">Versie 1.1 —</div>
+    <div class="small">Laatste update: <span id="today"></span></div>
+  </footer>
+</div>
 
-      // Filter lopende of toekomstige werken
-      const upcoming = works.filter(w => new Date(w.end) >= now)
-                            .sort((a,b) => new Date(a.start) - new Date(b.start));
+<script>
+  // Toon huidige datum in footer
+  document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", {
+    weekday:"long", year:"numeric", month:"long", day:"numeric"
+  });
 
-      if (upcoming.length === 0) {
-        list.innerHTML = "<p>Geen aankomende werken.</p>";
-        return;
-      }
+  // Functie om werken te tonen
+  function renderWorks(works) {
+    const list = document.getElementById("werkenList");
+    const now = new Date();
 
-      list.innerHTML = "";
-      upcoming.forEach(w => {
-        const start = new Date(w.start).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
-        const end = new Date(w.end).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
-        const el = document.createElement("div");
-        el.className = "event";
-        el.innerHTML = `
-          <div class="event-date">${start}${start !== end ? " – " + end : ""}</div>
-          <div class="event-title">${w.location}</div>
-          <div class="event-desc">${w.info}</div>
-        `;
-        list.appendChild(el);
+    const upcoming = works.filter(w => new Date(w.end) >= now)
+                          .sort((a,b) => new Date(a.start) - new Date(b.start));
+
+    if (upcoming.length === 0) {
+      list.innerHTML = "<p>Geen aankomende werken.</p>";
+      return;
+    }
+
+    list.innerHTML = "";
+    upcoming.forEach(w => {
+      const start = new Date(w.start).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+      const end = new Date(w.end).toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+      const el = document.createElement("div");
+      el.className = "event";
+      el.innerHTML = `
+        <div class="event-date">${start}${start !== end ? " – " + end : ""}</div>
+        <div class="event-title">${w.location}</div>
+        <div class="event-desc">${w.info}</div>
+      `;
+      list.appendChild(el);
+    });
+  }
+
+  // Fetch JSON en render
+  function loadWorks() {
+    fetch("/brandweerherentals/werken.json?_=" + new Date().getTime()) // cache-busting
+      .then(r => r.json())
+      .then(renderWorks)
+      .catch(err => {
+        console.error("Fout bij laden wegenwerken:", err);
+        document.getElementById("werkenList").innerHTML = "<p>Kon data niet laden.</p>";
       });
-    }
+  }
 
-    // Fetch JSON en render
-    function loadWorks() {
-      fetch("/brandweerherentals/werken.json?_=" + new Date().getTime()) // cache-busting
-        .then(r => r.json())
-        .then(renderWorks)
-        .catch(err => {
-          console.error("Fout bij laden wegenwerken:", err);
-          document.getElementById("werkenList").innerHTML = "<p>Kon data niet laden.</p>";
-        });
-    }
+  loadWorks();
+  setInterval(loadWorks, 60000);
+</script>
 
-    // Meteen laden en elke minuut verversen
-    loadWorks();
-    setInterval(loadWorks, 60000);
-  </script>
-<script src="header.js"></script>
+<!-- Header.js zorgt voor greeting, datetime & ploeg -->
+<script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
-
-
