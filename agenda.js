@@ -1,120 +1,127 @@
-document.addEventListener("DOMContentLoaded", () => {
+/* =========================================================================
+   AGENDA — Herentals Brandweer
+   Ophaalservice + ICS parser + nette event cards
+   ========================================================================= */
 
-  // Datum instellen
-  document.getElementById("today").textContent =
-    new Date().toLocaleDateString("nl-BE", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
-
-  loadAgenda();
-});
+document.addEventListener("DOMContentLoaded", loadAgenda);
 
 async function loadAgenda() {
-  const icsURL =
-    "https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/private-17d5bd8642d7c8b8e6f0e05b731579ac/basic.ics";
-
-  const apiURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(icsURL);
+  const agendaEl = document.getElementById("agenda");
 
   try {
-    const response = await fetch(apiURL);
+    const response = await fetch("/brandweerherentals/agenda.php");
 
-    if (!response.ok) throw new Error("Agenda niet bereikbaar");
+    if (!response.ok) {
+      agendaEl.textContent = "Kan agenda niet laden…";
+      return;
+    }
 
-    const text = await response.text();
+    const icsText = await response.text();
+    const events = parseICS(icsText);
 
-    const events = parseICS(text);
-    displayEvents(events);
+    if (!events.length) {
+      agendaEl.textContent = "Er zijn momenteel geen aankomende evenementen.";
+      return;
+    }
 
-  } catch (err) {
-    document.getElementById("agenda").innerHTML =
-      "<p>Kan agenda niet laden…</p>";
-    console.error(err);
+    // Sorteer events op datum
+    events.sort((a, b) => a.start - b.start);
+
+    // Toon events als cards
+    agendaEl.innerHTML = "";
+    events.forEach(ev => agendaEl.appendChild(renderEvent(ev)));
+
+  } catch (error) {
+    console.error(error);
+    agendaEl.textContent = "Kan agenda niet laden…";
   }
 }
 
 
-// ------- ICS PARSER -------
-function parseICS(text) {
-  const events = [];
-  const lines = text.split(/\r?\n/);
-  let current = null;
+/* =========================================================================
+   ICS PARSER (simpel + snel)
+   ========================================================================= */
 
-  for (const line of lines) {
+function parseICS(data) {
+  const lines = data.split(/\r?\n/);
+  const events = [];
+  let current = {};
+
+  for (let line of lines) {
     if (line.startsWith("BEGIN:VEVENT")) {
       current = {};
-    } else if (line.startsWith("END:VEVENT")) {
-      if (current) events.push(current);
-      current = null;
-    } else if (current) {
-      if (line.startsWith("SUMMARY:"))
-        current.summary = line.replace("SUMMARY:", "");
+    }
 
-      if (line.startsWith("DTSTART"))
-        current.start = parseDate(line);
+    if (line.startsWith("DTSTART")) {
+      current.start = parseICSDate(line.split(":")[1]);
+    }
 
-      if (line.startsWith("DTEND"))
-        current.end = parseDate(line);
+    if (line.startsWith("DTEND")) {
+      current.end = parseICSDate(line.split(":")[1]);
+    }
+
+    if (line.startsWith("SUMMARY:")) {
+      current.title = line.replace("SUMMARY:", "").trim();
+    }
+
+    if (line.startsWith("DESCRIPTION:")) {
+      current.description = line.replace("DESCRIPTION:", "").trim();
+    }
+
+    if (line.startsWith("END:VEVENT")) {
+      // Enkel toekomstige events tonen
+      if (current.start && current.start >= new Date()) {
+        events.push(current);
+      }
     }
   }
 
-  const now = new Date();
-  return events
-    .filter(e => e.start && e.start >= now)
-    .sort((a, b) => a.start - b.start);
+  return events;
 }
 
-function parseDate(line) {
-  let value = line.split(":")[1];
-  if (!value) return null;
-
-  // YYYYMMDD
-  if (/^\d{8}$/.test(value)) {
-    return new Date(
-      value.substring(0, 4),
-      value.substring(4, 6) - 1,
-      value.substring(6, 8)
-    );
-  }
-
-  // YYYYMMDDTHHMMSSZ
-  if (/^\d{8}T\d{6}Z$/.test(value)) {
-    return new Date(value.replace(/^(\d{4})(\d{2})(\d{2})T/, "$1-$2-$3T"));
-  }
-
-  return new Date(value);
+function parseICSDate(str) {
+  // 20250122T180000Z
+  return new Date(str);
 }
 
-// ------- RENDER -------
-function displayEvents(events) {
-  const container = document.getElementById("agenda");
 
-  if (!events.length) {
-    container.innerHTML = "<p>Geen aankomende evenementen.</p>";
-    return;
-  }
+/* =========================================================================
+   RENDER EVENT CARD
+   ========================================================================= */
 
-  let html = "";
+function renderEvent(ev) {
+  const card = document.createElement("div");
+  card.className = "agenda-item";
 
-  events.forEach(ev => {
-    html += `
-      <div class="event">
-        <div class="event-date">
-          ${ev.start.toLocaleDateString("nl-BE", {
-            weekday: "short",
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit"
-          })}
-        </div>
+  const dateBox = document.createElement("div");
+  dateBox.className = "agenda-date";
 
-        <div class="event-title">${ev.summary}</div>
-      </div>
-    `;
+  const d = ev.start.toLocaleDateString("nl-BE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short"
   });
 
-  container.innerHTML = html;
+  const time = ev.start.toLocaleTimeString("nl-BE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  dateBox.innerHTML = `
+    <div class="agenda-day">${d}</div>
+    <div class="agenda-time">${time}</div>
+  `;
+
+  const info = document.createElement("div");
+  info.className = "agenda-info";
+
+  info.innerHTML = `
+    <div class="agenda-title">${ev.title || "Onbekend evenement"}</div>
+    ${ev.description ? `<div class="agenda-description">${ev.description}</div>` : ""}
+  `;
+
+  card.appendChild(dateBox);
+  card.appendChild(info);
+
+  return card;
 }
