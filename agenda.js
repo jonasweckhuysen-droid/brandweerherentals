@@ -1,45 +1,103 @@
-// Voorbeeld evenementen (dit kan vervangen worden door echte data)
-const events = [
-  { title: "Oefening brandbestrijding", date: "18-11-2025", time: "19:00", location: "Kazerne Herentals" },
-  { title: "Vergadering Firecrew", date: "20-11-2025", time: "20:00", location: "Vergaderzaal" },
-  { title: "Open Dag", date: "25-11-2025", time: "10:00", location: "Kazerne Herentals" }
-];
+document.addEventListener("DOMContentLoaded", () => {
+  // Toon vandaag
+  document.getElementById("today").textContent =
+    new Date().toLocaleDateString("nl-BE", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
 
-function renderAgenda(events) {
-  const container = document.getElementById('agenda');
-  const loading = document.getElementById('agenda-loading');
-  const error = document.getElementById('agenda-error');
+  loadAgenda();
+});
 
-  loading.classList.add('hidden');
-  error.classList.add('hidden');
+async function loadAgenda() {
+  const icsURL =
+    "https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/private-17d5bd8642d7c8b8e6f0e05b731579ac/basic.ics";
+  
+  const apiURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(icsURL);
 
-  container.innerHTML = '';
+  try {
+    const response = await fetch(apiURL);
+    if (!response.ok) throw new Error("Agenda niet bereikbaar");
+    const text = await response.text();
+    const events = parseICS(text);
+    displayEvents(events);
+  } catch (err) {
+    document.getElementById("agenda-loading").classList.add("hidden");
+    const errorEl = document.getElementById("agenda-error");
+    errorEl.textContent = "Kan agenda niet laden…";
+    errorEl.classList.remove("hidden");
+    console.error(err);
+  }
+}
 
-  if (!events || events.length === 0) {
-    container.innerHTML = '<div>Geen evenementen gevonden.</div>';
+// ------- ICS parser -------
+function parseICS(text) {
+  const events = [];
+  const lines = text.split(/\r?\n/);
+  let current = null;
+
+  for (const line of lines) {
+    if (line.startsWith("BEGIN:VEVENT")) current = {};
+    else if (line.startsWith("END:VEVENT")) {
+      if (current) events.push(current);
+      current = null;
+    } else if (current) {
+      if (line.startsWith("SUMMARY:")) current.summary = line.replace("SUMMARY:", "");
+      if (line.startsWith("LOCATION:")) current.location = line.replace("LOCATION:", "");
+      if (line.startsWith("DTSTART")) current.start = parseDate(line);
+      if (line.startsWith("DTEND")) current.end = parseDate(line);
+    }
+  }
+
+  const now = new Date();
+  return events
+    .filter(e => e.start && e.start >= now)
+    .sort((a, b) => a.start - b.start);
+}
+
+function parseDate(line) {
+  let value = line.split(":")[1];
+  if (!value) return null;
+
+  if (/^\d{8}$/.test(value)) {
+    return new Date(value.substring(0,4), value.substring(4,6)-1, value.substring(6,8));
+  }
+  if (/^\d{8}T\d{6}Z$/.test(value)) {
+    return new Date(value.replace(/^(\d{4})(\d{2})(\d{2})T/, "$1-$2-$3T"));
+  }
+
+  return new Date(value);
+}
+
+// ------- Render -------
+function displayEvents(events) {
+  const container = document.getElementById("agenda");
+  document.getElementById("agenda-loading").classList.add("hidden");
+
+  if (!events.length) {
+    container.innerHTML = "<p>Geen aankomende evenementen.</p>";
     return;
   }
 
   events.forEach(ev => {
-    const div = document.createElement('div');
-    div.className = 'agenda-item';
+    const div = document.createElement("div");
+    div.className = "agenda-item";
+
+    const dateStr = ev.start.toLocaleDateString("nl-BE", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
     div.innerHTML = `
-      <div class="agenda-title">${ev.title}</div>
-      <div class="agenda-datetime">📅 ${ev.date} ${ev.time}</div>
-      <div class="agenda-location">📍 ${ev.location}</div>
+      <div class="agenda-title">${ev.summary}</div>
+      <div class="agenda-datetime">${dateStr}</div>
+      ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
     `;
     container.appendChild(div);
   });
 }
-
-// Datum in footer
-function updateToday() {
-  const todayEl = document.getElementById('today');
-  const now = new Date();
-  todayEl.textContent = now.toLocaleDateString('nl-BE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
-}
-
-// Initialisatie
-renderAgenda(events);
-updateToday();
-setInterval(updateToday, 60000); // update elke minuut
