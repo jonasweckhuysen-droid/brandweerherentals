@@ -1,46 +1,37 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agenda — Brandweer Herentals</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="/brandweerherentals/manifest.json">
-  <meta name="theme-color" content="#c71f1f">
-
-  <!-- Algemene CSS -->
-  <link rel="stylesheet" href="/brandweerherentals/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandweer Herentals — Agenda</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <div class="container">
-
-    <header class="app-header">
-      <div class="logo">BWH</div>
-      <div class="header-text">
-        <h1>Agenda</h1>
-        <p>Brandweer Herentals — Aankomende activiteiten</p>
+<div class="container" role="application" aria-label="Fire Crew Herentals agenda">
+  <header>
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <h1>Brandweer Herentals</h1>
+        <p>Agenda</p>
       </div>
-    </header>
+    </div>
+    <div id="header-right">
+      <div id="today"></div>
+    </div>
+  </header>
 
-    <main class="content">
-      <a href="/brandweerherentals/" class="back">← Terug naar start</a>
+  <main class="content">
+    <div id="agenda-container">
+      <div id="agenda-loading">Agenda laden…</div>
+      <div id="agenda-error" class="hidden"></div>
+      <div id="agenda"></div>
+    </div>
+  </main>
 
-      <div id="agenda-container">
-        <div id="agenda-loading">Agenda laden…</div>
-        <div id="agenda-error" class="hidden">Fout bij het laden van de agenda.</div>
-        <div id="agenda" class="agenda-list"></div>
-      </div>
-    </main>
+  <footer>Brandweer Herentals — Agenda</footer>
+</div>
 
-    <footer class="app-footer">
-      <span>Versie 1.4</span>
-      <span id="today"></span>
-    </footer>
-
-  </div>
-
-  <script src="/brandweerherentals/agenda.js"></script>
+<script src="agenda.js"></script>
 </body>
 </html>
