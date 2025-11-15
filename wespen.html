@@ -3,100 +3,101 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Portal</title>
-<link rel="manifest" href="/brandweerherentals/manifest.json">
-<meta name="theme-color" content="#c71f1f">
+<title>Brandweer Herentals — Wespenverdelging</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
-    <header>
+  <header>
+    <div class="header-left">
       <div class="logo" aria-hidden="true">BWH</div>
       <div>
         <h1>Wespenverdelging</h1>
         <p>Wie staat op voor de volgende dag</p>
       </div>
-    </header>
-    <main class="content">
-      <a href="/brandweerherentals/" class="back">← Terug naar start</a>
-      <div id="wespenList">Laden…</div>
-    </main>
-    <footer>
-      <div class="small">Versie 1.1 —</div>
-      <div class="small">Laatste update: <span id="today"></span></div>
-    </footer>
-  </div>
+    </div>
+    <div id="header-right">
+      <div id="today"></div>
+    </div>
+  </header>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("today").textContent =
-      new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  <main class="content">
+    <a href="/brandweerherentals/" class="back-link">← Terug naar start</a>
+    <div id="wespenList">Laden…</div>
+  </main>
 
-    const excelUrl = "/brandweerherentals/data/wespen.xlsx";
+  <footer>
+    <div class="small">Versie 1.1 — Laatste update: <span id="today"></span></div>
+  </footer>
+</div>
 
-    async function loadExcel(url){
-      const resp = await fetch(url);
-      const arrayBuffer = await resp.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      return XLSX.utils.sheet_to_json(sheet, { header:1 }); // array van arrays
-    }
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const todayEl = document.querySelectorAll("#today");
+  const todayStr = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  todayEl.forEach(el => el.textContent = todayStr);
 
-    function parseExcelData(data){
-      const today = new Date(); today.setHours(0,0,0,0);
-      for(let row of data){
-        if(!row || row.length<2) continue;
-        const dateStr = row[0];
-        let date = new Date(dateStr);
-        if(isNaN(date.getTime())){
-          date = new Date(Date.parse(dateStr.replace(/(\d+)\s+([a-z]+)\s+(\d{4})/i, "$2 $1, $3")));
-        }
-        if(date >= today){
-          const names = row.slice(2,6);
-          while(names.length < 4) names.push("");
-          return { raw: row[0], ploegcode: row[1], names };
-        }
+  const excelUrl = "/brandweerherentals/data/wespen.xlsx";
+
+  async function loadExcel(url){
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error("Excel bestand niet gevonden");
+    const arrayBuffer = await resp.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    return XLSX.utils.sheet_to_json(sheet, { header:1 });
+  }
+
+  function parseExcelData(data){
+    const today = new Date(); today.setHours(0,0,0,0);
+    for(const row of data){
+      if(!row || row.length<2) continue;
+      let date = new Date(row[0]);
+      if(isNaN(date.getTime())){
+        date = new Date(Date.parse(row[0].replace(/(\d+)\s+([a-z]+)\s+(\d{4})/i, "$2 $1, $3")));
       }
-      return null;
-    }
-
-    (async function(){
-      const output = document.getElementById("wespenList");
-      try{
-        const data = await loadExcel(excelUrl);
-        const next = parseExcelData(data);
-        if(!next){
-          output.innerHTML = "<p>Geen toekomstige ploegdagen meer.</p>";
-          return;
-        }
-
-        // **originele layout met kader**
-        const html = `
-          <div class="event">
-            <div class="event-date">${escapeHtml(next.raw)}</div>
-            <div class="event-title">Ploegcode: ${escapeHtml(next.ploegcode)}</div>
-            <div class="event-desc">
-              <table class="wespen">
-                <tr><td class="col-head">Ploeg 1</td><td>${escapeHtml(next.names[0])}</td></tr>
-                <tr><td class="col-head">Ploeg 1</td><td>${escapeHtml(next.names[1])}</td></tr>
-                <tr><td class="col-head">Ploeg 2</td><td>${escapeHtml(next.names[2])}</td></tr>
-                <tr><td class="col-head">Ploeg 2</td><td>${escapeHtml(next.names[3])}</td></tr>
-              </table>
-            </div>
-          </div>`;
-        output.innerHTML = html;
-
-      }catch(err){
-        console.error(err);
-        output.innerHTML = "<p>Kon Excel niet laden of parsen.</p>";
+      if(date >= today){
+        const names = row.slice(2,6);
+        while(names.length < 4) names.push("");
+        return { raw: row[0], ploegcode: row[1], names };
       }
-    })();
+    }
+    return null;
+  }
 
-    function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  });
-  </script>
+  (async function(){
+    const output = document.getElementById("wespenList");
+    try{
+      const data = await loadExcel(excelUrl);
+      const next = parseExcelData(data);
+      if(!next){
+        output.innerHTML = "<p>Geen toekomstige ploegdagen meer.</p>";
+        return;
+      }
+
+      output.innerHTML = `
+        <div class="agenda-item">
+          <div class="agenda-title">Ploegcode: ${escapeHtml(next.ploegcode)}</div>
+          <div class="agenda-datetime">${escapeHtml(next.raw)}</div>
+          <div class="agenda-desc">
+            <table class="wespen-table">
+              <tr><td class="col-head">Ploeg 1</td><td>${escapeHtml(next.names[0])}</td></tr>
+              <tr><td class="col-head">Ploeg 1</td><td>${escapeHtml(next.names[1])}</td></tr>
+              <tr><td class="col-head">Ploeg 2</td><td>${escapeHtml(next.names[2])}</td></tr>
+              <tr><td class="col-head">Ploeg 2</td><td>${escapeHtml(next.names[3])}</td></tr>
+            </table>
+          </div>
+        </div>
+      `;
+    }catch(err){
+      console.error(err);
+      output.innerHTML = "<p>Kon Excel niet laden of parsen.</p>";
+    }
+  })();
+
+  function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+});
+</script>
 </body>
 </html>
-
-
