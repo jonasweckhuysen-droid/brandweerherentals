@@ -4,11 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Wespenverdelging</title>
-<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
+<link rel="stylesheet" href="/brandweerherentals/style.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
+
+  <!-- -----------------------------------
+       HEADER
+  ------------------------------------ -->
   <header>
     <div class="header-left">
       <div class="logo" aria-hidden="true">BWH</div>
@@ -18,12 +24,14 @@
       </div>
     </div>
     <div id="header-right">
-      <div id="today"></div>
+      <div id="greeting"></div>
+      <div id="datetime"></div>
+      <div id="ploegOfWeek"></div>
     </div>
   </header>
 
   <main class="content">
-    <a href="/brandweerherentals/" class="back-link">← Terug naar start</a>
+    <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
     <div id="wespenList">Laden…</div>
   </main>
 
@@ -34,10 +42,12 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const todayEl = document.querySelectorAll("#today");
-  const todayStr = new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
-  todayEl.forEach(el => el.textContent = todayStr);
+  // Toon huidige datum in footer
+  document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", {
+    weekday:"long", year:"numeric", month:"long", day:"numeric"
+  });
 
+  // Wespen Excel logica
   const excelUrl = "/brandweerherentals/data/wespen.xlsx";
 
   async function loadExcel(url){
@@ -99,7 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 });
 </script>
-<script src="header.js"></script>
+
+<!-- Header.js zorgt voor greeting, datetime & ploeg -->
+<script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
-
