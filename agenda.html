@@ -4,60 +4,90 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Agenda</title>
-
-<!-- Centrale layout -->
-<link rel="stylesheet" href="style.css">
-
+<link rel="stylesheet" href="/brandweerherentals/style.css">
 </head>
 <body>
 
 <div class="container" role="application" aria-label="Brandweer Herentals agenda">
 
-<!-- -----------------------------------
-       HEADER
------------------------------------- -->
-<header>
-  <div class="header-left">
-    <div class="logo" aria-hidden="true">BWH</div>
-    <div>
-      <h1>Brandweer Herentals</h1>
-      <p>Agenda</p>
+  <header id="appHeader"></header>
+
+  <main class="content">
+    <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
+
+    <div id="agenda-container">
+      <div id="agenda-loading">Agenda laden…</div>
+      <div id="agenda-error" class="hidden"></div>
+      <div id="agenda"></div>
     </div>
-  </div>
-  <div id="header-right">
-    <div id="greeting"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
-</header>
+  </main>
 
-<!-- -----------------------------------
-       CONTENT
------------------------------------- -->
-<main class="content">
-
-  <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
-
-  <div id="agenda-container">
-    <div id="agenda-loading">Agenda laden…</div>
-    <div id="agenda-error" class="hidden"></div>
-    <div id="agenda"></div>
-  </div>
-
-</main>
-
-<!-- -----------------------------------
-       FOOTER
------------------------------------- -->
-<footer>Brandweer Herentals — Agenda</footer>
-
+  <footer>
+    <div class="small">Versie 1.1</div>
+    <div class="small">Laatste update: <span id="today"></span></div>
+  </footer>
 </div>
 
-<!-- -----------------------------------
-       SCRIPTS
------------------------------------- -->
-<script src="agenda.js"></script>
 <script src="/brandweerherentals/header.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("today").textContent = 
+    new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  
+  loadAgenda();
+});
+
+async function loadAgenda() {
+  try {
+    const response = await fetch("/brandweerherentals/agenda.json?_=" + new Date().getTime());
+    if (!response.ok) throw new Error("Agenda niet bereikbaar");
+    
+    const events = await response.json();
+    displayEvents(events);
+  } catch (err) {
+    document.getElementById("agenda-loading").classList.add("hidden");
+    const errorEl = document.getElementById("agenda-error");
+    errorEl.textContent = "Kan agenda niet laden…";
+    errorEl.classList.remove("hidden");
+    console.error(err);
+  }
+}
+
+function displayEvents(events) {
+  const container = document.getElementById("agenda");
+  document.getElementById("agenda-loading").classList.add("hidden");
+
+  if (!events.length) {
+    container.innerHTML = "<p>Geen aankomende evenementen.</p>";
+    return;
+  }
+
+  container.innerHTML = ""; // leeg container
+  const now = new Date();
+
+  events
+    .filter(e => new Date(e.start) >= now)
+    .sort((a,b) => new Date(a.start) - new Date(b.start))
+    .forEach(ev => {
+      const div = document.createElement("div");
+      div.className = "agenda-item";
+
+      const startDate = new Date(ev.start);
+      const endDate = new Date(ev.end);
+
+      const dateStr = startDate.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+      const timeStr = startDate.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
+                      " – " + endDate.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
+
+      div.innerHTML = `
+        <div class="agenda-title">${ev.summary}</div>
+        <div class="agenda-datetime">${dateStr}, ${timeStr}</div>
+        ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
+      `;
+      container.appendChild(div);
+    });
+}
+</script>
 
 </body>
 </html>
