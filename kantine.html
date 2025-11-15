@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#c71f1f">
 
 <!-- Link naar de externe CSS -->
-<link rel="stylesheet" href="/brandweerherentals/style.css">
+<link rel="stylesheet" href="/brandweerherentals/kantine.css">
 </head>
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
@@ -33,7 +33,7 @@
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
 
-    <div class="grid" id="productGrid" aria-live="polite"></div>
+    <div class="product-grid" id="productGrid" aria-live="polite"></div>
 
     <div class="cart" id="cartSection" aria-live="polite">
       <h2>🧾 Jouw bestelling</h2>
@@ -94,7 +94,7 @@ function renderProducts(){
     const card = document.createElement("div");
     card.className = "product-card";
     card.innerHTML = `
-      <img src="${p.img}" alt="${p.naam}">
+      <img src="${p.img}" alt="${p.naam}" class="drink-icon">
       <h3>${p.naam}</h3>
       <p>€${p.prijs.toFixed(2)}</p>
       <div class="controls" aria-label="${p.naam} keuze">
