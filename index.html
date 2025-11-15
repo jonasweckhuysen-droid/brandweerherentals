@@ -11,6 +11,10 @@
 
 <!-- Centrale layout -->
 <link rel="stylesheet" href="style.css">
+
+<!-- ⬅️ BELANGRIJK: centraal header-script -->
+<script src="/brandweerherentals/app-header.js" defer></script>
+
 </head>
 
 <body>
@@ -18,23 +22,12 @@
 <div class="container" role="application" aria-label="Brandweer Herentals portal">
 
 <!-- -----------------------------------
-     HEADER
+     HEADER (nu dynamisch!)
 ------------------------------------ -->
-<header>
-  <div class="header-left">
-    <div class="logo">BWH</div>
-    <div>
-      <h1>Brandweer Herentals</h1>
-      <p>Interne app</p>
-      <div id="greeting"></div>
-    </div>
-  </div>
-
-  <div id="header-right">
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
+<header id="appHeader">
+  <!-- De inhoud wordt automatisch gevuld door app-header.js -->
 </header>
+
 
 <!-- -----------------------------------
      CONTENT
@@ -68,7 +61,7 @@
 ------------------------------------ -->
 <script>
 // =====================================================================================
-// 🔐 PERSOONLIJKE BEVEILIGING + BEGROETING
+// 🔐 VRAAG NAAM + VZW STATUS (blijft zoals bij jou)
 // =====================================================================================
 let userName = localStorage.getItem("userName");
 let isVZW = localStorage.getItem("isVZW");
@@ -89,16 +82,13 @@ async function askUser() {
       localStorage.setItem("isVZW", "false");
     }
   }
-
-  document.getElementById("greeting").textContent =
-    userName ? `Welkom, ${userName}!` : "";
 }
 
 askUser();
 
 
 // =====================================================================================
-// 🔗 KNOPPEN DEFINITIE (origineel + Firecrew extra)
+// 🔗 KNOPPEN
 // =====================================================================================
 const links = {
   abiweb: {
@@ -116,7 +106,7 @@ const links = {
   defect: {
     title: "Defectmelding",
     icon: "🔧",
-    desc: "Meld defecten aan materiaal of voertuigen",
+    desc: "Meld defecten",
     url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u"
   },
   kantine: {
@@ -134,7 +124,7 @@ const links = {
   order: {
     title: "Bestelling",
     icon: "📦",
-    desc: "Materiaal of verbruiksgoederen bestellen",
+    desc: "Materiaal bestellen",
     url: "https://forms.cloud.microsoft/e/GjHr1Kym0w"
   },
   vehicle: {
@@ -146,7 +136,7 @@ const links = {
   verdi: {
     title: "Verdi",
     icon: "/brandweerherentals/icons/buttons/verdi.png",
-    desc: "Oproepen & status",
+    desc: "Oproepen",
     url: "https://kempen.verdi.cloud/"
   },
   wegenwerken: {
@@ -163,19 +153,19 @@ const links = {
   }
 };
 
-// Extra knop als VZW-lid
+// Extra knop (VZW)
 if (localStorage.getItem("isVZW") === "true") {
   links.firecrew = {
     title: "Firecrew",
     icon: "🔥",
-    desc: "Exclusieve ledenpagina",
+    desc: "Exclusief",
     url: "/brandweerherentals/firecrew.html"
   };
 }
 
 
 // =====================================================================================
-// 🖼️ KNOPPEN RENDEREN
+// 🖼️ RENDER
 // =====================================================================================
 const sorted = Object.values(links).sort((a, b) =>
   a.title.localeCompare(b.title, "nl")
@@ -190,7 +180,11 @@ sorted.forEach(item => {
 
   a.innerHTML = `
     <div class="icon">
-      ${item.icon.endsWith(".png") ? `<img src="${item.icon}" alt="${item.title}">` : item.icon}
+      ${
+        item.icon.endsWith(".png")
+          ? `<img src="${item.icon}" alt="${item.title}">`
+          : item.icon
+      }
     </div>
     <div>
       <div>${item.title}</div>
@@ -203,42 +197,7 @@ sorted.forEach(item => {
 
 
 // =====================================================================================
-// 🕒 DATUM + PLOEG VAN WEEK
-// =====================================================================================
-document.addEventListener("DOMContentLoaded", () => {
-  const cyclus = ["A1","B1","C1","A2","B2","C2"];
-  const referentie = new Date("2025-01-03T12:00:00");
-
-  function currentPloeg() {
-    const now = new Date();
-    const diff = now - referentie;
-    const weken = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
-    const i = ((weken % cyclus.length) + cyclus.length) % cyclus.length;
-    return cyclus[i];
-  }
-
-  function updateHeader() {
-    const options = {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit"
-    };
-    document.getElementById("datetime").textContent =
-      new Date().toLocaleString("nl-BE", options);
-
-    document.getElementById("ploegOfWeek").textContent =
-      "Ploeg van week: " + currentPloeg();
-  }
-
-  updateHeader();
-  setInterval(updateHeader, 1000);
-});
-
-
-// =====================================================================================
-// 📲 INSTALLATIE-PROMPT (Android + iPhone detectie)
+// 📲 INSTALLATIE
 // =====================================================================================
 let deferredPrompt;
 const installPrompt = document.getElementById("installPrompt");
@@ -265,7 +224,7 @@ installBtn.addEventListener("click", async () => {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   if (isIOS) {
-    alert("Op iPhone/iPad: gebruik het deel-icoontje en kies ‘Zet op beginscherm’.");  
+    alert("Op iPhone/iPad: gebruik ‘Zet op beginscherm’.");  
     hideInstall();
     return;
   }
