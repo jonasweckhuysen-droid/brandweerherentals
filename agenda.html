@@ -4,39 +4,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Agenda</title>
+
+<!-- Centrale layout -->
 <link rel="stylesheet" href="style.css">
+
+<!-- Dynamische header -->
+<script src="/brandweerherentals/app-header.js" defer></script>
+
 </head>
 <body>
-<div class="container" role="application" aria-label="Fire Crew Herentals agenda">
-  <header>
-    <div class="header-left">
-      <div class="logo" aria-hidden="true">BWH</div>
-      <div>
-        <h1>Brandweer Herentals</h1>
-        <p>Agenda</p>
-      </div>
-    </div>
-    <div id="header-right">
-      <div id="today"></div>
-    </div>
-  </header>
-<main class="content">
-    <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
-  <main class="content">
-   
-    <div id="agenda-container">
-      <div id="agenda-loading">Agenda laden…</div>
-      <div id="agenda-error" class="hidden"></div>
-      <div id="agenda"></div>
-    </div>
-  </main>
 
-  <footer>Brandweer Herentals — Agenda</footer>
+<div class="container" role="application" aria-label="Brandweer Herentals agenda">
+
+<!-- -----------------------------------
+       DYNAMISCHE HEADER
+------------------------------------ -->
+<header id="appHeader"></header>
+
+
+<!-- -----------------------------------
+       CONTENT
+------------------------------------ -->
+<main class="content">
+
+  <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
+
+  <div id="agenda-container">
+    <div id="agenda-loading">Agenda laden…</div>
+    <div id="agenda-error" class="hidden"></div>
+    <div id="agenda"></div>
+  </div>
+
+</main>
+
+
+<!-- -----------------------------------
+       FOOTER
+------------------------------------ -->
+<footer>Brandweer Herentals — Agenda</footer>
+
 </div>
 
 <script src="agenda.js"></script>
-<script src="header.js"></script>
+
 </body>
 </html>
-
-
