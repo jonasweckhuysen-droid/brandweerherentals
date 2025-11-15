@@ -4,12 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Portal</title>
+
+<!-- PWA -->
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
+
+<!-- Centrale layout -->
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-<div class="container" role="application" aria-label="Fire Crew Herentals portal">
+
+<div class="container" role="application" aria-label="Brandweer Herentals portal">
+
+<!-- -----------------------------------
+     HEADER
+------------------------------------ -->
 <header>
   <div class="header-left">
     <div class="logo">BWH</div>
@@ -19,145 +29,261 @@
       <div id="greeting"></div>
     </div>
   </div>
- <div id="header-right">
-  <div id="datetime"></div>
-  <div id="ploegOfWeek"></div>
-</div>
+
+  <div id="header-right">
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
 </header>
+
+<!-- -----------------------------------
+     CONTENT
+------------------------------------ -->
 <main class="content">
+
   <div class="grid" id="buttonGrid"></div>
+
+  <!-- Install PWA prompt -->
   <div id="installPrompt">
     <span id="installText">📲 Voeg de app toe aan je startscherm</span>
     <button id="installNow">Toevoegen</button>
     <span class="close" id="installClose">✖</span>
   </div>
+
 </main>
+
+<!-- -----------------------------------
+     FOOTER
+------------------------------------ -->
 <footer>
   <div>Versie 1.1</div>
   <div></div>
 </footer>
-</div>
 
+</div> <!-- container -->
+
+
+<!-- -----------------------------------
+     SCRIPT
+------------------------------------ -->
 <script>
-// 🔒 Persoonlijke naam + VZW beveiliging
+// =====================================================================================
+// 🔐 PERSOONLIJKE BEVEILIGING + BEGROETING
+// =====================================================================================
 let userName = localStorage.getItem("userName");
 let isVZW = localStorage.getItem("isVZW");
 
 async function askUser() {
-  if(!userName){
+  if (!userName) {
     userName = prompt("Wat is je naam?");
-    if(userName) localStorage.setItem("userName", userName);
+    if (userName) localStorage.setItem("userName", userName);
   }
-  if(!isVZW){
-    let vzwInput = prompt("Ben je lid van de VZW? Vul wachtwoord:");
-    if(vzwInput === "Oudstrijder") {
-      isVZW = true;
+
+  if (!isVZW) {
+    let vzwInput = prompt("Ben je lid van de VZW? Vul wachtwoord in:");
+    if (vzwInput === "Oudstrijder") {
+      isVZW = "true";
       localStorage.setItem("isVZW", "true");
     } else {
-      isVZW = false;
+      isVZW = "false";
       localStorage.setItem("isVZW", "false");
     }
   }
-  document.getElementById("greeting").textContent = userName ? `Welkom, ${userName}!` : "";
+
+  document.getElementById("greeting").textContent =
+    userName ? `Welkom, ${userName}!` : "";
 }
+
 askUser();
 
-// 🔗 Links instellen (originele index + Firecrew)
+
+// =====================================================================================
+// 🔗 KNOPPEN DEFINITIE (origineel + Firecrew extra)
+// =====================================================================================
 const links = {
-  abiweb: { title: "Abiweb", icon: "/brandweerherentals/icons/buttons/abiweb.png", desc: "Oefeningen en prestaties", url: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },
-  agenda: { title: "Agenda", icon: "📅", desc: "Belangrijke data en evenementen", url: "/brandweerherentals/agenda.html" },
-  defect: { title: "Defectmelding", icon: "🔧", desc: "Meld snel defecten aan materiaal of voertuigen", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" },
-  kantine: { title: "Kantine", icon: "🍻", desc: "Bestel en betaal drank & snacks", url: "/brandweerherentals/kantine.html" },
-  logistiek: { title: "Logistiek", icon: "/brandweerherentals/icons/buttons/winkelkar.png", desc: "Meld een logistiek transport aan", url: "https://form.jotform.com/230682691731055" },
-  order: { title: "Bestelling", icon: "📦", desc: "Bestel materiaal of verbruiksgoederen", url: "https://forms.cloud.microsoft/e/GjHr1Kym0w" },
-  vehicle: { title: "Voertuigreservatie", icon: "🚒", desc: "Reserveer een voertuig of controleer beschikbaarheid", url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STI0STI0" },
-  verdi: { title: "Verdi", icon: "/brandweerherentals/icons/buttons/verdi.png", desc: "Oproepen en status aanpassen", url: "https://kempen.verdi.cloud/" },
-  wegenwerken: { title: "Wegenwerken", icon: "🚧", desc: "Actuele info over werken in Herentals", url: "/brandweerherentals/wegenwerken.html" },
-  wespen: { title: "Wespen", icon: "🐝", desc: "Ploeg van dienst wespenverdelging", url: "/brandweerherentals/wespen.html" }
+  abiweb: {
+    title: "Abiweb",
+    icon: "/brandweerherentals/icons/buttons/abiweb.png",
+    desc: "Oefeningen en prestaties",
+    url: "https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new"
+  },
+  agenda: {
+    title: "Agenda",
+    icon: "📅",
+    desc: "Belangrijke data en evenementen",
+    url: "/brandweerherentals/agenda.html"
+  },
+  defect: {
+    title: "Defectmelding",
+    icon: "🔧",
+    desc: "Meld defecten aan materiaal of voertuigen",
+    url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u"
+  },
+  kantine: {
+    title: "Kantine",
+    icon: "🍻",
+    desc: "Bestellen & betalen",
+    url: "/brandweerherentals/kantine.html"
+  },
+  logistiek: {
+    title: "Logistiek",
+    icon: "/brandweerherentals/icons/buttons/winkelkar.png",
+    desc: "Transport aanvragen",
+    url: "https://form.jotform.com/230682691731055"
+  },
+  order: {
+    title: "Bestelling",
+    icon: "📦",
+    desc: "Materiaal of verbruiksgoederen bestellen",
+    url: "https://forms.cloud.microsoft/e/GjHr1Kym0w"
+  },
+  vehicle: {
+    title: "Voertuigreservatie",
+    icon: "🚒",
+    desc: "Controle & reservatie",
+    url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STI0STI0"
+  },
+  verdi: {
+    title: "Verdi",
+    icon: "/brandweerherentals/icons/buttons/verdi.png",
+    desc: "Oproepen & status",
+    url: "https://kempen.verdi.cloud/"
+  },
+  wegenwerken: {
+    title: "Wegenwerken",
+    icon: "🚧",
+    desc: "Actuele info",
+    url: "/brandweerherentals/wegenwerken.html"
+  },
+  wespen: {
+    title: "Wespen",
+    icon: "🐝",
+    desc: "Ploeg van dienst",
+    url: "/brandweerherentals/wespen.html"
+  }
 };
 
-if(isVZW === "true"){
-  links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusieve ledenportal", url:"/brandweerherentals/firecrew.html" };
+// Extra knop als VZW-lid
+if (localStorage.getItem("isVZW") === "true") {
+  links.firecrew = {
+    title: "Firecrew",
+    icon: "🔥",
+    desc: "Exclusieve ledenpagina",
+    url: "/brandweerherentals/firecrew.html"
+  };
 }
 
-const sorted = Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,'nl'));
+
+// =====================================================================================
+// 🖼️ KNOPPEN RENDEREN
+// =====================================================================================
+const sorted = Object.values(links).sort((a, b) =>
+  a.title.localeCompare(b.title, "nl")
+);
+
 const grid = document.getElementById("buttonGrid");
+
 sorted.forEach(item => {
   const a = document.createElement("a");
   a.className = "btn";
   a.href = item.url;
+
   a.innerHTML = `
-    <div class="icon">${item.icon.endsWith(".png") ? `<img src="${item.icon}" alt="${item.title}">` : item.icon}</div>
+    <div class="icon">
+      ${item.icon.endsWith(".png") ? `<img src="${item.icon}" alt="${item.title}">` : item.icon}
+    </div>
     <div>
       <div>${item.title}</div>
       <small>${item.desc}</small>
-    </div>`;
+    </div>
+  `;
+
   grid.appendChild(a);
 });
 
-// 🕒 Datum & ploeg
+
+// =====================================================================================
+// 🕒 DATUM + PLOEG VAN WEEK
+// =====================================================================================
 document.addEventListener("DOMContentLoaded", () => {
   const cyclus = ["A1","B1","C1","A2","B2","C2"];
   const referentie = new Date("2025-01-03T12:00:00");
 
-  function currentPloegVanWeek(){
+  function currentPloeg() {
     const now = new Date();
-    const msPerWeek = 7*24*60*60*1000;
-    const diffMs = now - referentie;
-    const weeksElapsed = Math.floor(diffMs / msPerWeek);
-    const index = ((weeksElapsed % cyclus.length)+cyclus.length)%cyclus.length;
-    return cyclus[index];
+    const diff = now - referentie;
+    const weken = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+    const i = ((weken % cyclus.length) + cyclus.length) % cyclus.length;
+    return cyclus[i];
   }
 
-  const datetimeEl = document.getElementById("datetime");
-  const ploegEl = document.getElementById("ploegOfWeek");
+  function updateHeader() {
+    const options = {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    };
+    document.getElementById("datetime").textContent =
+      new Date().toLocaleString("nl-BE", options);
 
-  function updateHeader(){
-    const now = new Date();
-    const options = { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' };
-    datetimeEl.textContent = now.toLocaleString('nl-BE',options);
-    ploegEl.textContent = "Ploeg van week: " + currentPloegVanWeek();
+    document.getElementById("ploegOfWeek").textContent =
+      "Ploeg van week: " + currentPloeg();
   }
-  setInterval(updateHeader,1000);
+
   updateHeader();
+  setInterval(updateHeader, 1000);
 });
 
-// 📲 Installatieprompt
+
+// =====================================================================================
+// 📲 INSTALLATIE-PROMPT (Android + iPhone detectie)
+// =====================================================================================
 let deferredPrompt;
 const installPrompt = document.getElementById("installPrompt");
-const installBtnNow = document.getElementById("installNow");
+const installBtn = document.getElementById("installNow");
 const installClose = document.getElementById("installClose");
 
-function showInstallPrompt(text){ document.getElementById("installText").textContent = text; installPrompt.style.display="flex"; }
-function hideInstallPrompt(){ installPrompt.style.display="none"; }
+function showInstall() {
+  if (!localStorage.getItem("appInstalled")) {
+    installPrompt.style.display = "flex";
+  }
+}
 
-window.addEventListener('beforeinstallprompt', (e)=>{
+function hideInstall() {
+  installPrompt.style.display = "none";
+}
+
+window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredPrompt = e;
-  if (!localStorage.getItem('appInstalled')) {
-    showInstallPrompt("📲 Installeer deze app op je startscherm");
-  }
+  showInstall();
 });
 
-installBtnNow.addEventListener('click', async ()=>{
-  const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
+installBtn.addEventListener("click", async () => {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-  if(isIOS){
-    alert("📲 Op iPhone of iPad: tik op het deel-icoon (vierkant met pijltje omhoog) en kies ‘Zet op beginscherm’ om de app te installeren.");
-    hideInstallPrompt();
+  if (isIOS) {
+    alert("Op iPhone/iPad: gebruik het deel-icoontje en kies ‘Zet op beginscherm’.");  
+    hideInstall();
     return;
   }
 
-  if(deferredPrompt){
+  if (deferredPrompt) {
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if(outcome === "accepted") localStorage.setItem('appInstalled', 'true');
-    hideInstallPrompt();
+    const result = await deferredPrompt.userChoice;
+
+    if (result.outcome === "accepted") {
+      localStorage.setItem("appInstalled", "true");
+    }
+
+    hideInstall();
   }
 });
 
-installClose.addEventListener('click', hideInstallPrompt);
+installClose.addEventListener("click", hideInstall);
 </script>
+
 </body>
 </html>
