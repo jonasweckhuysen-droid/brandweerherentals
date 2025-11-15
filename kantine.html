@@ -12,6 +12,9 @@
 </head>
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
+  <!-- -----------------------------------
+       HEADER
+  ------------------------------------ -->
   <header>
     <div class="header-left">
       <div class="logo" aria-hidden="true">BWH</div>
@@ -21,6 +24,7 @@
       </div>
     </div>
     <div id="header-right">
+      <div id="greeting"></div>
       <div id="datetime"></div>
       <div id="ploegOfWeek"></div>
     </div>
@@ -68,29 +72,6 @@
 </div>
 
 <script>
-// ---------- Header datetime + ploeg ----------
-(function headerInit(){
-  const cyclus=["A1","B1","C1","A2","B2","C2"];
-  const referentie=new Date("2025-01-03T12:00:00");
-  function currentPloegVanWeek(){
-    const now=new Date();
-    const msPerWeek=7*24*60*60*1000;
-    const weeksElapsed=Math.floor((now - referentie)/msPerWeek);
-    const index = ((weeksElapsed % cyclus.length)+cyclus.length)%cyclus.length;
-    return cyclus[index];
-  }
-  const dtEl=document.getElementById("datetime");
-  const pEl=document.getElementById("ploegOfWeek");
-  function updateHeader(){
-    const now=new Date();
-    const opt={ weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' };
-    dtEl.textContent = now.toLocaleString('nl-BE', opt);
-    pEl.textContent = "Ploeg van week: " + currentPloegVanWeek();
-  }
-  updateHeader();
-  setInterval(updateHeader, 1000);
-})();
-
 // ---------- Producten & cart logic ----------
 const producten = [
   { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png" },
@@ -248,7 +229,8 @@ function clearCartAfterPayment(){
 renderProducts();
 updateCart();
 </script>
-<script src="header.js"></script>
+
+<!-- Header.js zorgt voor greeting, datetime & ploeg -->
+<script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
-
