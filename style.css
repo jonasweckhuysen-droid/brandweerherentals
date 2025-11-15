@@ -265,6 +265,53 @@ header p {
   font-size: 14px;
   color: #333;
 }
+.werken-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-card {
+  background: #fff;
+  border-left: 6px solid #c71f1f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.1s;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+}
+
+.event-date {
+  font-weight: 700;
+  color: #c71f1f;
+  margin-bottom: 4px;
+}
+
+.event-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.event-desc {
+  font-size: 13px;
+  color: #333;
+}
+
+@media (max-width: 600px) {
+  .event-card {
+    padding: 10px 12px;
+  }
+  .event-title {
+    font-size: 14px;
+  }
+  .event-desc {
+    font-size: 12px;
+  }
+}
 /* ------------------------------
    FOOTER
 --------------------------------*/
