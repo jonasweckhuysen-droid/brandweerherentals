@@ -220,7 +220,51 @@ header p {
 .agenda-location::before {
     content: "📍 ";
 }
+/* ------------------------------
+   WESPENVERDELGING LAYOUT
+--------------------------------*/
+.wespen-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
 
+.wespen-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.wespen-table .col-head {
+  font-weight: 700;
+  color: var(--red);
+}
+
+.agenda-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-left: 5px solid var(--red);
+}
+
+.agenda-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--red-dark);
+}
+
+.agenda-datetime {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.agenda-desc {
+  font-size: 14px;
+  color: #333;
+}
 /* ------------------------------
    FOOTER
 --------------------------------*/
