@@ -4,12 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Agenda</title>
+
 <link rel="stylesheet" href="/brandweerherentals/style.css">
+
+<!-- Dynamische header -->
+<script src="/brandweerherentals/app-header.js" defer></script>
+
 </head>
 <body>
 
 <div class="container" role="application" aria-label="Brandweer Herentals agenda">
 
+  <!-- DYNAMISCHE HEADER -->
   <header id="appHeader"></header>
 
   <main class="content">
@@ -28,12 +34,14 @@
   </footer>
 </div>
 
-<script src="/brandweerherentals/header.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("today").textContent = 
-    new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
-  
+  // Toon huidige datum in footer
+  document.getElementById("today").textContent =
+    new Date().toLocaleDateString("nl-BE", {
+      weekday:"long", year:"numeric", month:"long", day:"numeric"
+    });
+
   loadAgenda();
 });
 
@@ -41,7 +49,7 @@ async function loadAgenda() {
   try {
     const response = await fetch("/brandweerherentals/agenda.json?_=" + new Date().getTime());
     if (!response.ok) throw new Error("Agenda niet bereikbaar");
-    
+
     const events = await response.json();
     displayEvents(events);
   } catch (err) {
@@ -62,7 +70,7 @@ function displayEvents(events) {
     return;
   }
 
-  container.innerHTML = ""; // leeg container
+  container.innerHTML = ""; // maak leeg
   const now = new Date();
 
   events
