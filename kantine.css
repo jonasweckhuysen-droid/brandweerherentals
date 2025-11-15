@@ -234,3 +234,17 @@ footer {
     font-size: 13px;
   }
 }
+/* ==========================================
+   GLOBALE FIX VOOR ALLE DRANKEN-ICOONTJES
+========================================== */
+
+img.drink-icon,
+.product-card img,
+.kantine img,
+.agenda img {
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: contain !important;
+  display: block;
+  margin: 0 auto 8px;
+}
