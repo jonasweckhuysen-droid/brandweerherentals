@@ -2,16 +2,12 @@
    KANTINE STIJLEN — BRANDWEER HERENTALS
 ============================== */
 
-/* ------------------------------
-   ROOT VARIABLES & BODY
---------------------------------*/
 :root {
   --red: #c71f1f;
   --red-dark: #8f1515;
   --light: #fff;
   --muted: #f6f6f6;
   --dark: #111;
-
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -25,9 +21,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ------------------------------
-   CONTAINER
---------------------------------*/
 .container {
   width: 100%;
   max-width: 780px;
@@ -40,16 +33,27 @@ body {
   overflow: hidden;
 }
 
-/* ------------------------------
-   HEADER
---------------------------------*/
 header {
   background: linear-gradient(90deg, var(--red), var(--red-dark));
   color: var(--light);
   padding: 18px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header .header-left h1 {
+  margin: 0; font-size: 18px;
+}
+
+header .header-left p {
+  margin: 0; font-size: 14px;
+}
+
+header #header-right div {
+  font-size: 14px;
+  color: var(--light);
+  text-align: right;
 }
 
 /* ------------------------------
@@ -60,12 +64,21 @@ main {
   padding: 18px;
 }
 
+.backlink {
+  display: block;
+  margin: 10px 0;
+  text-align: center;
+  text-decoration: none;
+  color: var(--red);
+  font-weight: 700;
+}
+
 /* ------------------------------
    PRODUCT GRID
 --------------------------------*/
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
 }
 
@@ -85,16 +98,14 @@ main {
   transform: translateY(-2px);
 }
 
-/* ----------- PRODUCT IMAGE FIX ----------- */
 .product-card img {
-  width: 50px;           /* vaste breedte */
-  height: 50px;          /* vaste hoogte */
-  object-fit: contain;   /* behoud aspect ratio */
-  margin: 0 auto 8px;    /* centreren + marge onder */
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
   display: block;
+  margin: 0 auto 8px;
 }
 
-/* Product titel en prijs */
 .product-card h3 {
   font-size: 15px;
   margin: 6px 0 4px;
@@ -106,9 +117,6 @@ main {
   color: #333;
 }
 
-/* ------------------------------
-   CONTROLS (+ / −)
---------------------------------*/
 .controls {
   display: flex;
   justify-content: center;
@@ -135,7 +143,7 @@ main {
 }
 
 /* ------------------------------
-   WINKELMANDJE / CART
+   CART
 --------------------------------*/
 .cart {
   margin-top: 24px;
@@ -178,9 +186,6 @@ main {
   cursor: pointer;
 }
 
-/* ------------------------------
-   FOOTER
---------------------------------*/
 footer {
   padding: 10px;
   background: #fff;
@@ -190,24 +195,12 @@ footer {
   color: #444;
 }
 
-/* ------------------------------
-   BACK LINK
---------------------------------*/
-.backlink {
-  display: block;
-  margin: 10px 0;
-  text-align: center;
-  text-decoration: none;
-  color: var(--red);
-  font-weight: 700;
-}
-
 /* ==============================
    RESPONSIVE ADJUSTMENTS
 ============================== */
 @media (max-width: 600px) {
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 10px;
   }
 
@@ -233,18 +226,4 @@ footer {
     min-width: 18px;
     font-size: 13px;
   }
-}
-/* ==========================================
-   GLOBALE FIX VOOR ALLE DRANKEN-ICOONTJES
-========================================== */
-
-img.drink-icon,
-.product-card img,
-.kantine img,
-.agenda img {
-  width: 40px !important;
-  height: 40px !important;
-  object-fit: contain !important;
-  display: block;
-  margin: 0 auto 8px;
 }
