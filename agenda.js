@@ -1,127 +1,45 @@
-/* =========================================================================
-   AGENDA — Herentals Brandweer
-   Ophaalservice + ICS parser + nette event cards
-   ========================================================================= */
+// Voorbeeld evenementen (dit kan vervangen worden door echte data)
+const events = [
+  { title: "Oefening brandbestrijding", date: "18-11-2025", time: "19:00", location: "Kazerne Herentals" },
+  { title: "Vergadering Firecrew", date: "20-11-2025", time: "20:00", location: "Vergaderzaal" },
+  { title: "Open Dag", date: "25-11-2025", time: "10:00", location: "Kazerne Herentals" }
+];
 
-document.addEventListener("DOMContentLoaded", loadAgenda);
+function renderAgenda(events) {
+  const container = document.getElementById('agenda');
+  const loading = document.getElementById('agenda-loading');
+  const error = document.getElementById('agenda-error');
 
-async function loadAgenda() {
-  const agendaEl = document.getElementById("agenda");
+  loading.classList.add('hidden');
+  error.classList.add('hidden');
 
-  try {
-    const response = await fetch("/brandweerherentals/agenda.php");
+  container.innerHTML = '';
 
-    if (!response.ok) {
-      agendaEl.textContent = "Kan agenda niet laden…";
-      return;
-    }
-
-    const icsText = await response.text();
-    const events = parseICS(icsText);
-
-    if (!events.length) {
-      agendaEl.textContent = "Er zijn momenteel geen aankomende evenementen.";
-      return;
-    }
-
-    // Sorteer events op datum
-    events.sort((a, b) => a.start - b.start);
-
-    // Toon events als cards
-    agendaEl.innerHTML = "";
-    events.forEach(ev => agendaEl.appendChild(renderEvent(ev)));
-
-  } catch (error) {
-    console.error(error);
-    agendaEl.textContent = "Kan agenda niet laden…";
-  }
-}
-
-
-/* =========================================================================
-   ICS PARSER (simpel + snel)
-   ========================================================================= */
-
-function parseICS(data) {
-  const lines = data.split(/\r?\n/);
-  const events = [];
-  let current = {};
-
-  for (let line of lines) {
-    if (line.startsWith("BEGIN:VEVENT")) {
-      current = {};
-    }
-
-    if (line.startsWith("DTSTART")) {
-      current.start = parseICSDate(line.split(":")[1]);
-    }
-
-    if (line.startsWith("DTEND")) {
-      current.end = parseICSDate(line.split(":")[1]);
-    }
-
-    if (line.startsWith("SUMMARY:")) {
-      current.title = line.replace("SUMMARY:", "").trim();
-    }
-
-    if (line.startsWith("DESCRIPTION:")) {
-      current.description = line.replace("DESCRIPTION:", "").trim();
-    }
-
-    if (line.startsWith("END:VEVENT")) {
-      // Enkel toekomstige events tonen
-      if (current.start && current.start >= new Date()) {
-        events.push(current);
-      }
-    }
+  if (!events || events.length === 0) {
+    container.innerHTML = '<div>Geen evenementen gevonden.</div>';
+    return;
   }
 
-  return events;
-}
-
-function parseICSDate(str) {
-  // 20250122T180000Z
-  return new Date(str);
-}
-
-
-/* =========================================================================
-   RENDER EVENT CARD
-   ========================================================================= */
-
-function renderEvent(ev) {
-  const card = document.createElement("div");
-  card.className = "agenda-item";
-
-  const dateBox = document.createElement("div");
-  dateBox.className = "agenda-date";
-
-  const d = ev.start.toLocaleDateString("nl-BE", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short"
+  events.forEach(ev => {
+    const div = document.createElement('div');
+    div.className = 'agenda-item';
+    div.innerHTML = `
+      <div class="agenda-title">${ev.title}</div>
+      <div class="agenda-datetime">📅 ${ev.date} ${ev.time}</div>
+      <div class="agenda-location">📍 ${ev.location}</div>
+    `;
+    container.appendChild(div);
   });
-
-  const time = ev.start.toLocaleTimeString("nl-BE", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-
-  dateBox.innerHTML = `
-    <div class="agenda-day">${d}</div>
-    <div class="agenda-time">${time}</div>
-  `;
-
-  const info = document.createElement("div");
-  info.className = "agenda-info";
-
-  info.innerHTML = `
-    <div class="agenda-title">${ev.title || "Onbekend evenement"}</div>
-    ${ev.description ? `<div class="agenda-description">${ev.description}</div>` : ""}
-  `;
-
-  card.appendChild(dateBox);
-  card.appendChild(info);
-
-  return card;
 }
+
+// Datum in footer
+function updateToday() {
+  const todayEl = document.getElementById('today');
+  const now = new Date();
+  todayEl.textContent = now.toLocaleDateString('nl-BE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+// Initialisatie
+renderAgenda(events);
+updateToday();
+setInterval(updateToday, 60000); // update elke minuut
