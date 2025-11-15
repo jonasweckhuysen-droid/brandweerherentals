@@ -9,40 +9,31 @@
   <link rel="manifest" href="/brandweerherentals/manifest.json">
   <meta name="theme-color" content="#c71f1f">
 
-  <!-- Algemene CSS voor alle pagina's -->
+  <!-- Algemene CSS -->
   <link rel="stylesheet" href="/brandweerherentals/style.css">
 </head>
 
 <body>
   <div class="container">
 
-    <!-- HEADER -->
     <header class="app-header">
       <div class="logo">BWH</div>
-
       <div class="header-text">
         <h1>Agenda</h1>
         <p>Brandweer Herentals — Aankomende activiteiten</p>
       </div>
-
-      <div class="header-right">
-        <div id="datetime"></div>
-        <div id="ploegOfWeek"></div>
-      </div>
     </header>
 
-    <!-- CONTENT -->
     <main class="content">
       <a href="/brandweerherentals/" class="back">← Terug naar start</a>
 
-      <h2 class="section-title">Aankomende evenementen</h2>
-
-      <div id="agenda" class="agenda-list">
-        Agenda laden…
+      <div id="agenda-container">
+        <div id="agenda-loading">Agenda laden…</div>
+        <div id="agenda-error" class="hidden">Fout bij het laden van de agenda.</div>
+        <div id="agenda" class="agenda-list"></div>
       </div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="app-footer">
       <span>Versie 1.4</span>
       <span id="today"></span>
@@ -51,44 +42,5 @@
   </div>
 
   <script src="/brandweerherentals/agenda.js"></script>
-
-  <script>
-    /* Datum & ploeg opnieuw op elke pagina includen */
-    document.addEventListener("DOMContentLoaded", () => {
-      const cyclus = ["A1","B1","C1","A2","B2","C2"];
-      const referentie = new Date("2025-01-03T12:00:00");
-
-      function currentPloegVanWeek(){
-        const now = new Date();
-        const weekMs = 7 * 24 * 60 * 60 * 1000;
-        const diff = now - referentie;
-        const weeks = Math.floor(diff / weekMs);
-        return cyclus[(weeks % cyclus.length + cyclus.length) % cyclus.length];
-      }
-
-      const dt = document.getElementById("datetime");
-      const ploeg = document.getElementById("ploegOfWeek");
-
-      function updateHeader(){
-        const now = new Date();
-        dt.textContent = now.toLocaleString("nl-BE", {
-          weekday: "short",
-          day: "2-digit",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-        ploeg.textContent = "Ploeg van week: " + currentPloegVanWeek();
-      }
-
-      setInterval(updateHeader, 60000);
-      updateHeader();
-
-      // Footer datum
-      document.getElementById("today").textContent =
-        new Date().toLocaleDateString("nl-BE");
-    });
-  </script>
-
 </body>
 </html>
