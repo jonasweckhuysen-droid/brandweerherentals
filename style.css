@@ -80,7 +80,6 @@ header p {
 /* ------------------------------
    CONTENT
 --------------------------------*/
-
 .content {
   padding: 22px;
 }
@@ -149,10 +148,10 @@ header p {
   cursor: pointer;
   font-size: 18px;
 }
-/* ------------------------- */
-/* Mooie agenda-weergave     */
-/* ------------------------- */
 
+/* ------------------------------
+   AGENDA STYLING
+--------------------------------*/
 #agenda-container {
     margin-top: 20px;
 }
@@ -172,17 +171,27 @@ header p {
     display: none;
 }
 
-/* De container waarin evenementen staan */
-.agenda-item {
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    border-left: 5px solid #ff5722; /* accentkleur */
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-/* Titel van het evenement */
+/* Elk evenement */
+.agenda-item {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    border-left: 5px solid var(--red);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.agenda-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+}
+
 .agenda-title {
     font-size: 18px;
     font-weight: 700;
@@ -190,20 +199,20 @@ header p {
     color: #222;
 }
 
-/* Datum + tijd */
-.agenda-datetime {
+.agenda-datetime,
+.agenda-location {
     font-size: 14px;
-    color: #555;
     margin-bottom: 4px;
 }
 
-/* Locatie */
+.agenda-datetime {
+    color: #555;
+}
+
 .agenda-location {
-    font-size: 14px;
     color: #777;
 }
 
-/* Optioneel: icoontjes */
 .agenda-datetime::before {
     content: "📅 ";
 }
@@ -211,6 +220,7 @@ header p {
 .agenda-location::before {
     content: "📍 ";
 }
+
 /* ------------------------------
    FOOTER
 --------------------------------*/
@@ -221,4 +231,5 @@ footer {
   font-size: 14px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
