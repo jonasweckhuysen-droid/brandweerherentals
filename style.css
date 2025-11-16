@@ -312,6 +312,52 @@ header p {
     font-size: 12px;
   }
 }
+/* -------------------------------------------
+   STIJLVOLLE TERUGNAARSTART-KNOP
+------------------------------------------- */
+.backlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #222;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+  border: 2px solid #444;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+}
+
+.backlink .arrow {
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+
+/* Hover: mooie animatie + lichte kleurshift */
+.backlink:hover {
+  background: #d62828;
+  border-color: #b71f1f;
+  transform: translateX(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+}
+
+.backlink:hover .arrow {
+  transform: translateX(-3px);
+}
+
+/* Mobile scaling */
+@media (max-width: 480px) {
+  .backlink {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+  .backlink .arrow {
+    font-size: 1.1rem;
+  }
+}
 /* ------------------------------
    FOOTER
 --------------------------------*/
