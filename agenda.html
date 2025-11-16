@@ -8,24 +8,24 @@
 <link rel="stylesheet" href="/brandweerherentals/style.css">
 
 <script src="/brandweerherentals/header.js" defer></script>
-
 </head>
 <body>
 
 <div class="container">
 
-  <!-- Dynamische header -->
+  <!-- DYNAMISCHE HEADER -->
   <header id="appHeader">
-  <div class="header-left">
-    <!-- Logo -->
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-    <div id="greeting" class="header-name"></div>
-  </div>
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <div id="greeting" class="header-name"></div>
+      </div>
+    </div>
 
-  <div class="header-right">
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
+    <div class="header-right">
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
   </header>
 
   <main class="content">
@@ -41,19 +41,19 @@
   </main>
 
   <footer>
-    <div class="small">Versie 1.3 (Google Calendar API)</div>
+    <div class="small">Versie 1.3 (Ultra-Fast ICS + Dedup)</div>
     <div class="small">Laatste update: <span id="today"></span></div>
   </footer>
 </div>
 
 <script>
-// --------------------
-// CONFIG
-// --------------------
-const CACHE_KEY = "agendaCacheV3";
-const API_KEY = "AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE";
-const CALENDAR_ID = "df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com";
-const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minuten
+// ------------------------------------------------------
+// ULTRA-SNELLE AGENDA MET GOOGLE API, CACHING + DEDUPLICATIE
+// ------------------------------------------------------
+
+const CACHE_KEY = "agendaICScacheV3";
+const ICS_URL = "https://www.googleapis.com/calendar/v3/calendars/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/events?key=AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE";
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("today").textContent =
@@ -69,36 +69,49 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadAgenda() {
   const cached = localStorage.getItem(CACHE_KEY);
 
-  // 1️⃣ Toon cache direct als aanwezig
+  // Toon cache direct
   if (cached) {
     try {
       displayEvents(JSON.parse(cached), true);
     } catch {}
   }
 
-  // 2️⃣ Haal Google Calendar events op
   try {
-    const now = new Date().toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&singleEvents=true&orderBy=startTime`;
-    
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Google Calendar API error");
+    const response = await fetch(ICS_URL);
+    if (!response.ok) throw new Error("Google Calendar niet bereikbaar");
 
     const data = await response.json();
-    const events = data.items.map(ev => ({
-      summary: ev.summary || "Geen titel",
-      location: ev.location || "",
-      start: ev.start.dateTime ? new Date(ev.start.dateTime) : new Date(ev.start.date),
-      end: ev.end.dateTime ? new Date(ev.end.dateTime) : new Date(ev.end.date)
-    }));
 
-    // Update cache alleen als verschillend
-    if (JSON.stringify(events) !== cached) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(events));
-      displayEvents(events, false);
+    // Converteer items naar intern formaat
+    const events = data.items.map(item => {
+      return {
+        summary: item.summary || "",
+        location: item.location || "",
+        start: item.start?.dateTime ? new Date(item.start.dateTime) : new Date(item.start?.date),
+        end: item.end?.dateTime ? new Date(item.end.dateTime) : new Date(item.end?.date)
+      };
+    }).filter(e => e.start >= new Date()); // alleen toekomst
+
+    // Deduplicatie: summary + start + end
+    const seen = new Set();
+    const uniqueEvents = events.filter(e => {
+      const key = `${e.summary}|${e.start.toISOString()}|${e.end.toISOString()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sorteer op startdatum
+    uniqueEvents.sort((a,b) => a.start - b.start);
+
+    const old = cached ? JSON.parse(cached) : null;
+    if (JSON.stringify(uniqueEvents) !== JSON.stringify(old)) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(uniqueEvents));
+      displayEvents(uniqueEvents, false);
     }
+
   } catch (err) {
-    console.error(err);
+    console.error("Agenda error:", err);
     if (!cached) {
       document.getElementById("agenda-loading").classList.add("hidden");
       const el = document.getElementById("agenda-error");
@@ -112,27 +125,24 @@ async function loadAgenda() {
 // DISPLAY EVENTS
 // --------------------
 function displayEvents(events, fromCache) {
-  if (!fromCache) {
-    document.getElementById("agenda-loading").classList.add("hidden");
-  }
+  if (!fromCache) document.getElementById("agenda-loading").classList.add("hidden");
 
-  const box = document.getElementById("agenda");
-  box.innerHTML = "";
+  const container = document.getElementById("agenda");
+  container.innerHTML = "";
 
   if (!events.length) {
-    box.innerHTML = "<p>Geen aankomende evenementen.</p>";
+    container.innerHTML = "<p>Geen aankomende evenementen.</p>";
     return;
   }
 
   events.forEach(ev => {
-    const start = new Date(ev.start);
-    const end   = new Date(ev.end);
+    const start = ev.start;
+    const end   = ev.end;
 
     const dateStr = start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
-    const timeStr =
-      start.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
-      " – " +
-      end.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
+    const timeStr = start.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
+                    " – " +
+                    end.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
 
     const div = document.createElement("div");
     div.className = "agenda-item";
@@ -142,12 +152,10 @@ function displayEvents(events, fromCache) {
       ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
     `;
 
-    box.appendChild(div);
+    container.appendChild(div);
   });
 }
 </script>
 
 </body>
 </html>
-
-
