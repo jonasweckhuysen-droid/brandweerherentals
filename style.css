@@ -54,7 +54,7 @@ html, body {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 6px;
   flex-shrink: 0;   /* voorkom dat logo krimpt */
 }
 
