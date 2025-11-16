@@ -1,5 +1,5 @@
 // =======================================
-// header.js (ULTRA SNELLE VERSIE)
+// header.js (ULTRA SNELLE VERSIE + LOGO)
 // =======================================
 
 (function () {
@@ -7,19 +7,23 @@
   const NAME_KEY = "userName";
   const VZW_KEY = "isVZW";
 
-  // Niet blokkeren — wacht tot header zichtbaar is
   window.addEventListener("DOMContentLoaded", initHeader);
 
   function initHeader() {
     const headerEl = document.getElementById("appHeader");
     if (!headerEl) return;
 
-    // Injecteer HTML van de header
+    // Injecteer volledige header inclusief logo
     headerEl.innerHTML = `
-      <div class="header-left">
+      <div class="header-left" style="display:flex; align-items:center; gap:12px;">
+        <img src="/brandweerherentals/icons/logo.png" 
+             alt="Brandweer Herentals" 
+             class="header-logo"
+             style="height:55px; width:auto; object-fit:contain;">
         <div id="greeting" class="greeting"></div>
       </div>
-      <div class="header-right">
+
+      <div class="header-right" style="text-align:right;">
         <div id="datetime"></div>
         <div id="ploegOfWeek"></div>
       </div>
@@ -34,7 +38,6 @@
     let user = localStorage.getItem(NAME_KEY);
     let vzw = localStorage.getItem(VZW_KEY);
 
-    // Vraag gegevens enkel als ze nog NIET bestaan
     if (!user) {
       user = prompt("Wat is je naam?");
       if (user) localStorage.setItem(NAME_KEY, user);
