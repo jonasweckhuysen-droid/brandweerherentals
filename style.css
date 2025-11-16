@@ -358,6 +358,10 @@ header p {
     font-size: 1.1rem;
   }
 }
+/* Extra ruimte onder terug-knop */
+.backlink {
+  margin-bottom: 20px; /* of 25px / 30px naar smaak */
+}
 /* ------------------------------
    FOOTER
 --------------------------------*/
