@@ -36,71 +36,7 @@ html, body {
   overflow: hidden;
 }
 
-/* ------------------------------
-   HEADER
---------------------------------*/
-#appHeader {
-  height: 70px;
-  background: linear-gradient(90deg, var(--red), var(--red-dark));
-  color: var(--light);
-  display: flex;
-  align-items: center;
-  padding-left: 0;
-  padding-right: 6px; 
-  overflow: hidden;
-  border-bottom: 2px solid var(--red-dark);
-  justify-content: space-between; /* linkse logo & rechtse info */
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;   /* voorkom dat logo krimpt */
-}
-
-.header-logo {
-  height: 120px;    /* Iets groter */
-  width: auto;
-  object-fit: contain;
-  display: block;
-}
-
-.header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  text-align: right;
-  gap: 4px;
-  margin-left: auto;   /* helemaal rechts */
-}
-
-.greeting {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-/* ------------------------------
-   RESPONSIVE
---------------------------------*/
-@media (max-width: 480px) {
-  #appHeader {
-    height: auto;
-    padding: 12px;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .header-right {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .header-logo {
-    height: 60px; /* iets kleiner op mobiel */
-  }
-}
+/
 /* ------------------------------
    CONTENT
 --------------------------------*/
@@ -144,7 +80,65 @@ html, body {
   font-size: 12px;
   opacity: 0.7;
 }
+/* ------------------------------
+   HEADER
+--------------------------------*/
+#appHeader {
+  width: 100%;                    /* hele breedte van scherm */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, var(--red), var(--red-dark));
+  color: var(--light);
+  padding: 0 12px;
+  height: 80px;                   /* groter logo past */
+  box-sizing: border-box;
+  border-bottom: 2px solid var(--red-dark);
+}
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;                /* voorkom dat logo krimpt */
+}
+
+.header-logo {
+  height: 120px;                 /* groter logo */
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: right;
+  gap: 4px;
+}
+
+/* ------------------------------
+   RESPONSIVE
+--------------------------------*/
+@media (max-width: 480px) {
+  #appHeader {
+    flex-direction: column;
+    height: auto;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .header-right {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .header-logo {
+    height: 60px; /* kleiner op mobiel */
+  }
+}
 /* ------------------------------
    INSTALL-BANNER
 --------------------------------*/
