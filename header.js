@@ -30,7 +30,7 @@
            alt="Brandweer Herentals"
            class="header-logo"
            style="
-              height:60px;    /* ENKEL HIER wordt het logo groter */
+              height:70px;    /* ENKEL HIER wordt het logo groter */
               width:auto;
               object-fit:contain;
            ">
