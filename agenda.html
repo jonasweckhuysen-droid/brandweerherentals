@@ -15,7 +15,18 @@
 <div class="container">
 
   <!-- Dynamische header -->
-  <header id="appHeader"></header>
+  <header id="appHeader">
+  <div class="header-content">
+    <div class="header-left">
+      <div id="greeting"></div>
+    </div>
+
+    <div class="header-right">
+      <div id="datetime"></div>
+      <div id="ploegOfWeek"></div>
+    </div>
+  </div>
+  </header>
 
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
@@ -197,3 +208,4 @@ function displayEvents(events, fromCache) {
 
 </body>
 </html>
+
