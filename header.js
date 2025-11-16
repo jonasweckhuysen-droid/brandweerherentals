@@ -15,65 +15,24 @@
 
     // HEADER MARKUP
     headerEl.innerHTML = `
-  <div class="header-container" style="
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:6px 14px;     /* klein, zodat header NIET groter wordt */
-      height:70px;          /* geforceerde vaste hoogte */
-      box-sizing:border-box;
-  ">
+      <!-- LINKER KANT (LOGO) -->
+      <div class="header-left">
+        <img src="/brandweerherentals/icons/logo.png"
+             alt="Brandweer Herentals"
+             class="header-logo">
+      </div>
 
-    <!-- LINKER KANT (LOGO) -->
-    <div class="header-left" style="display:flex; align-items:center;">
-      <img src="/brandweerherentals/icons/logo.png"
-           alt="Brandweer Herentals"
-           class="header-logo"
-           style="
-              height:70px;    /* ENKEL HIER wordt het logo groter */
-              width:auto;
-              object-fit:contain;
-           ">
-    </div>
-
-    <!-- RECHTER KANT (TEXT) -->
-    <div class="header-right" style="
-        display:flex;
-        flex-direction:column;
-        align-items:flex-end; /* Alles helemaal rechts */
-        justify-content:center;
-        text-align:right;
-        gap:3px;
-    ">
-      <div id="greeting" style="font-size:1.1rem; font-weight:600;"></div>
-      <div id="datetime" style="opacity:0.85;"></div>
-      <div id="ploegOfWeek" style="font-weight:600;"></div>
-    </div>
-
-  </div>
-`;
-
-    // Header styling for layout (inject if missing)
-    injectHeaderStyles();
+      <!-- RECHTER KANT (TEXT) -->
+      <div class="header-right">
+        <div id="greeting"></div>
+        <div id="datetime"></div>
+        <div id="ploegOfWeek"></div>
+      </div>
+    `;
 
     restoreUser();
     updateDateTime();
     setInterval(updateDateTime, 1000);
-  }
-
-  // Extra CSS zodat header altijd correct uitlijnt
-  function injectHeaderStyles() {
-    const css = `
-      #appHeader {
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        padding:10px 15px;
-      }
-    `;
-    const style = document.createElement("style");
-    style.textContent = css;
-    document.head.appendChild(style);
   }
 
   function restoreUser() {
@@ -114,7 +73,6 @@
       const ref = new Date("2025-01-03T12:00:00");
       const now = new Date();
       const weeks = Math.floor((now - ref) / (7 * 24 * 60 * 60 * 1000));
-
       ploeg.textContent = "Ploeg van week: " + cycle[(weeks % 6 + 6) % 6];
     }
   }
