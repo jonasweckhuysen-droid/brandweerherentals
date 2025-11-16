@@ -1,35 +1,10 @@
-// =======================================
-// header.js — Logo groter + alles rechts
-// =======================================
-
 (function () {
-
   const NAME_KEY = "userName";
   const VZW_KEY = "isVZW";
 
   window.addEventListener("DOMContentLoaded", initHeader);
 
   function initHeader() {
-    const headerEl = document.getElementById("appHeader");
-    if (!headerEl) return;
-
-    // HEADER MARKUP
-    headerEl.innerHTML = `
-      <!-- LINKER KANT (LOGO) -->
-      <div class="header-left">
-        <img src="/brandweerherentals/icons/logo.png"
-             alt="Brandweer Herentals"
-             class="header-logo">
-      </div>
-
-      <!-- RECHTER KANT (TEXT) -->
-      <div class="header-right">
-        <div id="greeting"></div>
-        <div id="datetime"></div>
-        <div id="ploegOfWeek"></div>
-      </div>
-    `;
-
     restoreUser();
     updateDateTime();
     setInterval(updateDateTime, 1000);
@@ -73,6 +48,7 @@
       const ref = new Date("2025-01-03T12:00:00");
       const now = new Date();
       const weeks = Math.floor((now - ref) / (7 * 24 * 60 * 60 * 1000));
+
       ploeg.textContent = "Ploeg van week: " + cycle[(weeks % 6 + 6) % 6];
     }
   }
