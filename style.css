@@ -220,6 +220,20 @@ header p {
 .agenda-location::before {
     content: "📍 ";
 }
+/* Skeleton loader voor agenda-items */
+.agenda-skeleton {
+  background: linear-gradient(90deg, #eee 25%, #ddd 37%, #eee 63%);
+  background-size: 400% 100%;
+  animation: loading 1.4s ease infinite;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  height: 60px; /* hoogte placeholder, kan je aanpassen */
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 /* ------------------------------
    WESPENVERDELGING LAYOUT
 --------------------------------*/
