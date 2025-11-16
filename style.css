@@ -46,7 +46,7 @@ html, body {
   display: flex;
   align-items: center;
   padding-left: 0;
-  padding-right: 18px; 
+  padding-right: 6px; 
   overflow: hidden;
   border-bottom: 2px solid var(--red-dark);
   justify-content: space-between; /* linkse logo & rechtse info */
