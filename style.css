@@ -82,29 +82,31 @@ html, body {
 }
 /* ------------------------------
    HEADER
---------------------------------*/
+-------------------------------*/
+/* ==========================
+   HEADER — GROOT LOGO LINKS
+========================== */
 #appHeader {
-  width: 100%;                    /* hele breedte van scherm */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: center;                 /* verticaal centreren */
+  justify-content: space-between;      /* logo links, info rechts */
+  height: 120px;                       /* groot genoeg voor logo */
+  padding: 0 18px;
   background: linear-gradient(90deg, var(--red), var(--red-dark));
   color: var(--light);
-  padding: 0 12px;
-  height: 80px;                   /* groter logo past */
-  box-sizing: border-box;
   border-bottom: 2px solid var(--red-dark);
+  box-sizing: border-box;
 }
 
 .header-left {
   display: flex;
-  align-items: center;
+  align-items: center;                 /* logo + naam verticaal centreren */
   gap: 14px;
-  flex-shrink: 0;                /* voorkom dat logo krimpt */
+  flex-shrink: 0;                      /* voorkom krimp */
 }
 
 .header-logo {
-  height: 120px;                 /* groter logo */
+  height: 100px;                       /* groot logo */
   width: auto;
   object-fit: contain;
   display: block;
@@ -113,10 +115,42 @@ html, body {
 .header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-end;               /* alles rechts */
   justify-content: center;
-  text-align: right;
   gap: 4px;
+  margin-left: auto;                   /* helemaal rechts */
+}
+
+.header-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* MOBIEL */
+@media (max-width: 480px) {
+  #appHeader {
+    flex-direction: column;            /* stapel op mobiel */
+    height: auto;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .header-left {
+    justify-content: center;           /* gecentreerd op klein scherm */
+  }
+
+  .header-right {
+    align-items: center;               /* gecentreerd op klein scherm */
+    text-align: center;
+  }
+
+  .header-logo {
+    height: 60px;                      /* kleiner logo op mobiel */
+  }
+
+  .header-name {
+    font-size: 1rem;
+  }
 }
 
 /* ------------------------------
