@@ -57,24 +57,82 @@ header {
   font-weight: 700;
   font-size: 20px;
 }
+/* ------------------------------
+   HEADER
+--------------------------------*/
+header {
+  background: linear-gradient(90deg, var(--red), var(--red-dark));
+  color: var(--light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 2px solid var(--red-dark);
+}
 
-header h1 {
-  margin: 0;
-  font-size: 20px;
+/* Linkerkant: logo + naam */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Logo */
+.header-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;   /* optioneel: afgeronde hoeken */
+  object-fit: contain;    /* houdt de juiste verhoudingen */
+  display: block;
+}
+
+/* Naam/groet */
+.header-name {
   font-weight: 700;
+  font-size: 18px;
+  line-height: 1.2;
 }
 
-header p {
-  margin: 0;
-  opacity: 0.85;
-  font-size: 13px;
-}
-
-/* Rechterkant */
-#header-right {
-  text-align: right;
+/* Rechterkant: datum + ploeg */
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   font-size: 14px;
   line-height: 1.3;
+}
+
+/* Datum en ploeg apart stylen (optioneel) */
+.header-datetime {
+  font-weight: 500;
+}
+
+.header-ploeg {
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Responsive: op kleine schermen stapelen */
+@media (max-width: 480px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .header-right {
+    align-items: flex-start;
+    font-size: 13px;
+  }
+
+  .header-logo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .header-name {
+    font-size: 16px;
+  }
 }
 
 /* ------------------------------
