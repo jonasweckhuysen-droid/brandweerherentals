@@ -83,55 +83,62 @@ html, body {
 /* ==========================================
    HEADER — Brandweer Herentals
 ========================================== */
-
+/* ------------------------------
+   HEADER — logo links, tekst rechts
+--------------------------------*/
 #appHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 0;   /* 🔥 Geen padding → logo staat 100% tegen linkerrand */
+  align-items: center;            /* verticaal centreren */
+  justify-content: space-between; /* logo links, tekst rechts */
+  padding: 0;                     /* geen extra ruimte links */
   background: linear-gradient(90deg, var(--red), var(--red-dark));
-  min-height: 120px;
   color: white;
   box-sizing: border-box;
+  min-height: 90px;               /* houd compact, vergroot alleen logo */
 }
 
-/* ALLE tekst blijft wit */
-#appHeader * {
-  color: white !important;
-}
+/* verplicht: alle tekst in header wit */
+#appHeader * { color: #fff !important; }
 
-/* Left side — logo */
+/* linkerkant: alleen logo (zorg dat dit element enkel het logo bevat) */
 .header-left {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
-  margin-left: 0;   /* Extra veiligheid */
+  justify-content: flex-start; /* plakken tegen linker rand */
+  padding-left: 0;             /* geen padding */
+  margin: 0;
+  flex: 0 0 auto;              /* voorkomt dat het uitrekt */
 }
 
-/* Groot logo */
+/* GROOT logo — vergroot hier, niet de header zelf */
 .header-logo {
-  height: 110px;
+  display: block;
+  height: 110px;    /* maak groter naar wens (bv. 120px), width auto behoudt verhouding */
   width: auto;
   object-fit: contain;
-  display: block;
-  margin-left: 0;   /* 🔥 Zorgt dat het logo NIET verschuift */
+  margin: 0;        /* 0 zodat ie echt aan de rand plakt */
+  border-radius: 8px; /* optioneel */
 }
 
-/* Right side — tekst */
+/* rechterkant: alle tekst items (greeting, datetime, ploeg) */
 .header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-end; /* helemaal aan de rechterkant */
   justify-content: center;
   gap: 4px;
-  flex: 1;
-  padding-right: 10px;   /* Kleine buffer zodat tekst niet tegen rand plakt */
+  padding-right: 12px;    /* kleine buffer aan de rechterkant */
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
+/* teksten */
 .header-greeting {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-datetime {
@@ -140,29 +147,25 @@ html, body {
 }
 
 .header-ploeg {
-  font-size: 1.05rem;
+  font-size: 1.0rem;
   font-weight: 600;
 }
 
-/* Mobiel */
-@media (max-width: 480px) {
+/* small screens: stapel en schaal logo */
+@media (max-width: 600px) {
   #appHeader {
     flex-direction: column;
     align-items: center;
-    text-align: center;
+    padding: 10px;
     min-height: auto;
-    padding: 15px;
+    gap: 8px;
   }
 
-  .header-right {
-    align-items: center;
-    text-align: center;
-  }
-
-  .header-logo {
-    height: 110px;
-  }
+  .header-left { justify-content: center; padding-left: 0; }
+  .header-logo { height: 64px; }
+  .header-right { align-items: center; text-align: center; padding-right: 0; }
 }
+
 /* ------------------------------
    INSTALL-BANNER
 --------------------------------*/
