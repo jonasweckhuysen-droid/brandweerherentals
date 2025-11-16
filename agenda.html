@@ -15,8 +15,18 @@
 
 <div class="container" role="application" aria-label="Brandweer Herentals agenda">
 
-  <!-- DYNAMISCHE HEADER -->
-  <header id="appHeader"></header>
+  <!-- JUISTE HEADER STRUCTUUR -->
+  <header>
+    <div class="header-left">
+      <div id="greeting"></div>
+    </div>
+
+    <div class="header-right">
+      <div id="datetime"></div>
+      <div id="ploegOfWeek"></div>
+    </div>
+  </header>
+  <!-- EINDE HEADER -->
 
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
@@ -35,8 +45,10 @@
 </div>
 
 <script>
+// --------------------
+// Footer datum
+// --------------------
 document.addEventListener("DOMContentLoaded", () => {
-  // Toon huidige datum in footer
   document.getElementById("today").textContent =
     new Date().toLocaleDateString("nl-BE", {
       weekday:"long", year:"numeric", month:"long", day:"numeric"
@@ -45,13 +57,21 @@ document.addEventListener("DOMContentLoaded", () => {
   loadAgenda();
 });
 
+// --------------------
+// SNELSTE AGENDA LOADER
+// --------------------
 async function loadAgenda() {
   try {
-    const response = await fetch("/brandweerherentals/agenda.json?_=" + new Date().getTime());
+    // Sneller door: no-cache + timestamp voorkomt traag laden
+    const response = await fetch("/brandweerherentals/agenda.json", {
+      cache: "no-store"
+    });
+
     if (!response.ok) throw new Error("Agenda niet bereikbaar");
 
     const events = await response.json();
     displayEvents(events);
+
   } catch (err) {
     document.getElementById("agenda-loading").classList.add("hidden");
     const errorEl = document.getElementById("agenda-error");
@@ -61,6 +81,9 @@ async function loadAgenda() {
   }
 }
 
+// --------------------
+// Event processor
+// --------------------
 function displayEvents(events) {
   const container = document.getElementById("agenda");
   document.getElementById("agenda-loading").classList.add("hidden");
@@ -70,7 +93,7 @@ function displayEvents(events) {
     return;
   }
 
-  container.innerHTML = ""; // maak leeg
+  container.innerHTML = "";
   const now = new Date();
 
   events
@@ -80,18 +103,18 @@ function displayEvents(events) {
       const div = document.createElement("div");
       div.className = "agenda-item";
 
-      const startDate = new Date(ev.start);
-      const endDate = new Date(ev.end);
+      const start = new Date(ev.start);
+      const end = new Date(ev.end);
 
-      const dateStr = startDate.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
-      const timeStr = startDate.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
-                      " – " + endDate.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
+      const dateStr = start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+      const timeStr = `${start.toLocaleTimeString("nl-BE",{hour:"2-digit",minute:"2-digit"})} – ${end.toLocaleTimeString("nl-BE",{hour:"2-digit",minute:"2-digit"})}`;
 
       div.innerHTML = `
         <div class="agenda-title">${ev.summary}</div>
         <div class="agenda-datetime">${dateStr}, ${timeStr}</div>
         ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
       `;
+
       container.appendChild(div);
     });
 }
@@ -99,4 +122,3 @@ function displayEvents(events) {
 
 </body>
 </html>
-
