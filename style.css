@@ -80,60 +80,84 @@ html, body {
   font-size: 12px;
   opacity: 0.7;
 }
-/* ------------------------------
-   HEADER
--------------------------------*/
+/* ==========================================
+   HEADER — Brandweer Herentals
+========================================== */
+
 #appHeader {
   display: flex;
-  align-items: center;      /* vertical center */
+  align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  gap: 20px;
+  padding: 0px 6px;
   background: linear-gradient(90deg, var(--red), var(--red-dark));
-  height: auto;             /* laat header groeien met inhoud */
-  min-height: 120px;        /* minimum hoogte */
+  min-height: 120px;
+  color: white;
+  box-sizing: border-box;
 }
 
+/* Zorg ervoor dat ALLE tekst in de header wit is */
+#appHeader * {
+  color: white !important;
+}
+
+/* Left side — logo */
 .header-left {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
+/* Groot logo, maar header blijft zelf even groot */
 .header-logo {
-  height: 100px;            /* maak logo groot */
+  height: 110px;          /* 🔥 Groot logo */
   width: auto;
   object-fit: contain;
+  display: block;
 }
 
+/* Right side — tekst */
 .header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-end;   /* alles rechts uitlijnen */
   justify-content: center;
   gap: 4px;
+  flex: 1;
 }
-.header-name {
-  font-size: 1.2rem;
+
+.header-greeting {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.header-datetime {
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.header-ploeg {
+  font-size: 1.05rem;
   font-weight: 600;
 }
-/* ------------------------------
-   RESPONSIVE
---------------------------------*/
+
+/* Mobiel */
 @media (max-width: 480px) {
   #appHeader {
     flex-direction: column;
-    height: auto;
-    padding: 12px;
-    gap: 8px;
+    align-items: center;
+    text-align: center;
+    min-height: auto;
+    padding: 15px;
   }
 
   .header-right {
-    align-items: flex-start;
-    text-align: left;
+    align-items: center;
+    text-align: center;
   }
 
   .header-logo {
-    height: 60px; /* kleiner op mobiel */
+    height: 110px; /* kleiner maar mooi */
   }
 }
 /* ------------------------------
