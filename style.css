@@ -47,8 +47,8 @@ header {
 }
 
 .logo {
-  width: 52px;
-  height: 52px;
+  width: 70px;
+  height: 70px;
   background: rgba(255,255,255,0.1);
   border-radius: 10px;
   display: flex;
@@ -79,8 +79,8 @@ header {
 
 /* Logo */
 .header-logo {
-  width: 52px;
-  height: 52px;
+  width: 70px;
+  height: 70px;
   border-radius: 10px;   /* optioneel: afgeronde hoeken */
   object-fit: contain;    /* houdt de juiste verhoudingen */
   display: block;
@@ -133,6 +133,11 @@ header {
   .header-name {
     font-size: 16px;
   }
+}
+#appHeader {
+  height: 70px;            /* vaste, smalle balk */
+  display: block;
+  overflow: hidden;
 }
 
 /* ------------------------------
