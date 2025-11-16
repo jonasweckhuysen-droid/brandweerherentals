@@ -89,14 +89,14 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 0px 6px;
+  padding: 0;   /* 🔥 Geen padding → logo staat 100% tegen linkerrand */
   background: linear-gradient(90deg, var(--red), var(--red-dark));
   min-height: 120px;
   color: white;
   box-sizing: border-box;
 }
 
-/* Zorg ervoor dat ALLE tekst in de header wit is */
+/* ALLE tekst blijft wit */
 #appHeader * {
   color: white !important;
 }
@@ -106,24 +106,27 @@ html, body {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  margin-left: 0;   /* Extra veiligheid */
 }
 
-/* Groot logo, maar header blijft zelf even groot */
+/* Groot logo */
 .header-logo {
-  height: 110px;          /* 🔥 Groot logo */
+  height: 110px;
   width: auto;
   object-fit: contain;
   display: block;
+  margin-left: 0;   /* 🔥 Zorgt dat het logo NIET verschuift */
 }
 
 /* Right side — tekst */
 .header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;   /* alles rechts uitlijnen */
+  align-items: flex-end;
   justify-content: center;
   gap: 4px;
   flex: 1;
+  padding-right: 10px;   /* Kleine buffer zodat tekst niet tegen rand plakt */
 }
 
 .header-greeting {
@@ -157,7 +160,7 @@ html, body {
   }
 
   .header-logo {
-    height: 110px; /* kleiner maar mooi */
+    height: 110px;
   }
 }
 /* ------------------------------
