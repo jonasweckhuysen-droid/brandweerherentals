@@ -15,30 +15,43 @@
 
     // HEADER MARKUP
     headerEl.innerHTML = `
-      <div class="header-left" style="
-          display:flex;
-          align-items:center;
-          gap:14px;
-      ">
-        <img src="/brandweerherentals/icons/logo.png"
-             alt="Brandweer Herentals"
-             class="header-logo"
-             style="height:70px; width:auto; object-fit:contain;">
-      </div>
+  <div class="header-container" style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:6px 14px;     /* klein, zodat header NIET groter wordt */
+      height:70px;          /* geforceerde vaste hoogte */
+      box-sizing:border-box;
+  ">
 
-      <div class="header-right" style="
-          margin-left:auto;
-          text-align:right;
-          display:flex;
-          flex-direction:column;
-          justify-content:center;
-          gap:4px;
-      ">
-        <div id="greeting" class="greeting" style="font-size:1.1rem; font-weight:600;"></div>
-        <div id="datetime" style="opacity:0.9;"></div>
-        <div id="ploegOfWeek" style="font-weight:600;"></div>
-      </div>
-    `;
+    <!-- LINKER KANT (LOGO) -->
+    <div class="header-left" style="display:flex; align-items:center;">
+      <img src="/brandweerherentals/icons/logo.png"
+           alt="Brandweer Herentals"
+           class="header-logo"
+           style="
+              height:60px;    /* ENKEL HIER wordt het logo groter */
+              width:auto;
+              object-fit:contain;
+           ">
+    </div>
+
+    <!-- RECHTER KANT (TEXT) -->
+    <div class="header-right" style="
+        display:flex;
+        flex-direction:column;
+        align-items:flex-end; /* Alles helemaal rechts */
+        justify-content:center;
+        text-align:right;
+        gap:3px;
+    ">
+      <div id="greeting" style="font-size:1.1rem; font-weight:600;"></div>
+      <div id="datetime" style="opacity:0.85;"></div>
+      <div id="ploegOfWeek" style="font-weight:600;"></div>
+    </div>
+
+  </div>
+`;
 
     // Header styling for layout (inject if missing)
     injectHeaderStyles();
