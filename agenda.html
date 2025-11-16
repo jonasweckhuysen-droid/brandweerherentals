@@ -7,26 +7,15 @@
 
 <link rel="stylesheet" href="/brandweerherentals/style.css">
 
-<!-- Dynamische header -->
 <script src="/brandweerherentals/header.js" defer></script>
 
 </head>
 <body>
 
-<div class="container" role="application" aria-label="Brandweer Herentals agenda">
+<div class="container">
 
-  <!-- JUISTE HEADER STRUCTUUR -->
-  <header>
-    <div class="header-left">
-      <div id="greeting"></div>
-    </div>
-
-    <div class="header-right">
-      <div id="datetime"></div>
-      <div id="ploegOfWeek"></div>
-    </div>
-  </header>
-  <!-- EINDE HEADER -->
+  <!-- Dynamische header -->
+  <header id="appHeader"></header>
 
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">← Terug naar start</a>
@@ -39,84 +28,170 @@
   </main>
 
   <footer>
-    <div class="small">Versie 1.1</div>
+    <div class="small">Versie 1.2 (Ultra-Fast ICS)</div>
     <div class="small">Laatste update: <span id="today"></span></div>
   </footer>
 </div>
 
+
 <script>
-// --------------------
-// Footer datum
-// --------------------
+// ------------------------------------------------------
+// ULTRA-SNELLSTE AGENDA MET CACHING + AUTO-REFRESH (5 min)
+// ------------------------------------------------------
+
+const CACHE_KEY = "agendaICScacheV2";
+const ICS_URL = "https://calendar.google.com/calendar/ical/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/private-17d5bd8642d7c8b8e6f0e05b731579ac/basic.ics";
+const API_URL  = "https://api.allorigins.win/raw?url=" + encodeURIComponent(ICS_URL);
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("today").textContent =
-    new Date().toLocaleDateString("nl-BE", {
-      weekday:"long", year:"numeric", month:"long", day:"numeric"
-    });
+    new Date().toLocaleDateString("nl-BE", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 
   loadAgenda();
+  setInterval(loadAgenda, REFRESH_INTERVAL); // Auto-refresh
 });
 
+
 // --------------------
-// SNELSTE AGENDA LOADER
+// LOAD AGENDA
 // --------------------
 async function loadAgenda() {
+
+  const cached = localStorage.getItem(CACHE_KEY);
+
+  // **1. Toon cached direct**
+  if (cached) {
+    try {
+      displayEvents(JSON.parse(cached), true);
+    } catch {}
+  }
+
+  // **2. Haal ICS op in achtergrond**
   try {
-    // Sneller door: no-cache + timestamp voorkomt traag laden
-    const response = await fetch("/brandweerherentals/agenda.json", {
-      cache: "no-store"
-    });
+    const response = await fetch(API_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("ICS fout");
 
-    if (!response.ok) throw new Error("Agenda niet bereikbaar");
+    const text = await response.text();
+    const events = parseICS(text);
 
-    const events = await response.json();
-    displayEvents(events);
+    const old = cached ? JSON.parse(cached) : null;
+
+    // **3. Alleen updaten als het verschillend is**
+    if (JSON.stringify(events) !== JSON.stringify(old)) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(events));
+      displayEvents(events, false);
+    }
 
   } catch (err) {
-    document.getElementById("agenda-loading").classList.add("hidden");
-    const errorEl = document.getElementById("agenda-error");
-    errorEl.textContent = "Kan agenda niet laden…";
-    errorEl.classList.remove("hidden");
-    console.error(err);
+    console.error("ICS error:", err);
+
+    if (!cached) {
+      document.getElementById("agenda-loading").classList.add("hidden");
+      const el = document.getElementById("agenda-error");
+      el.textContent = "Kan agenda niet laden…";
+      el.classList.remove("hidden");
+    }
   }
 }
 
+
 // --------------------
-// Event processor
+// ICS PARSER
 // --------------------
-function displayEvents(events) {
-  const container = document.getElementById("agenda");
-  document.getElementById("agenda-loading").classList.add("hidden");
+function parseICS(text) {
+  const out = [];
+  const lines = text.split(/\r?\n/);
+
+  let ev = null;
+
+  for (const line of lines) {
+
+    if (line === "BEGIN:VEVENT") {
+      ev = {};
+      continue;
+    }
+
+    if (line === "END:VEVENT") {
+      if (ev) out.push(ev);
+      ev = null;
+      continue;
+    }
+
+    if (!ev) continue;
+
+    if (line.startsWith("SUMMARY:"))  ev.summary  = line.slice(8);
+    if (line.startsWith("LOCATION:")) ev.location = line.slice(9);
+    if (line.startsWith("DTSTART"))   ev.start    = parseDate(line);
+    if (line.startsWith("DTEND"))     ev.end      = parseDate(line);
+  }
+
+  const now = new Date();
+
+  return out
+    .filter(e => e.start && e.start >= now)
+    .sort((a,b) => a.start - b.start);
+}
+
+
+// --------------------
+// DATE PARSER
+// --------------------
+function parseDate(line) {
+  let v = line.split(":")[1];
+  if (!v) return null;
+
+  if (/^\d{8}$/.test(v)) {
+    return new Date(v.substring(0,4), v.substring(4,6)-1, v.substring(6,8));
+  }
+
+  if (/^\d{8}T\d{6}Z$/.test(v)) {
+    return new Date(v.replace(/^(\d{4})(\d{2})(\d{2})T/, "$1-$2-$3T"));
+  }
+
+  return new Date(v);
+}
+
+
+// --------------------
+// DISPLAY EVENTS
+// --------------------
+function displayEvents(events, fromCache) {
+  if (!fromCache) {
+    document.getElementById("agenda-loading").classList.add("hidden");
+  }
+
+  const box = document.getElementById("agenda");
+  box.innerHTML = "";
 
   if (!events.length) {
-    container.innerHTML = "<p>Geen aankomende evenementen.</p>";
+    box.innerHTML = "<p>Geen aankomende evenementen.</p>";
     return;
   }
 
-  container.innerHTML = "";
-  const now = new Date();
+  events.forEach(ev => {
+    const start = ev.start;
+    const end   = ev.end;
 
-  events
-    .filter(e => new Date(e.start) >= now)
-    .sort((a,b) => new Date(a.start) - new Date(b.start))
-    .forEach(ev => {
-      const div = document.createElement("div");
-      div.className = "agenda-item";
-
-      const start = new Date(ev.start);
-      const end = new Date(ev.end);
-
-      const dateStr = start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
-      const timeStr = `${start.toLocaleTimeString("nl-BE",{hour:"2-digit",minute:"2-digit"})} – ${end.toLocaleTimeString("nl-BE",{hour:"2-digit",minute:"2-digit"})}`;
-
-      div.innerHTML = `
-        <div class="agenda-title">${ev.summary}</div>
-        <div class="agenda-datetime">${dateStr}, ${timeStr}</div>
-        ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
-      `;
-
-      container.appendChild(div);
+    const dateStr = start.toLocaleDateString("nl-BE", {
+      weekday:"short", day:"2-digit", month:"short"
     });
+
+    const timeStr =
+      start.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
+      " – " +
+      end.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
+
+    const div = document.createElement("div");
+    div.className = "agenda-item";
+    div.innerHTML = `
+      <div class="agenda-title">${ev.summary}</div>
+      <div class="agenda-datetime">${dateStr}, ${timeStr}</div>
+      ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
+    `;
+
+    box.appendChild(div);
+  });
 }
 </script>
 
