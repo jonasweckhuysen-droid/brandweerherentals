@@ -6,332 +6,265 @@
 /* ------------------------------
    ROOT VARIABELEN
 --------------------------------*/
-:root {
+:root{
   --red: #c71f1f;
   --red-dark: #8f1515;
   --dark: #111;
   --light: #fff;
   --muted: #f6f6f6;
-
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 /* ------------------------------
    BASIS
 --------------------------------*/
-html, body {
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
-  -webkit-font-smoothing: antialiased;
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  padding:0;
+  background: linear-gradient(180deg,#fff 0%,#f8f8f8 100%);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color:var(--dark);
 }
 
-.container {
-  max-width: 820px;
-  margin: 20px auto;
-  background: var(--light);
-  border-radius: 18px;
-  border: 4px solid var(--red);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-  overflow: hidden;
+.container{
+  max-width:820px;
+  margin:20px auto;
+  background:var(--light);
+  border-radius:18px;
+  border:4px solid var(--red);
+  box-shadow:0 8px 30px rgba(0,0,0,0.08);
+  overflow:hidden;
 }
 
-/
+/* ------------------------------
+   HEADER — logo links, tekst rechts
+   (zorg dat HTML gebruikt: .header-left (logo) + .header-right (tekst))
+--------------------------------*/
+#appHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0;                           /* geen extra ruimte links — logo plakt tegen binnenrand */
+  background: linear-gradient(90deg,var(--red),var(--red-dark));
+  color:#fff;
+  min-height:88px;                     /* header compact houden; vergroot alleen logo */
+  border-bottom:2px solid rgba(0,0,0,0.06);
+}
+
+/* FORS: zorg dat alle header-teksten wit zijn */
+#appHeader, #appHeader *{ color:#fff !important; }
+
+/* left: enkel het logo (plaats het IMMER in .header-left) */
+.header-left{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:0 0 auto;
+  margin-left:0;       /* geen marge: plakt tegen container binnenrand */
+  padding-left:12px;   /* kleine buffer zodat logo niet ontsnapt buiten rand */
+}
+
+/* Groot logo — vergroot hier (hoogte), breedte auto behoudt verhouding */
+.header-logo{
+  display:block;
+  height:120px;        /* PAS AAN naar wens: 120px = groot */
+  width:auto;
+  object-fit:contain;
+  margin:0;
+  border-radius:10px;  /* optioneel */
+}
+
+/* right: alle tekst items (greeting, datetime, ploeg) */
+.header-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;   /* helemaal rechts uitlijnen */
+  justify-content:center;
+  gap:4px;
+  padding-right:14px;     /* kleine buffer aan de rechterkant */
+  flex:1 1 auto;
+  min-width:0;
+}
+
+/* individuele tekststijlen */
+.header-greeting, .header-name, #greeting{
+  font-size:1.15rem;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.header-datetime, .header-ploeg, #datetime, #ploegOfWeek{
+  font-size:0.95rem;
+  opacity:0.95;
+}
+
+/* op kleine schermen: stapel header netjes */
+@media (max-width:720px){
+  #appHeader{
+    flex-direction:row; /* nog steeds row, maar schaal logo iets */
+    min-height:80px;
+  }
+  .header-logo{ height:96px; }
+  .header-right{ padding-right:10px; }
+}
+
+@media (max-width:480px){
+  #appHeader{
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    padding:10px;
+    min-height:auto;
+  }
+  .header-left{ padding-left:0; justify-content:center; }
+  .header-logo{ height:64px; }
+  .header-right{ align-items:center; text-align:center; }
+}
+
 /* ------------------------------
    CONTENT
 --------------------------------*/
-.content {
-  padding: 22px;
+.content{
+  padding:22px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
-}
-
-/* ------------------------------
-   KNOPPEN
---------------------------------*/
-.btn {
-  background: var(--muted);
-  border-radius: 14px;
-  padding: 14px;
-  text-decoration: none;
-  color: var(--dark);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  border: 2px solid transparent;
-  transition: 0.15s;
-}
-
-.btn:hover {
-  border-color: var(--red);
-  background: #fff;
-}
-
-.btn .icon img {
-  width: 38px;
-  height: 38px;
-}
-
-.btn small {
-  font-size: 12px;
-  opacity: 0.7;
-}
-/* ==========================================
-   HEADER — Brandweer Herentals
-========================================== */
-/* ------------------------------
-   HEADER — logo links, tekst rechts
---------------------------------*/
-#appHeader {
-  display: flex;
-  align-items: center;            /* verticaal centreren */
-  justify-content: space-between; /* logo links, tekst rechts */
-  padding: 0;                     /* geen extra ruimte links */
-  background: linear-gradient(90deg, var(--red), var(--red-dark));
-  color: white;
-  box-sizing: border-box;
-  min-height: 90px;               /* houd compact, vergroot alleen logo */
-}
-
-/* verplicht: alle tekst in header wit */
-#appHeader * { color: #fff !important; }
-
-/* linkerkant: alleen logo (zorg dat dit element enkel het logo bevat) */
-.header-left {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start; /* plakken tegen linker rand */
-  padding-left: 0;             /* geen padding */
-  margin: 0;
-  flex: 0 0 auto;              /* voorkomt dat het uitrekt */
-}
-
-/* GROOT logo — vergroot hier, niet de header zelf */
-.header-logo {
-  display: block;
-  height: 110px;    /* maak groter naar wens (bv. 120px), width auto behoudt verhouding */
-  width: auto;
-  object-fit: contain;
-  margin: 0;        /* 0 zodat ie echt aan de rand plakt */
-  border-radius: 8px; /* optioneel */
-}
-
-/* rechterkant: alle tekst items (greeting, datetime, ploeg) */
-.header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* helemaal aan de rechterkant */
-  justify-content: center;
-  gap: 4px;
-  padding-right: 12px;    /* kleine buffer aan de rechterkant */
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* teksten */
-.header-greeting {
-  font-size: 1.15rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-datetime {
-  font-size: 0.95rem;
-  opacity: 0.95;
-}
-
-.header-ploeg {
-  font-size: 1.0rem;
-  font-weight: 600;
-}
-
-/* small screens: stapel en schaal logo */
-@media (max-width: 600px) {
-  #appHeader {
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    min-height: auto;
-    gap: 8px;
-  }
-
-  .header-left { justify-content: center; padding-left: 0; }
-  .header-logo { height: 64px; }
-  .header-right { align-items: center; text-align: center; padding-right: 0; }
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+  gap:14px;
 }
 
 /* ------------------------------
-   INSTALL-BANNER
+   BUTTONS / KARTEN
 --------------------------------*/
-#installPrompt {
-  display: none;
-  margin-top: 20px;
-  padding: 12px;
-  border-radius: 10px;
-  background: #fff4f4;
-  border: 1px solid var(--red);
-  justify-content: space-between;
-  align-items: center;
+.btn{
+  background:var(--muted);
+  border-radius:14px;
+  padding:14px;
+  text-decoration:none;
+  color:var(--dark);
+  display:flex;
+  gap:10px;
+  align-items:center;
+  border:2px solid transparent;
+  transition:all .15s ease;
 }
 
-#installPrompt button {
-  background: var(--red);
-  color: var(--light);
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: 600;
+.btn:hover{
+  border-color:var(--red);
+  background:#fff;
+}
+
+.btn .icon img{ width:38px; height:38px; object-fit:contain; }
+.btn small{ font-size:12px; opacity:.7; }
+
+/* ------------------------------
+   TERUG-NAAR-START KNOP
+--------------------------------*/
+.backlink{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  background:var(--red);
+  color:#fff;
+  text-decoration:none;
+  border-radius:10px;
+  font-weight:600;
+  font-size:.95rem;
+  transition:background .25s, transform .18s, box-shadow .2s;
+  border:2px solid #a91a1a;
+  box-shadow:0 2px 5px rgba(0,0,0,.25);
+  margin-bottom:22px; /* extra ruimte onder knop */
+}
+
+.backlink .arrow{ font-size:1.2rem; transition:transform .18s; }
+
+.backlink:hover{
+  background:#e33b3b;
+  border-color:#b71f1f;
+  transform:translateX(-3px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.18);
 }
 
 /* ------------------------------
-   AGENDA STYLING
+   INSTALL PROMPT
 --------------------------------*/
-#agenda-container {
-  margin-top: 20px;
+#installPrompt{
+  display:none;
+  margin-top:20px;
+  padding:12px;
+  border-radius:10px;
+  background:#fff4f4;
+  border:1px solid var(--red);
+  justify-content:space-between;
+  align-items:center;
 }
 
-#agenda-loading {
-  font-size: 16px;
-  color: #555;
-}
-
-#agenda-error {
-  color: #d9534f;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.hidden {
-  display: none;
-}
-
-.agenda-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.agenda-item {
-  background: var(--light);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  border-left: 5px solid var(--red);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-
-.agenda-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0,0,0,0.15);
-}
-
-.agenda-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: #222;
-}
-
-.agenda-datetime,
-.agenda-location {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.agenda-datetime {
-  color: #555;
-}
-
-.agenda-location {
-  color: #777;
-}
-
-.agenda-datetime::before {
-  content: "📅 ";
-}
-
-.agenda-location::before {
-  content: "📍 ";
-}
-
-/* Skeleton loader */
-.agenda-skeleton {
-  background: linear-gradient(90deg, #eee 25%, #ddd 37%, #eee 63%);
-  background-size: 400% 100%;
-  animation: loading 1.4s ease infinite;
-  border-radius: 8px;
-  height: 60px;
-  margin-bottom: 16px;
-}
-
-@keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+#installPrompt button{
+  background:var(--red);
+  color:var(--light);
+  border:none;
+  padding:8px 12px;
+  border-radius:6px;
+  font-weight:600;
 }
 
 /* ------------------------------
-   TERUG NAAR START
+   AGENDA
 --------------------------------*/
-.backlink {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #c71f1f;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
-  border: 2px solid #a91a1a;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
-  margin-bottom: 25px;
+#agenda-container{ margin-top:20px; }
+#agenda-loading{ font-size:16px; color:#555; }
+#agenda-error{ color:#d9534f; font-weight:700; margin-top:10px; }
+.hidden{ display:none; }
+
+.agenda-list{ display:flex; flex-direction:column; gap:12px; }
+
+.agenda-item{
+  background:var(--light);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 3px 8px rgba(0,0,0,0.08);
+  border-left:5px solid var(--red);
 }
 
-.backlink:hover {
-  background: #e33b3b;
-  border-color: #b71f1f;
-  transform: translateX(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+.agenda-item:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.12); }
+
+.agenda-title{ font-size:18px; font-weight:700; margin-bottom:6px; color:#222; }
+.agenda-datetime, .agenda-location{ font-size:14px; color:#555; margin-bottom:4px; }
+.agenda-datetime::before{ content:"📅 "; }
+.agenda-location::before{ content:"📍 "; }
+
+/* skeleton */
+.agenda-skeleton{
+  background:linear-gradient(90deg,#eee 25%,#ddd 37%,#eee 63%);
+  background-size:400% 100%;
+  animation:loading 1.4s linear infinite;
+  border-radius:8px; height:60px; margin-bottom:16px;
 }
+@keyframes loading{ 0%{ background-position:200% 0 } 100%{ background-position:-200% 0 } }
 
 /* ------------------------------
    FOOTER
 --------------------------------*/
-footer {
-  padding: 12px 18px;
-  background: #fff;
-  border-top: 1px solid #eee;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+footer{
+  padding:12px 18px;
+  background:#fff;
+  border-top:1px solid #eee;
+  font-size:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 /* ------------------------------
-   RESPONSIVE
+   ACCESSIBILITY TWEAK
 --------------------------------*/
-@media (max-width: 480px) {
-  #appHeader {
-    height: auto;
-    padding: 12px;
-    flex-direction: column;
-    gap: 8px;
-  }
+a.btn, .backlink{ outline-offset:3px; }
+a.btn:focus, .backlink:focus{ box-shadow:0 0 0 3px rgba(199,31,31,0.18); }
 
-  .header-right {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .header-logo {
-    height: 50px;
-  }
-}
+/* End of stylesheet */
