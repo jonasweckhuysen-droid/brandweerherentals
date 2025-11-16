@@ -1,5 +1,5 @@
 // =======================================
-// header.js (ULTRA SNELLE VERSIE + LOGO)
+// header.js — Logo groter + alles rechts
 // =======================================
 
 (function () {
@@ -13,25 +13,54 @@
     const headerEl = document.getElementById("appHeader");
     if (!headerEl) return;
 
-    // Injecteer volledige header inclusief logo
+    // HEADER MARKUP
     headerEl.innerHTML = `
-      <div class="header-left" style="display:flex; align-items:center; gap:12px;">
-        <img src="/brandweerherentals/icons/logo.png" 
-             alt="Brandweer Herentals" 
+      <div class="header-left" style="
+          display:flex;
+          align-items:center;
+          gap:14px;
+      ">
+        <img src="/brandweerherentals/icons/logo.png"
+             alt="Brandweer Herentals"
              class="header-logo"
-             style="height:55px; width:auto; object-fit:contain;">
-        <div id="greeting" class="greeting"></div>
+             style="height:70px; width:auto; object-fit:contain;">
       </div>
 
-      <div class="header-right" style="text-align:right;">
-        <div id="datetime"></div>
-        <div id="ploegOfWeek"></div>
+      <div class="header-right" style="
+          margin-left:auto;
+          text-align:right;
+          display:flex;
+          flex-direction:column;
+          justify-content:center;
+          gap:4px;
+      ">
+        <div id="greeting" class="greeting" style="font-size:1.1rem; font-weight:600;"></div>
+        <div id="datetime" style="opacity:0.9;"></div>
+        <div id="ploegOfWeek" style="font-weight:600;"></div>
       </div>
     `;
+
+    // Header styling for layout (inject if missing)
+    injectHeaderStyles();
 
     restoreUser();
     updateDateTime();
     setInterval(updateDateTime, 1000);
+  }
+
+  // Extra CSS zodat header altijd correct uitlijnt
+  function injectHeaderStyles() {
+    const css = `
+      #appHeader {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:10px 15px;
+      }
+    `;
+    const style = document.createElement("style");
+    style.textContent = css;
+    document.head.appendChild(style);
   }
 
   function restoreUser() {
@@ -45,11 +74,7 @@
 
     if (!vzw) {
       const pwd = prompt("Ben je lid van de VZW? Vul wachtwoord in:");
-      if (pwd === "Oudstrijder") {
-        vzw = "true";
-      } else {
-        vzw = "false";
-      }
+      vzw = pwd === "Oudstrijder" ? "true" : "false";
       localStorage.setItem(VZW_KEY, vzw);
     }
 
