@@ -1,5 +1,10 @@
+/* =====================================================
+   Brandweer Herentals — Geoptimaliseerde STYLE.CSS
+   SCHOON, SNEL, OVERZICHTELIJK & ZONDER DUBBELE REGELS
+===================================================== */
+
 /* ------------------------------
-   ALGEMENE LAYOUT
+   ROOT VARIABELEN
 --------------------------------*/
 :root {
   --red: #c71f1f;
@@ -11,6 +16,9 @@
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
+/* ------------------------------
+   BASIS
+--------------------------------*/
 html, body {
   margin: 0;
   padding: 0;
@@ -31,113 +39,43 @@ html, body {
 /* ------------------------------
    HEADER
 --------------------------------*/
-header {
-  background: linear-gradient(90deg, var(--red), var(--red-dark));
-  color: var(--light);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo {
-  width: 70px;
+#appHeader {
   height: 70px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 700;
-  font-size: 20px;
-}
-/* ------------------------------
-   HEADER
---------------------------------*/
-header {
   background: linear-gradient(90deg, var(--red), var(--red-dark));
   color: var(--light);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 18px;
+  padding: 0 18px;
+  overflow: hidden;
   border-bottom: 2px solid var(--red-dark);
 }
 
-/* Linkerkant: logo + naam */
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
-/* Logo */
 .header-logo {
-  width: 70px;
-  height: 70px;
-  border-radius: 10px;   /* optioneel: afgeronde hoeken */
-  object-fit: contain;    /* houdt de juiste verhoudingen */
+  height: 60px; /* GROTER LOGO zonder header te vergroten */
+  width: auto;
+  object-fit: contain;
   display: block;
 }
 
-/* Naam/groet */
-.header-name {
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-/* Rechterkant: datum + ploeg */
 .header-right {
+  margin-left: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-size: 14px;
-  line-height: 1.3;
+  justify-content: center;
+  text-align: right;
+  gap: 4px;
 }
 
-/* Datum en ploeg apart stylen (optioneel) */
-.header-datetime {
-  font-weight: 500;
-}
-
-.header-ploeg {
+.greeting {
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-top: 2px;
-}
-
-/* Responsive: op kleine schermen stapelen */
-@media (max-width: 480px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .header-right {
-    align-items: flex-start;
-    font-size: 13px;
-  }
-
-  .header-logo {
-    width: 48px;
-    height: 48px;
-  }
-
-  .header-name {
-    font-size: 16px;
-  }
-}
-#appHeader {
-  height: 70px;            /* vaste, smalle balk */
-  display: block;
-  overflow: hidden;
 }
 
 /* ------------------------------
@@ -185,7 +123,7 @@ header {
 }
 
 /* ------------------------------
-   INSTALL BANNER
+   INSTALL-BANNER
 --------------------------------*/
 #installPrompt {
   display: none;
@@ -207,235 +145,119 @@ header {
   font-weight: 600;
 }
 
-#installPrompt .close {
-  cursor: pointer;
-  font-size: 18px;
-}
-
 /* ------------------------------
    AGENDA STYLING
 --------------------------------*/
 #agenda-container {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 #agenda-loading {
-    font-size: 16px;
-    color: #555;
+  font-size: 16px;
+  color: #555;
 }
 
 #agenda-error {
-    color: #d9534f;
-    font-weight: bold;
-    margin-top: 10px;
+  color: #d9534f;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 .agenda-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Elk evenement */
 .agenda-item {
-    background: var(--light);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    border-left: 5px solid var(--red);
-    transition: transform 0.1s, box-shadow 0.1s;
+  background: var(--light);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  border-left: 5px solid var(--red);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .agenda-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.15);
 }
 
 .agenda-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: #222;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #222;
 }
 
 .agenda-datetime,
 .agenda-location {
-    font-size: 14px;
-    margin-bottom: 4px;
+  font-size: 14px;
+  margin-bottom: 4px;
 }
 
 .agenda-datetime {
-    color: #555;
+  color: #555;
 }
 
 .agenda-location {
-    color: #777;
+  color: #777;
 }
 
 .agenda-datetime::before {
-    content: "📅 ";
+  content: "📅 ";
 }
 
 .agenda-location::before {
-    content: "📍 ";
+  content: "📍 ";
 }
-/* Skeleton loader voor agenda-items */
+
+/* Skeleton loader */
 .agenda-skeleton {
   background: linear-gradient(90deg, #eee 25%, #ddd 37%, #eee 63%);
   background-size: 400% 100%;
   animation: loading 1.4s ease infinite;
   border-radius: 8px;
+  height: 60px;
   margin-bottom: 16px;
-  height: 60px; /* hoogte placeholder, kan je aanpassen */
 }
 
 @keyframes loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
 /* ------------------------------
-   WESPENVERDELGING LAYOUT
+   TERUG NAAR START
 --------------------------------*/
-.wespen-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-}
-
-.wespen-table td {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
-
-.wespen-table .col-head {
-  font-weight: 700;
-  color: var(--red);
-}
-
-.agenda-item {
-  background: #fff;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-left: 5px solid var(--red);
-}
-
-.agenda-title {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--red-dark);
-}
-
-.agenda-datetime {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 8px;
-}
-
-.agenda-desc {
-  font-size: 14px;
-  color: #333;
-}
-.werken-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.event-card {
-  background: #fff;
-  border-left: 6px solid #c71f1f;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  transition: transform 0.1s;
-}
-
-.event-card:hover {
-  transform: translateY(-2px);
-}
-
-.event-date {
-  font-weight: 700;
-  color: #c71f1f;
-  margin-bottom: 4px;
-}
-
-.event-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.event-desc {
-  font-size: 13px;
-  color: #333;
-}
-
-@media (max-width: 600px) {
-  .event-card {
-    padding: 10px 12px;
-  }
-  .event-title {
-    font-size: 14px;
-  }
-  .event-desc {
-    font-size: 12px;
-  }
-}
-/* -------------------------------------------
-   STIJLVOLLE TERUGNAARSTART-KNOP
-------------------------------------------- */
 .backlink {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: #c71f1f; /* rode kleur passend bij thema */
+  background: #c71f1f;
   color: #fff;
   text-decoration: none;
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
   transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
-  border: 2px solid #a91a1a; /* iets donkerder rood voor rand */
+  border: 2px solid #a91a1a;
   box-shadow: 0 2px 5px rgba(0,0,0,0.35);
-  margin-bottom: 25px; /* extra ruimte onder knop */
+  margin-bottom: 25px;
 }
 
-.backlink .arrow {
-  font-size: 1.2rem;
-  transition: transform 0.2s;
-}
-
-/* Hover: subtiele lichte shift + schaduw */
 .backlink:hover {
-  background: #e33b3b; /* iets lichter rood bij hover */
+  background: #e33b3b;
   border-color: #b71f1f;
   transform: translateX(-3px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.45);
 }
 
-.backlink:hover .arrow {
-  transform: translateX(-3px);
-}
-
-/* Mobile scaling */
-@media (max-width: 480px) {
-  .backlink {
-    padding: 8px 14px;
-    font-size: 0.9rem;
-  }
-  .backlink .arrow {
-    font-size: 1.1rem;
-  }
-}
 /* ------------------------------
    FOOTER
 --------------------------------*/
@@ -447,4 +269,25 @@ footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* ------------------------------
+   RESPONSIVE
+--------------------------------*/
+@media (max-width: 480px) {
+  #appHeader {
+    height: auto;
+    padding: 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .header-right {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .header-logo {
+    height: 50px;
+  }
 }
