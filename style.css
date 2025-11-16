@@ -59,7 +59,7 @@ html, body {
 }
 
 .header-logo {
-  height: 80px;    /* Iets groter */
+  height: 100px;    /* Iets groter */
   width: auto;
   object-fit: contain;
   display: block;
