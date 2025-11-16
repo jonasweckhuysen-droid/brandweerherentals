@@ -6,7 +6,6 @@
 <title>Brandweer Herentals — Agenda</title>
 
 <link rel="stylesheet" href="/brandweerherentals/style.css">
-
 <script src="/brandweerherentals/header.js" defer></script>
 </head>
 <body>
@@ -15,44 +14,46 @@
 
   <!-- DYNAMISCHE HEADER -->
   <header id="appHeader">
-  <div class="header-left">
-    <!-- Logo -->
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-    <div id="greeting" class="header-name"></div>
-  </div>
-
-  <div class="header-right">
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
-</header>
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+      <div id="greeting" class="header-name"></div>
+    </div>
+    <div class="header-right">
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+  </header>
 
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">
       <span class="arrow">←</span> Terug naar start
     </a>
 
-    <div id="agenda-container">
-      <div id="agenda-loading">Agenda laden…</div>
-      <div id="agenda-error" class="hidden"></div>
-      <div id="agenda"></div>
-    </div>
+  <div id="agenda-container">
+  <div id="agenda-loading">Agenda laden…</div>
+  <div id="agenda-error" class="hidden"></div>
+  <div id="agenda">
+    <!-- skeleton placeholders worden via JS toegevoegd -->
+  </div>
   </main>
 
   <footer>
-    <div class="small">Versie 1.3 (Ultra-Fast ICS + Dedup)</div>
+    <div class="small">Versie 1.4 (Ultra-Fast Google Calendar)</div>
     <div class="small">Laatste update: <span id="today"></span></div>
   </footer>
 </div>
 
 <script>
-// ------------------------------------------------------
-// ULTRA-SNELLE AGENDA MET GOOGLE API, CACHING + DEDUPLICATIE
-// ------------------------------------------------------
-
-const CACHE_KEY = "agendaICScacheV3";
-const ICS_URL = "https://www.googleapis.com/calendar/v3/calendars/df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727%40group.calendar.google.com/events?key=AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE";
+// ----------------------------
+// ULTRA-SNELLE AGENDA SCRIPT
+// ----------------------------
+const CACHE_KEY = "agendaCacheV4";
+const API_KEY = "AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE";
+const CALENDAR_ID = "df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com";
+const MAX_EVENTS = 20;
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min
+
+const API_URL = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?maxResults=${MAX_EVENTS}&orderBy=startTime&singleEvents=true&timeMin=${new Date().toISOString()}&key=${API_KEY}`;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("today").textContent =
@@ -63,50 +64,53 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --------------------
-// LOAD AGENDA
+// LOAD AGENDA MET CACHE
 // --------------------
 async function loadAgenda() {
   const cached = localStorage.getItem(CACHE_KEY);
 
-  // Toon cache direct
+  // 1️⃣ Toon cache direct
   if (cached) {
-    try {
-      displayEvents(JSON.parse(cached), true);
-    } catch {}
+    try { displayEvents(JSON.parse(cached), true); } catch {}
   }
 
+  // 2️⃣ Haal data van Google Calendar
   try {
-    const response = await fetch(ICS_URL);
+    const response = await fetch(API_URL, { cache: "no-store" });
     if (!response.ok) throw new Error("Google Calendar niet bereikbaar");
 
     const data = await response.json();
+    const now = new Date();
 
-    // Converteer items naar intern formaat
-    const events = data.items.map(item => {
-      return {
+    // 3️⃣ Deduplicatie en filter
+    const seen = new Set();
+    const events = [];
+
+    for (const item of data.items) {
+      const start = item.start?.dateTime ? new Date(item.start.dateTime) : new Date(item.start?.date);
+      const end = item.end?.dateTime ? new Date(item.end.dateTime) : new Date(item.end?.date);
+      if (start < now) continue;
+
+      const key = `${start.toISOString()}|${item.summary || ""}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      events.push({
         summary: item.summary || "",
         location: item.location || "",
-        start: item.start?.dateTime ? new Date(item.start.dateTime) : new Date(item.start?.date),
-        end: item.end?.dateTime ? new Date(item.end.dateTime) : new Date(item.end?.date)
-      };
-    }).filter(e => e.start >= new Date()); // alleen toekomst
+        start,
+        end
+      });
+    }
 
-    // Deduplicatie: summary + start + end
-    const seen = new Set();
-    const uniqueEvents = events.filter(e => {
-      const key = `${e.summary}|${e.start.toISOString()}|${e.end.toISOString()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    // Sorteer op datum
+    events.sort((a,b) => a.start - b.start);
 
-    // Sorteer op startdatum
-    uniqueEvents.sort((a,b) => a.start - b.start);
-
+    // 4️⃣ Cache update + display
     const old = cached ? JSON.parse(cached) : null;
-    if (JSON.stringify(uniqueEvents) !== JSON.stringify(old)) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(uniqueEvents));
-      displayEvents(uniqueEvents, false);
+    if (JSON.stringify(events) !== JSON.stringify(old)) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(events));
+      displayEvents(events, false);
     }
 
   } catch (err) {
@@ -135,13 +139,10 @@ function displayEvents(events, fromCache) {
   }
 
   events.forEach(ev => {
-    const start = ev.start;
-    const end   = ev.end;
-
-    const dateStr = start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
-    const timeStr = start.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
+    const dateStr = ev.start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+    const timeStr = ev.start.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" }) +
                     " – " +
-                    end.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
+                    ev.end.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
 
     const div = document.createElement("div");
     div.className = "agenda-item";
@@ -150,7 +151,6 @@ function displayEvents(events, fromCache) {
       <div class="agenda-datetime">${dateStr}, ${timeStr}</div>
       ${ev.location ? `<div class="agenda-location">${ev.location}</div>` : ""}
     `;
-
     container.appendChild(div);
   });
 }
@@ -158,4 +158,3 @@ function displayEvents(events, fromCache) {
 
 </body>
 </html>
-
