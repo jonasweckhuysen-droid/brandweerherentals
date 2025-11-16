@@ -16,16 +16,18 @@
 
   <!-- Dynamische header -->
   <header id="appHeader">
-  <div class="header-content">
-    <div class="header-left">
-      <div id="greeting"></div>
+  <div class="header-left">
+      <div class="logo" aria-hidden="true">BWH</div>
+      <div>
+        <h1>Brandweer Herentals</h1>
+        <p>Agenda</p>
+      </div>
     </div>
-
-    <div class="header-right">
+    <div id="header-right">
+      <div id="greeting"></div>
       <div id="datetime"></div>
       <div id="ploegOfWeek"></div>
     </div>
-  </div>
   </header>
 
   <main class="content">
@@ -210,5 +212,6 @@ function displayEvents(events, fromCache) {
 
 </body>
 </html>
+
 
 
