@@ -320,15 +320,16 @@ header p {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: #222;
+  background: #c71f1f; /* rode kleur passend bij thema */
   color: #fff;
   text-decoration: none;
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.95rem;
   transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
-  border: 2px solid #444;
+  border: 2px solid #a91a1a; /* iets donkerder rood voor rand */
   box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+  margin-bottom: 25px; /* extra ruimte onder knop */
 }
 
 .backlink .arrow {
@@ -336,9 +337,9 @@ header p {
   transition: transform 0.2s;
 }
 
-/* Hover: mooie animatie + lichte kleurshift */
+/* Hover: subtiele lichte shift + schaduw */
 .backlink:hover {
-  background: #d62828;
+  background: #e33b3b; /* iets lichter rood bij hover */
   border-color: #b71f1f;
   transform: translateX(-3px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.45);
@@ -357,10 +358,6 @@ header p {
   .backlink .arrow {
     font-size: 1.1rem;
   }
-}
-/* Extra ruimte onder terug-knop */
-.backlink {
-  margin-bottom: 20px; /* of 25px / 30px naar smaak */
 }
 /* ------------------------------
    FOOTER
