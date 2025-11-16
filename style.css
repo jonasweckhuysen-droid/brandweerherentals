@@ -48,29 +48,31 @@ html, body {
   padding: 0 18px;
   overflow: hidden;
   border-bottom: 2px solid var(--red-dark);
+  justify-content: space-between; /* linkse logo & rechtse info */
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;   /* voorkom dat logo krimpt */
 }
 
 .header-logo {
-  height: 60px; /* GROTER LOGO zonder header te vergroten */
+  height: 80px;    /* Iets groter */
   width: auto;
   object-fit: contain;
   display: block;
 }
 
 .header-right {
-  margin-left: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
   text-align: right;
   gap: 4px;
+  margin-left: auto;   /* helemaal rechts */
 }
 
 .greeting {
@@ -78,6 +80,26 @@ html, body {
   font-weight: 600;
 }
 
+/* ------------------------------
+   RESPONSIVE
+--------------------------------*/
+@media (max-width: 480px) {
+  #appHeader {
+    height: auto;
+    padding: 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .header-right {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .header-logo {
+    height: 60px; /* iets kleiner op mobiel */
+  }
+}
 /* ------------------------------
    CONTENT
 --------------------------------*/
