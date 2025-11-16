@@ -83,76 +83,39 @@ html, body {
 /* ------------------------------
    HEADER
 -------------------------------*/
-/* ==========================
-   HEADER — GROOT LOGO LINKS
-========================== */
 #appHeader {
   display: flex;
-  align-items: center;                 /* verticaal centreren */
-  justify-content: space-between;      /* logo links, info rechts */
-  height: 120px;                       /* groot genoeg voor logo */
-  padding: 0 18px;
+  align-items: center;      /* vertical center */
+  justify-content: space-between;
+  padding: 0 12px;
   background: linear-gradient(90deg, var(--red), var(--red-dark));
-  color: var(--light);
-  border-bottom: 2px solid var(--red-dark);
-  box-sizing: border-box;
+  height: auto;             /* laat header groeien met inhoud */
+  min-height: 120px;        /* minimum hoogte */
 }
 
 .header-left {
   display: flex;
-  align-items: center;                 /* logo + naam verticaal centreren */
-  gap: 14px;
-  flex-shrink: 0;                      /* voorkom krimp */
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .header-logo {
-  height: 100px;                       /* groot logo */
+  height: 100px;            /* maak logo groot */
   width: auto;
   object-fit: contain;
-  display: block;
 }
 
 .header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;               /* alles rechts */
+  align-items: flex-end;
   justify-content: center;
   gap: 4px;
-  margin-left: auto;                   /* helemaal rechts */
 }
-
 .header-name {
   font-size: 1.2rem;
   font-weight: 600;
 }
-
-/* MOBIEL */
-@media (max-width: 480px) {
-  #appHeader {
-    flex-direction: column;            /* stapel op mobiel */
-    height: auto;
-    padding: 12px;
-    gap: 8px;
-  }
-
-  .header-left {
-    justify-content: center;           /* gecentreerd op klein scherm */
-  }
-
-  .header-right {
-    align-items: center;               /* gecentreerd op klein scherm */
-    text-align: center;
-  }
-
-  .header-logo {
-    height: 60px;                      /* kleiner logo op mobiel */
-  }
-
-  .header-name {
-    font-size: 1rem;
-  }
-}
-
 /* ------------------------------
    RESPONSIVE
 --------------------------------*/
