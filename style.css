@@ -1,6 +1,6 @@
 /* =====================================================
-Brandweer Herentals — Geoptimaliseerde STYLE.CSS
-SCHOON, SNEL, OVERZICHTELIJK & ZONDER DUBBELE REGELS
+   Brandweer Herentals — Geoptimaliseerde STYLE.CSS
+   SCHOON, SNEL, OVERZICHTELIJK & ZONDER DUBBELE REGELS
 ===================================================== */
 
 /* ------------------------------
@@ -96,14 +96,24 @@ HEADER — logo links, tekst rechts
   opacity:0.95;
 }
 
+/* Responsive header */
 @media (max-width:720px){
-  #appHeader{ flex-direction:row; min-height:80px; }
+  #appHeader{
+    flex-direction:row;
+    min-height:80px;
+  }
   .header-logo{ height:96px; }
   .header-right{ padding-right:10px; }
 }
 
 @media (max-width:480px){
-  #appHeader{ flex-direction:column; align-items:center; gap:8px; padding:10px; min-height:auto; }
+  #appHeader{
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    padding:10px;
+    min-height:auto;
+  }
   .header-left{ padding-left:0; justify-content:center; }
   .header-logo{ height:64px; }
   .header-right{ align-items:center; text-align:center; }
@@ -126,7 +136,7 @@ CONTENT
 BUTTONS / KARTEN
 --------------------------------*/
 .btn{
-  background:var(--muted);
+  background:#fff;
   border-radius:14px;
   padding:14px;
   text-decoration:none;
@@ -136,15 +146,16 @@ BUTTONS / KARTEN
   align-items:center;
   border:2px solid transparent;
   transition:all .15s ease;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
 }
 
 .btn:hover{
   border-color:var(--red);
   background:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
 }
 
-/* ---------- FIX VOOR ICONS ---------- */
-.btn .icon {
+.btn .icon{
   width:38px;
   height:38px;
   flex-shrink:0;
@@ -155,7 +166,7 @@ BUTTONS / KARTEN
 .btn .icon img{
   width:38px;
   height:38px;
-  object-fit:contain; /* voorkom vervormen */
+  object-fit:contain;
 }
 .btn small{ font-size:12px; opacity:.7; }
 
@@ -175,7 +186,7 @@ TERUG-NAAR-START KNOP
   font-size:.95rem;
   transition:background .25s, transform .18s, box-shadow .2s;
   border:2px solid #a91a1a;
-  box-shadow:0 2px 5px rgba(0,0,0,.25);
+  box-shadow:0 3px 8px rgba(0,0,0,.35);
   margin-bottom:22px;
 }
 
@@ -185,7 +196,7 @@ TERUG-NAAR-START KNOP
   background:#e33b3b;
   border-color:#b71f1f;
   transform:translateX(-3px);
-  box-shadow:0 4px 12px rgba(0,0,0,0.18);
+  box-shadow:0 5px 14px rgba(0,0,0,0.25);
 }
 
 /* ------------------------------
@@ -204,7 +215,7 @@ INSTALL PROMPT
 
 #installPrompt button{
   background:var(--red);
-  color:var(--light);
+  color:#fff;
   border:none;
   padding:8px 12px;
   border-radius:6px;
@@ -263,5 +274,3 @@ ACCESSIBILITY TWEAK
 --------------------------------*/
 a.btn, .backlink{ outline-offset:3px; }
 a.btn:focus, .backlink:focus{ box-shadow:0 0 0 3px rgba(199,31,31,0.18); }
-
-/* End of stylesheet */
