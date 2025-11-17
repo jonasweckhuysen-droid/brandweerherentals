@@ -1,6 +1,5 @@
 /* =====================================================
    Brandweer Herentals — Geoptimaliseerde STYLE.CSS
-   SCHOON, SNEL, OVERZICHTELIJK & ZONDER DUBBELE REGELS
 ===================================================== */
 
 /* ------------------------------
@@ -38,91 +37,94 @@ html,body{
   overflow:hidden;
 }
 
-/* ------------------------------
-   HEADER — logo links, tekst rechts
-   (zorg dat HTML gebruikt: .header-left (logo) + .header-right (tekst))
---------------------------------*/
+/* =====================================================
+   HEADER — VOLLEDIG GEFIXT (desktop & mobiel)
+   Logo links — Tekst rechts — Nooit meer onder elkaar
+===================================================== */
+
 #appHeader{
   display:flex;
+  flex-direction:row;
   align-items:center;
   justify-content:space-between;
-  padding:0;                           /* geen extra ruimte links — logo plakt tegen binnenrand */
+  padding:0 10px;
   background: linear-gradient(90deg,var(--red),var(--red-dark));
   color:#fff;
-  min-height:88px;                     /* header compact houden; vergroot alleen logo */
+  min-height:120px;
   border-bottom:2px solid rgba(0,0,0,0.06);
 }
 
-/* FORS: zorg dat alle header-teksten wit zijn */
-#appHeader, #appHeader *{ color:#fff !important; }
+#appHeader *{
+  color:#fff !important;
+}
 
-/* left: enkel het logo (plaats het IMMER in .header-left) */
+/* LOGO LINKS */
 .header-left{
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  flex:0 0 auto;
-  margin-left:0;       /* geen marge: plakt tegen container binnenrand */
-  padding-left:12px;   /* kleine buffer zodat logo niet ontsnapt buiten rand */
+  flex-shrink:0;
+  padding-left:0;
+  margin-left:0;
 }
 
-/* Groot logo — vergroot hier (hoogte), breedte auto behoudt verhouding */
 .header-logo{
   display:block;
-  height:120px;        /* PAS AAN naar wens: 120px = groot */
+  height:120px;         /* groot logo */
   width:auto;
   object-fit:contain;
   margin:0;
-  border-radius:10px;  /* optioneel */
 }
 
-/* right: alle tekst items (greeting, datetime, ploeg) */
+/* TEKST RECHTS */
 .header-right{
   display:flex;
   flex-direction:column;
-  align-items:flex-end;   /* helemaal rechts uitlijnen */
+  align-items:flex-end;
   justify-content:center;
+  padding-right:12px;
   gap:4px;
-  padding-right:14px;     /* kleine buffer aan de rechterkant */
-  flex:1 1 auto;
+  flex:1;
   min-width:0;
 }
 
-/* individuele tekststijlen */
-.header-greeting, .header-name, #greeting{
-  font-size:1.15rem;
+.header-greeting{
+  font-size:1.25rem;
   font-weight:700;
   white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
-.header-datetime, .header-ploeg, #datetime, #ploegOfWeek{
-  font-size:0.95rem;
+.header-datetime,
+.header-ploeg{
+  font-size:1rem;
   opacity:0.95;
 }
 
-/* op kleine schermen: stapel header netjes */
-@media (max-width:720px){
-  #appHeader{
-    flex-direction:row; /* nog steeds row, maar schaal logo iets */
-    min-height:80px;
-  }
-  .header-logo{ height:96px; }
-  .header-right{ padding-right:10px; }
-}
-
+/* MOBIEL — nooit meer column */
 @media (max-width:480px){
+
   #appHeader{
-    flex-direction:column;
+    flex-direction:row;        /* blijft horizontaal! */
     align-items:center;
-    gap:8px;
-    padding:10px;
-    min-height:auto;
+    justify-content:space-between;
+    min-height:100px;
+    padding:6px 8px;
   }
-  .header-left{ padding-left:0; justify-content:center; }
-  .header-logo{ height:64px; }
-  .header-right{ align-items:center; text-align:center; }
+
+  .header-left{
+    justify-content:flex-start;
+    padding-left:0;
+  }
+
+  .header-logo{
+    height:95px;               /* mooi schaalbaar */
+  }
+
+  .header-right{
+    align-items:flex-end;
+    text-align:right;
+    padding-right:8px;
+  }
 }
 
 /* ------------------------------
@@ -179,7 +181,7 @@ html,body{
   transition:background .25s, transform .18s, box-shadow .2s;
   border:2px solid #a91a1a;
   box-shadow:0 2px 5px rgba(0,0,0,.25);
-  margin-bottom:22px; /* extra ruimte onder knop */
+  margin-bottom:22px;
 }
 
 .backlink .arrow{ font-size:1.2rem; transition:transform .18s; }
@@ -222,7 +224,11 @@ html,body{
 #agenda-error{ color:#d9534f; font-weight:700; margin-top:10px; }
 .hidden{ display:none; }
 
-.agenda-list{ display:flex; flex-direction:column; gap:12px; }
+.agenda-list{
+  display:flex;
+  flex-direction:column; 
+  gap:12px;
+}
 
 .agenda-item{
   background:var(--light);
@@ -232,21 +238,37 @@ html,body{
   border-left:5px solid var(--red);
 }
 
-.agenda-item:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.12); }
+.agenda-item:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(0,0,0,0.12);
+}
 
-.agenda-title{ font-size:18px; font-weight:700; margin-bottom:6px; color:#222; }
-.agenda-datetime, .agenda-location{ font-size:14px; color:#555; margin-bottom:4px; }
+.agenda-title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:6px;
+  color:#222;
+}
+
+.agenda-datetime, .agenda-location{
+  font-size:14px;
+  color:#555;
+  margin-bottom:4px;
+}
 .agenda-datetime::before{ content:"📅 "; }
 .agenda-location::before{ content:"📍 "; }
 
-/* skeleton */
 .agenda-skeleton{
   background:linear-gradient(90deg,#eee 25%,#ddd 37%,#eee 63%);
   background-size:400% 100%;
   animation:loading 1.4s linear infinite;
   border-radius:8px; height:60px; margin-bottom:16px;
 }
-@keyframes loading{ 0%{ background-position:200% 0 } 100%{ background-position:-200% 0 } }
+
+@keyframes loading{
+  0%{ background-position:200% 0 }
+  100%{ background-position:-200% 0 }
+}
 
 /* ------------------------------
    FOOTER
@@ -265,6 +287,8 @@ footer{
    ACCESSIBILITY TWEAK
 --------------------------------*/
 a.btn, .backlink{ outline-offset:3px; }
-a.btn:focus, .backlink:focus{ box-shadow:0 0 0 3px rgba(199,31,31,0.18); }
+a.btn:focus, .backlink:focus{
+  box-shadow:0 0 0 3px rgba(199,31,31,0.18);
+}
 
 /* End of stylesheet */
