@@ -40,6 +40,7 @@ html,body{
 
 /* ------------------------------
 HEADER — logo links, tekst rechts
+(zorg dat HTML gebruikt: .header-left (logo) + .header-right (tekst))
 --------------------------------*/
 #appHeader{
   display:flex;
@@ -52,8 +53,10 @@ HEADER — logo links, tekst rechts
   border-bottom:2px solid rgba(0,0,0,0.06);
 }
 
+/* FORS: zorg dat alle header-teksten wit zijn */
 #appHeader, #appHeader *{ color:#fff !important; }
 
+/* left: enkel het logo (plaats het IMMER in .header-left) */
 .header-left{
   display:flex;
   align-items:center;
@@ -63,15 +66,17 @@ HEADER — logo links, tekst rechts
   padding-left:12px;
 }
 
+/* Groot logo — vergroot hier (hoogte), breedte auto behoudt verhouding */
 .header-logo{
   display:block;
-  height:120px;
+  height:120px;        /* PAS AAN naar wens: 120px = groot */
   width:auto;
   object-fit:contain;
   margin:0;
-  border-radius:10px;
+  border-radius:10px;  /* optioneel */
 }
 
+/* right: alle tekst items (greeting, datetime, ploeg) */
 .header-right{
   display:flex;
   flex-direction:column;
@@ -83,6 +88,7 @@ HEADER — logo links, tekst rechts
   min-width:0;
 }
 
+/* individuele tekststijlen */
 .header-greeting, .header-name, #greeting{
   font-size:1.15rem;
   font-weight:700;
@@ -118,7 +124,6 @@ HEADER — logo links, tekst rechts
   .header-logo{ height:64px; }
   .header-right{ align-items:center; text-align:center; }
 }
-
 /* ------------------------------
 CONTENT
 --------------------------------*/
