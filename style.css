@@ -35,57 +35,51 @@ html,body{
   border-radius:18px;
   border:4px solid var(--red);
   box-shadow:0 8px 30px rgba(0,0,0,0.08);
-  overflow:hidden;
+  overflow:visible; /* fix header overflow probleem */
 }
 
 /* ------------------------------
 HEADER — logo links, tekst rechts
-(zorg dat HTML gebruikt: .header-left (logo) + .header-right (tekst))
 --------------------------------*/
 #appHeader{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0;
+  padding:0 12px; /* kleine padding voor logo en tekst */
   background: linear-gradient(90deg,var(--red),var(--red-dark));
   color:#fff;
   min-height:88px;
   border-bottom:2px solid rgba(0,0,0,0.06);
+  overflow:visible; /* essentieel fix */
 }
 
 /* FORS: zorg dat alle header-teksten wit zijn */
 #appHeader, #appHeader *{ color:#fff !important; }
 
-/* left: enkel het logo (plaats het IMMER in .header-left) */
 .header-left{
   display:flex;
   align-items:center;
   justify-content:flex-start;
   flex:0 0 auto;
-  margin-left:0;
-  padding-left:12px;
 }
 
-/* Groot logo — vergroot hier (hoogte), breedte auto behoudt verhouding */
 .header-logo{
   display:block;
-  height:120px;        /* PAS AAN naar wens: 120px = groot */
+  height:120px;
   width:auto;
   object-fit:contain;
   margin:0;
-  border-radius:10px;  /* optioneel */
+  border-radius:10px;
 }
 
-/* right: alle tekst items (greeting, datetime, ploeg) */
 .header-right{
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   justify-content:center;
   gap:4px;
-  padding-right:14px;
-  flex:1 1 auto;
-  min-width:0;
+  padding-right:12px;
+  flex:1; /* geen min-width:0 */
 }
 
 /* individuele tekststijlen */
@@ -120,10 +114,11 @@ HEADER — logo links, tekst rechts
     padding:10px;
     min-height:auto;
   }
-  .header-left{ padding-left:0; justify-content:center; }
+  .header-left{ justify-content:center; }
   .header-logo{ height:64px; }
   .header-right{ align-items:center; text-align:center; }
 }
+
 /* ------------------------------
 CONTENT
 --------------------------------*/
