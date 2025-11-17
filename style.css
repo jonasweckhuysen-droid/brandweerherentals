@@ -1,25 +1,28 @@
-/* ----------------------------- */
-/* BASIS OPMAAK */
-/* ----------------------------- */
+/* ------------------------------------ */
+/* KLEUREN */
+/* ------------------------------------ */
 
 :root {
   --red: #d62828;
   --red-dark: #9b1d1d;
-
-  --gray-light: #f4f4f4;
-  --gray-dark: #333;
+  --gray-light: #fafafa;
+  --gray-border: #dddddd;
 }
 
+/* ------------------------------------ */
+/* BASIS */
+/* ------------------------------------ */
+
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
-  background: white !important;
+  margin: 0;
+  background: white;
   color: #222;
 }
 
-/* ----------------------------- */
-/* HEADER */
-/* ----------------------------- */
+/* ------------------------------------ */
+/* HEADER (ENKEL DIT IS AANGEPAST!) */
+/* ------------------------------------ */
 
 #appHeader {
   display: flex;
@@ -29,15 +32,14 @@ body {
   background: linear-gradient(90deg, var(--red), var(--red-dark));
   min-height: 130px;
   color: white;
-  box-sizing: border-box;
 }
 
-/* ALLE tekst in header wit houden */
+/* Alles in header wit */
 #appHeader * {
   color: white !important;
 }
 
-/* LINKS: LOGO */
+/* Links: logo */
 .header-left {
   display: flex;
   align-items: center;
@@ -46,32 +48,31 @@ body {
 }
 
 .header-logo {
-  height: 120px;         /* 🔥 GROTER LOGO */
+  height: 120px;
   width: auto;
   object-fit: contain;
   display: block;
-  margin: 0;             /* tegen de rand */
+  margin: 0;
   padding: 0;
 }
 
-/* RECHTS: TEKST */
+/* Rechts: tekst */
 .header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;   /* volledig rechts */
+  align-items: flex-end;
   justify-content: center;
-  flex: 1;
   gap: 4px;
 }
 
 .header-greeting {
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: bold;
 }
 
 .header-datetime {
   font-size: 1rem;
-  opacity: 0.95;
+  opacity: 0.9;
 }
 
 .header-ploeg {
@@ -79,16 +80,12 @@ body {
   font-weight: 600;
 }
 
-/* MOBIEL FIX — LOGO LINKS & TEKST RECHTS */
+/* Mobiel — fix */
 @media (max-width: 480px) {
   #appHeader {
-    flex-direction: row !important;   /* ⭐ BELANGRIJK: NIET STACKEN */
+    flex-direction: row !important;
     justify-content: space-between;
     padding: 10px;
-  }
-
-  .header-left {
-    justify-content: flex-start;
   }
 
   .header-right {
@@ -101,25 +98,25 @@ body {
   }
 }
 
-/* ----------------------------- */
-/* KNOPPEN */
-/* ----------------------------- */
+/* ------------------------------------ */
+/* KNOPPEN (ORIGINEEL GELATEN!) */
+/* ------------------------------------ */
 
 button, .btn {
+  display: block;
+  width: 90%;
+  max-width: 400px;
+  margin: 15px auto;
+  padding: 12px 18px;
   background: white;
   color: var(--red-dark);
   border: 2px solid var(--red);
-  padding: 12px 18px;
   border-radius: 10px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: bold;
   cursor: pointer;
-  width: 90%;
-  max-width: 400px;
-  margin: 10px auto;
-  display: block;
   text-align: center;
-  transition: 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
 
 button:hover, .btn:hover {
@@ -127,53 +124,52 @@ button:hover, .btn:hover {
   color: white;
 }
 
-/* ----------------------------- */
-/* TERUG NAAR START KNOP */
-/* ----------------------------- */
+/* ------------------------------------ */
+/* TERUG NAAR START (ORIGINEEL) */
+/* ------------------------------------ */
 
 #backToStart {
-  background: var(--gray-light);
-  color: #222;
-  border: 2px solid #ccc;
-  font-size: 1rem;
-  padding: 10px 14px;
-  border-radius: 8px;
-  width: auto;
   display: inline-block;
-  margin: 14px;
+  margin: 15px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: var(--gray-light);
+  border: 1px solid var(--gray-border);
+  color: #222;
 }
 
 #backToStart:hover {
-  background: #ddd;
+  background: #e7e7e7;
 }
 
-/* ----------------------------- */
-/* CONTENT SECTIES */
-/* ----------------------------- */
+/* ------------------------------------ */
+/* SECTIES (ORIGINEEL) */
+/* ------------------------------------ */
 
 .section {
-  padding: 20px;
   background: white;
-  max-width: 900px;
-  margin: 20px auto;
+  border: 1px solid var(--gray-border);
   border-radius: 10px;
-  border: 1px solid #e5e5e5;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 900px;
 }
 
-/* ----------------------------- */
-/* AGENDA KAARTEN */
-/* ----------------------------- */
+/* ------------------------------------ */
+/* AGENDA CARDS (ORIGINEEL) */
+/* ------------------------------------ */
 
 .agenda-card {
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: var(--gray-light);
+  border: 1px solid var(--gray-border);
+  border-radius: 10px;
   padding: 15px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .agenda-card h3 {
-  margin: 0 0 5px 0;
+  margin: 0 0 6px 0;
   color: var(--red-dark);
 }
 
