@@ -13,78 +13,46 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-/* ---------- WELCOME OVERLAY ---------- */
+/* Overlay grafisch menu */
 #welcomeOverlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-#welcomeOverlay .overlay-content {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.85);
+  display:flex; justify-content:center; align-items:center;
+  z-index:9999; flex-direction:column; padding:20px;
+  color:#fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 #welcomeOverlay h2 {
-  margin-bottom: 12px;
-  color: #c71f1f;
+  font-size: 1.8rem; margin-bottom: 16px;
+  text-align:center; color: var(--red);
 }
 
-#welcomeOverlay input[type=text],
-#welcomeOverlay input[type=password] {
-  width: 80%;
-  padding: 8px 10px;
-  margin: 6px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
+#welcomeOverlay .input-group {
+  display:flex; flex-direction:column; gap:12px; margin-bottom: 20px; width:100%; max-width:320px;
 }
 
-#welcomeOverlay .specialiteiten {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  margin: 12px 0;
+#welcomeOverlay label {
+  display:flex; align-items:center; gap:10px;
+  cursor:pointer; background: #fff1f1; padding:10px 12px; border-radius:10px; color: #111;
+  transition: all 0.15s;
 }
 
-#welcomeOverlay .specialiteiten label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  cursor: pointer;
+#welcomeOverlay label:hover {
+  background: var(--red); color:#fff;
 }
 
-#welcomeOverlay .specialiteiten input[type=checkbox] {
-  width: 18px;
-  height: 18px;
-  accent-color: #c71f1f;
-}
+#welcomeOverlay input[type=text] { flex:1; padding:8px; border-radius:6px; border:none; font-size:1rem; }
+
+#welcomeOverlay input[type=checkbox] { width:20px; height:20px; }
 
 #welcomeOverlay button {
-  background: var(--red);
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
+  padding: 12px 20px; border:none; border-radius:10px;
+  background: var(--red); color:#fff; font-weight:700; font-size:1rem;
+  cursor:pointer; transition: all 0.15s;
 }
 
-#welcomeOverlay button:hover {
-  background: #e33b3b;
-}
+#welcomeOverlay button:hover { background: var(--red-dark); }
 </style>
 </head>
 <body>
@@ -94,11 +62,8 @@
   <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png"
-           alt="Brandweer Herentals"
-           class="header-logo">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
     </div>
-
     <div class="header-right">
       <div id="greeting" class="header-greeting"></div>
       <div id="datetime" class="header-datetime"></div>
@@ -120,35 +85,18 @@
     </div>
   </main>
 
-  <!-- FOOTER -->
   <footer>
     <div>Versie 1.1</div>
     <div></div>
   </footer>
 </div>
 
-<!-- ---------- WELCOME OVERLAY HTML ---------- -->
-<div id="welcomeOverlay">
-  <div class="overlay-content">
-    <h2>Welkom bij Brandweer Herentals</h2>
-    <input type="text" id="userNameInput" placeholder="Vul je naam in">
-    <input type="password" id="vzwInput" placeholder="VZW Firecrew wachtwoord">
-    <div class="specialiteiten">
-      <label><input type="checkbox" name="specialiteit" value="ambulancier"> Ambulancier</label>
-      <label><input type="checkbox" name="specialiteit" value="chauffeur"> Chauffeur</label>
-      <label><input type="checkbox" name="specialiteit" value="duiker"> Duiker</label>
-      <label><input type="checkbox" name="specialiteit" value="firecrew"> VZW Firecrew</label>
-      <label><input type="checkbox" name="specialiteit" value="brandweer"> Brandweer (geen extra knop)</label>
-    </div>
-    <button id="confirmUserBtn">Bevestigen</button>
-  </div>
-</div>
-
-<!-- ================================
-     SCRIPT
-=============================== -->
+<!-- ================================ -->
 <script>
-const links = {
+// =====================================
+// 🌟 Variabelen
+// =====================================
+let links = {
   abiweb: { title:"Abiweb", icon:"/brandweerherentals/icons/buttons/abiweb.png", desc:"Oefeningen en prestaties", url:"https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },
   agenda: { title:"Agenda", icon:"📅", desc:"Belangrijke data en evenementen", url:"/brandweerherentals/agenda.html" },
   defect: { title:"Defectmelding", icon:"🔧", desc:"Meld defecten", url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" },
@@ -161,85 +109,119 @@ const links = {
   wespen: { title:"Wespen", icon:"🐝", desc:"Ploeg van dienst", url:"/brandweerherentals/wespen.html" }
 };
 
-// ===================== RENDER GRID =====================
-function renderGrid() {
-  const grid = document.getElementById("buttonGrid");
-  grid.innerHTML = "";
-  Object.values(links).sort((a,b) => a.title.localeCompare(b.title,"nl"))
-    .forEach(item => {
-      const a = document.createElement("a");
-      a.className = "btn";
-      a.href = item.url;
-      a.innerHTML = `
-        <div class="icon">${item.icon.endsWith(".png") ? `<img src="${item.icon}" alt="${item.title}">` : item.icon}</div>
-        <div>
-          <div>${item.title}</div>
-          <small>${item.desc}</small>
-        </div>
-      `;
-      grid.appendChild(a);
-    });
-}
+// =====================================
+// 🌟 Overlay HTML
+// =====================================
+document.body.insertAdjacentHTML('beforeend', `
+<div id="welcomeOverlay" style="display:none;">
+  <h2>Welkom bij Brandweer Herentals</h2>
+  <div class="input-group">
+    <input type="text" id="userNameInput" placeholder="Vul je naam in">
+  </div>
+  <div class="input-group">
+    <label><input type="checkbox" value="brandweer"> Brandweer</label>
+    <label><input type="checkbox" value="ambulancier"> Ambulancier</label>
+    <label><input type="checkbox" value="chauffeur"> Chauffeur</label>
+    <label><input type="checkbox" value="duiker"> Duiker</label>
+    <label><input type="checkbox" value="firecrew"> VZW Firecrew</label>
+  </div>
+  <div class="input-group" id="vzwPwdGroup" style="display:none;">
+    <input type="text" id="vzwPwdInput" placeholder="VZW wachtwoord">
+  </div>
+  <button id="confirmBtn">Bevestig</button>
+</div>
+`);
 
-// ===================== USER OVERLAY =====================
-const confirmBtn = document.getElementById("confirmUserBtn");
-confirmBtn.addEventListener("click", () => {
-  const userNameInput = document.getElementById("userNameInput").value.trim();
-  const vzwInput = document.getElementById("vzwInput").value.trim();
-  const checkedBoxes = Array.from(document.querySelectorAll('input[name="specialiteit"]:checked'));
-  const specialiteiten = checkedBoxes.map(cb => cb.value);
+const overlay = document.getElementById("welcomeOverlay");
+const confirmBtn = document.getElementById("confirmBtn");
+const userNameInput = document.getElementById("userNameInput");
+const vzwPwdInput = document.getElementById("vzwPwdInput");
+const vzwPwdGroup = document.getElementById("vzwPwdGroup");
 
-  if (!userNameInput) return alert("Vul je naam in!");
-
-  localStorage.setItem("userName", userNameInput);
-  document.getElementById("greeting").textContent = `Welkom, ${userNameInput}!`;
-
-  if (specialiteiten.includes("firecrew") && vzwInput !== "Oudstrijder") {
-    alert("Fout wachtwoord voor VZW Firecrew!");
-    return;
-  }
-
-  localStorage.setItem("isVZW", specialiteiten.includes("firecrew") ? "true" : "false");
-  localStorage.setItem("specialiteiten", JSON.stringify(specialiteiten));
-
-  document.getElementById("welcomeOverlay").style.display = "none";
-
-  // Voeg speciale knoppen toe
-  if (specialiteiten.includes("ambulancier")) links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
-  if (specialiteiten.includes("chauffeur")) links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
-  if (specialiteiten.includes("duiker")) links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
-  if (specialiteiten.includes("firecrew")) links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
-
-  renderGrid();
-});
-
-// ===================== INIT =====================
+// =====================================
+// 🌟 Eenmalige overlay tonen
+// =====================================
 window.addEventListener("DOMContentLoaded", () => {
-  // Check of gebruiker al eerder ingevuld heeft
   const savedName = localStorage.getItem("userName");
   const savedSpec = JSON.parse(localStorage.getItem("specialiteiten") || "[]");
 
-  if (savedName) {
-    document.getElementById("userNameInput").value = savedName;
+  if (savedName && savedSpec.length > 0) {
     document.getElementById("greeting").textContent = `Welkom, ${savedName}!`;
+    addSpecialLinks(savedSpec);
+    renderGrid();
+  } else {
+    overlay.style.display = "flex";
+  }
+});
+
+// =====================================
+// 🌟 Toon wachtwoord veld bij VZW
+// =====================================
+document.querySelectorAll('#welcomeOverlay input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (cb.value === 'firecrew') {
+      vzwPwdGroup.style.display = cb.checked ? 'block' : 'none';
+    }
+  });
+});
+
+// =====================================
+// 🌟 Confirm knop
+// =====================================
+confirmBtn.addEventListener("click", () => {
+  const name = userNameInput.value.trim();
+  const selectedSpecs = Array.from(document.querySelectorAll('#welcomeOverlay input[type=checkbox]:checked')).map(i => i.value);
+
+  if (!name) { alert("Vul je naam in."); return; }
+  if (selectedSpecs.includes("firecrew") && vzwPwdInput.value !== "Oudstrijder") {
+    alert("Ongeldig VZW-wachtwoord."); return;
   }
 
-  savedSpec.forEach(spec => {
+  localStorage.setItem("userName", name);
+  localStorage.setItem("specialiteiten", JSON.stringify(selectedSpecs));
+
+  document.getElementById("greeting").textContent = `Welkom, ${name}!`;
+  overlay.style.display = "none";
+
+  addSpecialLinks(selectedSpecs);
+  renderGrid();
+});
+
+// =====================================
+// 🌟 Functies
+// =====================================
+function addSpecialLinks(specs) {
+  specs.forEach(spec => {
     if (spec !== "brandweer") {
-      const cb = document.querySelector(`input[name="specialiteit"][value="${spec}"]`);
-      if (cb) cb.checked = true;
-      // Voeg knop direct toe
       if (spec === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
       if (spec === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
       if (spec === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
       if (spec === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
     }
   });
+}
 
-  renderGrid();
-});
+function renderGrid() {
+  const grid = document.getElementById("buttonGrid");
+  grid.innerHTML = "";
+  Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,"nl")).forEach(item => {
+    const a = document.createElement("a");
+    a.className = "btn";
+    a.href = item.url;
+    a.innerHTML = `
+      <div class="icon">${item.icon.endsWith(".png")? `<img src="${item.icon}" alt="${item.title}">`:item.icon}</div>
+      <div>
+        <div>${item.title}</div>
+        <small>${item.desc}</small>
+      </div>
+    `;
+    grid.appendChild(a);
+  });
+}
 
-// ===================== PWA INSTALL PROMPT =====================
+// =====================================
+// 📲 PWA INSTALL PROMPT
+// =====================================
 let deferredPrompt;
 const installPrompt = document.getElementById("installPrompt");
 const installBtn = document.getElementById("installNow");
@@ -263,10 +245,9 @@ installBtn.addEventListener("click", async () => {
 });
 
 installClose.addEventListener("click", ()=>installPrompt.style.display="none");
+
 </script>
 
-<!-- Header script -->
 <script src="/brandweerherentals/header.js"></script>
-
 </body>
 </html>
