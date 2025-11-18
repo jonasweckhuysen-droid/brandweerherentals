@@ -37,7 +37,7 @@
        CONTENT
   ------------------------------------ -->
   <main class="content">
-    <div id="welcomeOverlay" class="overlay">
+  <div id="welcomeOverlay" class="overlay">
   <div class="overlay-content" role="dialog" aria-modal="true">
     <h2>Welkom bij Brandweer Herentals Portal</h2>
     
@@ -47,33 +47,33 @@
     <label for="vzwInput">Ben je lid van de VZW? (optioneel)</label>
     <input type="password" id="vzwInput" placeholder="Vul wachtwoord in">
 
-    <h3>Kies je specialiteit:</h3>
+    <h3>Kies je specialiteiten:</h3>
     <div class="specialiteit-options">
-      <label class="radio-btn">
-        <input type="radio" name="specialiteit" value="brandweer" checked>
+      <label class="checkbox-btn">
+        <input type="checkbox" name="specialiteit" value="brandweer" checked>
         <span class="circle"></span> Brandweer
       </label>
-      <label class="radio-btn">
-        <input type="radio" name="specialiteit" value="ambulancier">
+      <label class="checkbox-btn">
+        <input type="checkbox" name="specialiteit" value="ambulancier">
         <span class="circle"></span> Ambulancier
       </label>
-      <label class="radio-btn">
-        <input type="radio" name="specialiteit" value="chauffeur">
+      <label class="checkbox-btn">
+        <input type="checkbox" name="specialiteit" value="chauffeur">
         <span class="circle"></span> Chauffeur
       </label>
-      <label class="radio-btn">
-        <input type="radio" name="specialiteit" value="duiker">
+      <label class="checkbox-btn">
+        <input type="checkbox" name="specialiteit" value="duiker">
         <span class="circle"></span> Duiker
       </label>
-      <label class="radio-btn">
-        <input type="radio" name="specialiteit" value="firecrew">
+      <label class="checkbox-btn">
+        <input type="checkbox" name="specialiteit" value="firecrew">
         <span class="circle"></span> VZW Firecrew
       </label>
     </div>
 
     <button id="confirmUserBtn">Bevestigen</button>
   </div>
-    </div>
+  </div>
 
     <div class="grid" id="buttonGrid" aria-live="polite"></div>
 
@@ -110,11 +110,11 @@ let isVZW = localStorage.getItem("isVZW");
 let specialization = localStorage.getItem("specialization");
 
 async function askUser() {
-
-  document.getElementById("confirmUserBtn").addEventListener("click", () => {
+document.getElementById("confirmUserBtn").addEventListener("click", () => {
   const userNameInput = document.getElementById("userNameInput").value.trim();
   const vzwInput = document.getElementById("vzwInput").value.trim();
-  const specialiteit = document.querySelector('input[name="specialiteit"]:checked').value;
+  const checkedBoxes = Array.from(document.querySelectorAll('input[name="specialiteit"]:checked'));
+  const specialiteiten = checkedBoxes.map(cb => cb.value);
 
   if (!userNameInput) return alert("Vul je naam in!");
 
@@ -122,59 +122,44 @@ async function askUser() {
   const greet = document.getElementById("greeting");
   if (greet) greet.textContent = `Welkom, ${userNameInput}!`;
 
-  if (specialiteit === "firecrew" && vzwInput !== "Oudstrijder") {
+  // Firecrew speciale controle
+  if (specialiteiten.includes("firecrew") && vzwInput !== "Oudstrijder") {
     alert("Fout wachtwoord voor VZW Firecrew!");
     return;
   }
 
-  if (specialiteit === "firecrew") localStorage.setItem("isVZW","true");
-  else localStorage.setItem("isVZW","false");
+  localStorage.setItem("isVZW", specialiteiten.includes("firecrew") ? "true" : "false");
+  localStorage.setItem("specialiteiten", JSON.stringify(specialiteiten));
 
-  localStorage.setItem("specialiteit", specialiteit);
   document.getElementById("welcomeOverlay").style.display = "none";
 
-  // Knoppen renderen afhankelijk van specialiteit
-  if (specialiteit === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
-  if (specialiteit === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
-  if (specialiteit === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
-  if (specialiteit === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
+  // Knoppen renderen afhankelijk van specialiteiten
+  if (specialiteiten.includes("ambulancier")) links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
+  if (specialiteiten.includes("chauffeur")) links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
+  if (specialiteiten.includes("duiker")) links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
+  if (specialiteiten.includes("firecrew")) links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
 
   renderGrid();
 });
 
-// Functie grid renderen (verplaats bestaande code hiernaartoe)
-function renderGrid() {
-  const grid = document.getElementById("buttonGrid");
-  grid.innerHTML = "";
-  Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,"nl")).forEach(item => {
-    const a = document.createElement("a");
-    a.className = "btn";
-    a.href = item.url;
-    a.innerHTML = `
-      <div class="icon">${item.icon.endsWith(".png")? `<img src="${item.icon}" alt="${item.title}">`:item.icon}</div>
-      <div>
-        <div>${item.title}</div>
-        <small>${item.desc}</small>
-      </div>
-    `;
-    grid.appendChild(a);
-  });
-}
-
-// Als er al lokaal iets opgeslagen is (herladen pagina), toon grid direct
-if(localStorage.getItem("userName")) {
+// Herladen pagina: grid renderen
+const storedName = localStorage.getItem("userName");
+if (storedName) {
   const greet = document.getElementById("greeting");
-  greet.textContent = `Welkom, ${localStorage.getItem("userName")}!`;
+  greet.textContent = `Welkom, ${storedName}!`;
 
-  const specialiteit = localStorage.getItem("specialiteit");
-  if (specialiteit === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
-  if (specialiteit === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
-  if (specialiteit === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
-  if (specialiteit === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
+  const storedSpecials = JSON.parse(localStorage.getItem("specialiteiten") || '["brandweer"]');
+  storedSpecials.forEach(spec => {
+    if (spec === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
+    if (spec === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
+    if (spec === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
+    if (spec === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
+  });
 
   document.getElementById("welcomeOverlay").style.display = "none";
   renderGrid();
 }
+  
 // =====================================
 // 🔗 Knoppen/grid
 // =====================================
@@ -262,4 +247,5 @@ installClose.addEventListener("click", ()=>installPrompt.style.display="none");
 
 </body>
 </html>
+
 
