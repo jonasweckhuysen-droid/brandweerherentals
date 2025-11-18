@@ -6,21 +6,47 @@
 <title>Brandweer Herentals — Kantine</title>
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
-
-<!-- Externe CSS -->
 <link rel="stylesheet" href="/brandweerherentals/kantine.css">
 <style>
-/* Extra styling voor kritieke voorraad */
-.product-card.critical {
-  border: 2px solid #c71f1f;
-  background-color: #ffe5e5;
+.product-card {
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  margin: 8px;
+  display: inline-block;
+  width: 120px;
+  transition: all 0.2s;
 }
+.product-card.low-stock {
+  border-color: #c71f1f;
+  background: #ffe6e6;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+}
+.controls button {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin: 0 4px;
+}
+.controls button:hover { background: #a10f0f; }
+.cart { margin-top: 20px; }
+.cart li { margin-bottom: 4px; }
 </style>
 </head>
 <body>
-<div class="container" role="application" aria-label="Fire Crew Herentals portal">
+<div class="container">
 
-  <!-- HEADER -->
+  <!-- Header -->
   <header id="appHeader">
     <div class="header-left">
       <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
@@ -32,172 +58,124 @@
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
   <main class="content">
-    <a href="/brandweerherentals/" class="backlink">
-      <span class="arrow">←</span> Terug naar start
-    </a>
+    <a href="/brandweerherentals/firecrew.html" class="backlink"><span class="arrow">←</span> Terug naar Firecrew</a>
 
-    <!-- Product grid -->
-    <div class="product-grid" id="productGrid" aria-live="polite"></div>
+    <div id="productGrid"></div>
 
-    <!-- Winkelmand -->
-    <div class="cart" id="cartSection" aria-live="polite">
+    <div class="cart">
       <h2>🧾 Jouw bestelling</h2>
       <ul id="cartList"><li>Geen producten geselecteerd.</li></ul>
       <div id="cartTotal"></div>
       <button id="confirmOrder" disabled>Bevestig bestelling</button>
-      <div class="small-muted">Na bevestiging kies je de betaalmethode. De winkelkar wordt pas gewist nadat je betaalmethode gekozen hebt.</div>
+      <div class="small-muted">Na bevestiging kies je de betaalmethode.</div>
     </div>
   </main>
-
-  <footer>Brandweer Herentals — Kantine</footer>
 </div>
 
 <!-- Overlay voor betaling -->
 <div id="paymentOverlay" class="overlay" style="display:none;">
-  <div class="overlay-content" role="dialog" aria-modal="true" aria-labelledby="payTitle">
-    <h2 id="payTitle">💳 Kies betaalmethode</h2>
+  <div class="overlay-content" role="dialog" aria-modal="true">
+    <h2>💳 Kies betaalmethode</h2>
     <p id="overlayTotal" class="bold"></p>
-
     <div class="payment-buttons">
-      <button id="payPayconiq" class="btn payconiq">Payconiq</button>
-      <button id="payCash" class="btn cash">Cash</button>
-      <button id="payTransfer" class="btn transfer">Overschrijving</button>
+      <button id="payPayconiq">Payconiq</button>
+      <button id="payCash">Cash</button>
+      <button id="payTransfer">Overschrijving</button>
     </div>
-
-    <div id="qrSection">
-      <div id="qrCode" aria-hidden="false"></div>
-    </div>
-
+    <div id="qrSection"><div id="qrCode"></div></div>
     <div id="noticeMsg"></div>
-
-    <div class="overlay-close">
-      <button id="closeOverlay" class="btn close">Sluiten</button>
-    </div>
+    <button id="closeOverlay">Sluiten</button>
   </div>
 </div>
 
-<!-- SCRIPTS -->
 <script>
-/* ===============================
-   Producten & voorraad
-=============================== */
-let producten = [
-  { naam: "Pintje", prijs: 1.5, img: "/brandweerherentals/icons/drinks/beer.png", voorraad: 20, minStock: 5 },
-  { naam: "Cola", prijs: 1.8, img: "/brandweerherentals/icons/drinks/cola.png", voorraad: 15, minStock: 3 },
-  { naam: "Fanta", prijs: 1.8, img: "/brandweerherentals/icons/drinks/fanta.png", voorraad: 15, minStock: 3 },
-  { naam: "Water", prijs: 1.0, img: "/brandweerherentals/icons/drinks/water.png", voorraad: 30, minStock: 5 },
-  { naam: "Koffie", prijs: 1.2, img: "/brandweerherentals/icons/drinks/coffee.png", voorraad: 10, minStock: 2 },
-  { naam: "Chips", prijs: 1.5, img: "/brandweerherentals/icons/drinks/chips.png", voorraad: 12, minStock: 3 }
-];
+// ---------- Load stock ----------
+let cart = {};
+let producten = JSON.parse(localStorage.getItem("kantine_stock") || "[]");
 
-let cart = {}; 
-
-// Laad voorraad uit localStorage
-function loadStock() {
-  const stored = JSON.parse(localStorage.getItem("kantine_stock") || "null");
-  if (stored) {
-    for (let i = 0; i < producten.length; i++) {
-      const p = stored.find(x => x.naam === producten[i].naam);
-      if (p) producten[i].voorraad = p.voorraad;
-    }
-  }
-}
-function saveStock() {
+// Voor eerste keer
+if (!producten.length) {
+  producten = [
+    { name: "Pintje", stock: 20, min: 5 },
+    { name: "Cola", stock: 12, min: 5 },
+    { name: "Fanta", stock: 15, min: 3 },
+    { name: "Water", stock: 20, min: 5 },
+    { name: "Koffie", stock: 10, min: 2 },
+    { name: "Chips", stock: 7, min: 3 }
+  ];
   localStorage.setItem("kantine_stock", JSON.stringify(producten));
 }
 
-loadStock();
-
-/* ===============================
-   Render producten
-=============================== */
 const grid = document.getElementById("productGrid");
 const cartList = document.getElementById("cartList");
 const cartTotal = document.getElementById("cartTotal");
 const confirmBtn = document.getElementById("confirmOrder");
 
+// Render producten
 function renderProducts(){
   grid.innerHTML = "";
-  producten.forEach(p => {
+  producten.forEach(prod=>{
     const card = document.createElement("div");
     card.className = "product-card";
-    if (p.voorraad <= p.minStock) card.classList.add("critical");
+    if(prod.stock <= prod.min) card.classList.add("low-stock");
     card.innerHTML = `
-      <img src="${p.img}" alt="${p.naam}" class="drink-icon">
-      <h3>${p.naam}</h3>
-      <p>€${p.prijs.toFixed(2)}</p>
-      <p>Voorraad: <span id="stock-${p.naam}">${p.voorraad}</span></p>
-      <div class="controls" aria-label="${p.naam} keuze">
-        <button class="minus" aria-label="verwijder één ${p.naam}">−</button>
-        <span aria-live="polite">0</span>
-        <button class="plus" aria-label="voeg één ${p.naam} toe">+</button>
+      <h3>${prod.name}</h3>
+      <p>€${prod.prijs ? prod.prijs.toFixed(2) : "1.5"}</p>
+      <p>Stock: ${prod.stock}</p>
+      <div class="controls">
+        <button class="minus">−</button>
+        <span aria-live="polite">${cart[prod.name] || 0}</span>
+        <button class="plus">+</button>
       </div>
     `;
     const plus = card.querySelector(".plus");
     const minus = card.querySelector(".minus");
-    const countEl = card.querySelector("span[aria-live]");
-    const stockEl = card.querySelector(`#stock-${p.naam}`);
+    const countEl = card.querySelector("span");
 
-    plus.addEventListener("click", () => {
-      if (p.voorraad <= 0) return;
-      cart[p.naam] = (cart[p.naam] || 0) + 1;
-      p.voorraad--;
-      countEl.textContent = cart[p.naam];
-      stockEl.textContent = p.voorraad;
-      if (p.voorraad <= p.minStock) card.classList.add("critical");
+    plus.addEventListener("click", ()=>{
+      if(prod.stock <= (cart[prod.name]||0)) return;
+      cart[prod.name] = (cart[prod.name]||0) + 1;
+      countEl.textContent = cart[prod.name];
       updateCart();
-      saveStock();
     });
-
-    minus.addEventListener("click", () => {
-      if (!cart[p.naam]) return;
-      cart[p.naam]--;
-      p.voorraad++;
-      countEl.textContent = cart[p.naam] > 0 ? cart[p.naam] : 0;
-      stockEl.textContent = p.voorraad;
-      if (p.voorraad > p.minStock) card.classList.remove("critical");
-      if (cart[p.naam] <= 0) delete cart[p.naam];
+    minus.addEventListener("click", ()=>{
+      if(!cart[prod.name]) return;
+      cart[prod.name]--;
+      if(cart[prod.name]<=0){ delete cart[prod.name]; countEl.textContent=0; }
+      else countEl.textContent = cart[prod.name];
       updateCart();
-      saveStock();
     });
 
     grid.appendChild(card);
   });
 }
 
-/* ===============================
-   Winkelmand bijwerken
-=============================== */
+// Update cart
 function updateCart(){
   cartList.innerHTML = "";
   let totaal = 0;
   const entries = Object.entries(cart);
-  if (!entries.length) {
-    cartList.innerHTML = "<li>Geen producten geselecteerd.</li>";
-    cartTotal.textContent = "";
-    confirmBtn.disabled = true;
-    return;
-  }
-  for (const [naam,aantal] of entries) {
-    const p = producten.find(x => x.naam === naam);
-    const subtotaal = p.prijs * aantal;
-    totaal += subtotaal;
+  if(!entries.length){ cartList.innerHTML="<li>Geen producten geselecteerd.</li>"; cartTotal.textContent=""; confirmBtn.disabled=true; return; }
+
+  entries.forEach(([naam,aantal])=>{
+    const prod = producten.find(p=>p.name===naam);
+    const prijs = prod.prijs||1.5;
+    totaal += prijs*aantal;
     const li = document.createElement("li");
-    li.innerHTML = `${aantal} × ${naam} <span>€${subtotaal.toFixed(2)}</span>`;
+    li.innerHTML = `${aantal} × ${naam} <span>€${(prijs*aantal).toFixed(2)}</span>`;
     cartList.appendChild(li);
-  }
+  });
+
   const totalLi = document.createElement("li");
   totalLi.innerHTML = `<strong>Totaal</strong> <span><strong>€${totaal.toFixed(2)}</strong></span>`;
   cartList.appendChild(totalLi);
+
   cartTotal.textContent = `Totaal te betalen: €${totaal.toFixed(2)}`;
   confirmBtn.disabled = false;
 }
 
-/* ===============================
-   Payment overlay
-=============================== */
+// ---------- Betaling overlay ----------
 const overlay = document.getElementById("paymentOverlay");
 const overlayTotal = document.getElementById("overlayTotal");
 const qrCodeDiv = document.getElementById("qrCode");
@@ -213,62 +191,56 @@ function buildEpcPayload(iban, amount, message){
 
 function showOverlayAndQR(){
   const totaal = Object.entries(cart).reduce((s,[naam,aantal])=>{
-    const p = producten.find(x=>x.naam===naam);
-    return s + (p.prijs * aantal);
+    const p = producten.find(x=>x.name===naam); 
+    return s + ((p.prijs||1.5)*aantal);
   },0);
   overlayTotal.textContent = `💰 Totaal te betalen: €${totaal.toFixed(2)}`;
   const payload = buildEpcPayload(IBAN, totaal.toFixed(2), mededeling);
   const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(payload);
-  qrCodeDiv.innerHTML = `<img src="${qrUrl}" alt="QR Betaling (overschrijving)"><div class="small-muted">Scan met je bank-app om de overschrijving te starten</div>`;
+  qrCodeDiv.innerHTML = `<img src="${qrUrl}" alt="QR Betaling">`;
   noticeMsg.innerHTML = "";
   overlay.style.display = "flex";
 }
 
-confirmBtn.addEventListener("click", () => {
-  if (!Object.keys(cart).length) return;
-  showOverlayAndQR();
-});
+confirmBtn.addEventListener("click", showOverlayAndQR);
+document.getElementById("payPayconiq").addEventListener("click", ()=>{ noticeMsg.innerHTML=`📲 Scan QR via Payconiq`; clearCart(); });
+document.getElementById("payCash").addEventListener("click", ()=>{ noticeMsg.innerHTML=`💶 Contant ontvangen`; clearCart(); });
+document.getElementById("payTransfer").addEventListener("click", ()=>{ noticeMsg.innerHTML=`🏦 Overschrijving naar IBAN ${IBAN}`; clearCart(); });
+document.getElementById("closeOverlay").addEventListener("click", ()=>{ overlay.style.display="none"; noticeMsg.innerHTML=""; });
 
-document.getElementById("payPayconiq").addEventListener("click", () => {
-  noticeMsg.innerHTML = `<div class="notice">📲 Open je Payconiq-app en scan/of volg de instructies om ${overlayTotal.textContent} te betalen.</div>`;
-  clearCartAfterPayment();
-});
-document.getElementById("payCash").addEventListener("click", () => {
-  noticeMsg.innerHTML = `<div class="notice">💶 Contant ontvangen: ${overlayTotal.textContent}. Bedankt!</div>`;
-  clearCartAfterPayment();
-});
-document.getElementById("payTransfer").addEventListener("click", () => {
-  noticeMsg.innerHTML = `<div class="notice">🏦 Maak een overschrijving naar:<br><strong>IBAN:</strong> ${IBAN}<br><strong>Mededeling:</strong> ${mededeling}<br>${overlayTotal.textContent}</div>`;
-  clearCartAfterPayment();
-});
-document.getElementById("closeOverlay").addEventListener("click", () => {
-  overlay.style.display = "none";
-  noticeMsg.innerHTML = "";
-});
-
-/* ===============================
-   Winkelmand legen na betaling
-=============================== */
-function clearCartAfterPayment(){
+function clearCart(){
   const timestamp = new Date().toLocaleString('nl-BE');
   const order = { tijd: timestamp, items: {...cart} };
-  const existing = JSON.parse(localStorage.getItem("kantine_bestellingen") || "[]");
+  const existing = JSON.parse(localStorage.getItem("kantine_bestellingen")||"[]");
   existing.push(order);
   localStorage.setItem("kantine_bestellingen", JSON.stringify(existing));
+
+  // Update stock
+  Object.entries(cart).forEach(([naam,aantal])=>{
+    const prod = producten.find(p=>p.name===naam);
+    if(prod) prod.stock -= aantal;
+  });
+  localStorage.setItem("kantine_stock", JSON.stringify(producten));
 
   cart = {};
   renderProducts();
   updateCart();
   confirmBtn.disabled = true;
-  saveStock();
 }
 
-// Start render
+// Live update: luister naar wijzigingen in localStorage
+window.addEventListener("storage", (event)=>{
+  if(event.key==="kantine_stock"){
+    producten = JSON.parse(event.newValue);
+    renderProducts();
+    updateCart();
+  }
+});
+
 renderProducts();
 updateCart();
 </script>
 
-<!-- Header.js voor greeting, datetime & ploeg -->
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
