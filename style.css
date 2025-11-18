@@ -108,7 +108,7 @@
     padding: 6px 8px !important;
     min-height: 64px !important;
   }
-  .header-logo { height: 72px !important; } /* mobiel logo kleiner maar groot genoeg */
+  .header-logo { height: 90px !important; } /* mobiel logo kleiner maar groot genoeg */
   .header-right { padding-right: 8px !important; align-items: flex-end !important; }
 }
 
