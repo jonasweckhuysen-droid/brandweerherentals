@@ -21,17 +21,16 @@
        HEADER
   ------------------------------------ -->
   <header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png"
-         alt="Brandweer Herentals"
-         class="header-logo">
-  </div>
-
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png"
+           alt="Brandweer Herentals"
+           class="header-logo">
+    </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
   </header>
 
   <!-- -----------------------------------
@@ -67,16 +66,21 @@
 =============================== -->
 <script>
 // =====================================
-// 🔐 Vraag naam + VZW status
+// 🔐 Vraag naam + VZW + Specialiteit
 // =====================================
 let userName = localStorage.getItem("userName");
 let isVZW = localStorage.getItem("isVZW");
+let specialization = localStorage.getItem("specialization");
 
 async function askUser() {
+
+  // ------------------ NAAM ------------------
   if (!userName) {
     userName = prompt("Wat is je naam?");
     if (userName) localStorage.setItem("userName", userName);
   }
+
+  // ------------------ VZW ------------------
   if (!isVZW) {
     let vzwInput = prompt("Ben je lid van de VZW? Vul wachtwoord in:");
     if (vzwInput === "Oudstrijder") {
@@ -85,6 +89,18 @@ async function askUser() {
     } else {
       isVZW = "false";
       localStorage.setItem("isVZW", "false");
+    }
+  }
+
+  // ------------------ SPECIALITEIT ------------------
+  if (!specialization) {
+    specialization = prompt(
+      "Wat is je specialiteit? (brandweer / duiker / chauffeur / ambulancier)\n" +
+      "⚠️ Kies 'brandweer' indien je geen speciale rol hebt."
+    );
+    if (specialization) {
+      specialization = specialization.trim().toLowerCase();
+      localStorage.setItem("specialization", specialization);
     }
   }
 }
@@ -106,8 +122,25 @@ const links = {
   wespen: { title:"Wespen", icon:"🐝", desc:"Ploeg van dienst", url:"/brandweerherentals/wespen.html" }
 };
 
+// Extra knop voor specialiteiten
+if (specialization) {
+  switch(specialization) {
+    case "duiker":
+      links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duikpagina", url:"/brandweerherentals/duiker.html" };
+      break;
+    case "chauffeur":
+      links.chauffeur = { title:"Chauffeur", icon:"🚗", desc:"Toegang Chauffeurpagina", url:"/brandweerherentals/chauffeur.html" };
+      break;
+    case "ambulancier":
+      links.ambulancier = { title:"Ambulancier", icon:"🚑", desc:"Toegang Ambulancepagina", url:"/brandweerherentals/ambulance.html" };
+      break;
+    default: // brandweer of onbekend
+      break;
+  }
+}
+
 // Extra knop voor VZW
-if (localStorage.getItem("isVZW") === "true") {
+if (isVZW === "true") {
   links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
 }
 
@@ -160,9 +193,3 @@ installClose.addEventListener("click", ()=>installPrompt.style.display="none");
 
 </body>
 </html>
-
-
-
-
-
-
