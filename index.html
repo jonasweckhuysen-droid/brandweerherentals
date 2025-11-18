@@ -37,6 +37,43 @@
        CONTENT
   ------------------------------------ -->
   <main class="content">
+    <div id="welcomeOverlay" class="overlay">
+  <div class="overlay-content" role="dialog" aria-modal="true">
+    <h2>Welkom bij Brandweer Herentals Portal</h2>
+    
+    <label for="userNameInput">Wat is je naam?</label>
+    <input type="text" id="userNameInput" placeholder="Vul je naam in">
+
+    <label for="vzwInput">Ben je lid van de VZW? (optioneel)</label>
+    <input type="password" id="vzwInput" placeholder="Vul wachtwoord in">
+
+    <h3>Kies je specialiteit:</h3>
+    <div class="specialiteit-options">
+      <label class="radio-btn">
+        <input type="radio" name="specialiteit" value="brandweer" checked>
+        <span class="circle"></span> Brandweer
+      </label>
+      <label class="radio-btn">
+        <input type="radio" name="specialiteit" value="ambulancier">
+        <span class="circle"></span> Ambulancier
+      </label>
+      <label class="radio-btn">
+        <input type="radio" name="specialiteit" value="chauffeur">
+        <span class="circle"></span> Chauffeur
+      </label>
+      <label class="radio-btn">
+        <input type="radio" name="specialiteit" value="duiker">
+        <span class="circle"></span> Duiker
+      </label>
+      <label class="radio-btn">
+        <input type="radio" name="specialiteit" value="firecrew">
+        <span class="circle"></span> VZW Firecrew
+      </label>
+    </div>
+
+    <button id="confirmUserBtn">Bevestigen</button>
+  </div>
+    </div>
 
     <div class="grid" id="buttonGrid" aria-live="polite"></div>
 
@@ -74,38 +111,70 @@ let specialization = localStorage.getItem("specialization");
 
 async function askUser() {
 
-  // ------------------ NAAM ------------------
-  if (!userName) {
-    userName = prompt("Wat is je naam?");
-    if (userName) localStorage.setItem("userName", userName);
+  document.getElementById("confirmUserBtn").addEventListener("click", () => {
+  const userNameInput = document.getElementById("userNameInput").value.trim();
+  const vzwInput = document.getElementById("vzwInput").value.trim();
+  const specialiteit = document.querySelector('input[name="specialiteit"]:checked').value;
+
+  if (!userNameInput) return alert("Vul je naam in!");
+
+  localStorage.setItem("userName", userNameInput);
+  const greet = document.getElementById("greeting");
+  if (greet) greet.textContent = `Welkom, ${userNameInput}!`;
+
+  if (specialiteit === "firecrew" && vzwInput !== "Oudstrijder") {
+    alert("Fout wachtwoord voor VZW Firecrew!");
+    return;
   }
 
-  // ------------------ VZW ------------------
-  if (!isVZW) {
-    let vzwInput = prompt("Ben je lid van de VZW? Vul wachtwoord in:");
-    if (vzwInput === "Oudstrijder") {
-      isVZW = "true";
-      localStorage.setItem("isVZW", "true");
-    } else {
-      isVZW = "false";
-      localStorage.setItem("isVZW", "false");
-    }
-  }
+  if (specialiteit === "firecrew") localStorage.setItem("isVZW","true");
+  else localStorage.setItem("isVZW","false");
 
-  // ------------------ SPECIALITEIT ------------------
-  if (!specialization) {
-    specialization = prompt(
-      "Wat is je specialiteit? (brandweer / duiker / chauffeur / ambulancier)\n" +
-      "⚠️ Kies 'brandweer' indien je geen speciale rol hebt."
-    );
-    if (specialization) {
-      specialization = specialization.trim().toLowerCase();
-      localStorage.setItem("specialization", specialization);
-    }
-  }
+  localStorage.setItem("specialiteit", specialiteit);
+  document.getElementById("welcomeOverlay").style.display = "none";
+
+  // Knoppen renderen afhankelijk van specialiteit
+  if (specialiteit === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
+  if (specialiteit === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
+  if (specialiteit === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
+  if (specialiteit === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
+
+  renderGrid();
+});
+
+// Functie grid renderen (verplaats bestaande code hiernaartoe)
+function renderGrid() {
+  const grid = document.getElementById("buttonGrid");
+  grid.innerHTML = "";
+  Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,"nl")).forEach(item => {
+    const a = document.createElement("a");
+    a.className = "btn";
+    a.href = item.url;
+    a.innerHTML = `
+      <div class="icon">${item.icon.endsWith(".png")? `<img src="${item.icon}" alt="${item.title}">`:item.icon}</div>
+      <div>
+        <div>${item.title}</div>
+        <small>${item.desc}</small>
+      </div>
+    `;
+    grid.appendChild(a);
+  });
 }
-askUser();
 
+// Als er al lokaal iets opgeslagen is (herladen pagina), toon grid direct
+if(localStorage.getItem("userName")) {
+  const greet = document.getElementById("greeting");
+  greet.textContent = `Welkom, ${localStorage.getItem("userName")}!`;
+
+  const specialiteit = localStorage.getItem("specialiteit");
+  if (specialiteit === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
+  if (specialiteit === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
+  if (specialiteit === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
+  if (specialiteit === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
+
+  document.getElementById("welcomeOverlay").style.display = "none";
+  renderGrid();
+}
 // =====================================
 // 🔗 Knoppen/grid
 // =====================================
@@ -193,3 +262,4 @@ installClose.addEventListener("click", ()=>installPrompt.style.display="none");
 
 </body>
 </html>
+
