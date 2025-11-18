@@ -91,6 +91,9 @@ function processEvents(items) {
         const end   = item.end?.dateTime ? new Date(item.end.dateTime) : new Date(item.end?.date);
 
         if (!start || start < now) continue;
+        // Filter toekomst te ver weg (bv. max 180 dagen)
+        const daysAhead = (start - now) / (1000 * 60 * 60 * 24);
+        if (daysAhead > 180) continue;
 
         // unieke key gebaseerd op id (Google Calendar) of start+summary
         const key = item.id || `${start.toISOString()}|${item.summary}`;
