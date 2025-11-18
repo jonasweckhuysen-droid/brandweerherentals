@@ -22,6 +22,11 @@
   border-color: #c71f1f;
   background: #ffe6e6;
 }
+.product-card img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 8px;
+}
 .controls {
   display: flex;
   justify-content: center;
@@ -128,12 +133,12 @@ let cart = {};
 let producten = JSON.parse(localStorage.getItem("kantine_stock") || "[]");
 if (!producten.length) {
   producten = [
-    { name: "Pintje", stock: 20, min: 5 },
-    { name: "Cola", stock: 12, min: 5 },
-    { name: "Fanta", stock: 15, min: 3 },
-    { name: "Water", stock: 20, min: 5 },
-    { name: "Koffie", stock: 10, min: 2 },
-    { name: "Chips", stock: 7, min: 3 }
+    { name: "Pintje", stock: 20, min: 5, img: "/brandweerherentals/icons/drinks/beer.png", prijs: 1.5 },
+    { name: "Cola", stock: 12, min: 5, img: "/brandweerherentals/icons/drinks/cola.png", prijs: 1.8 },
+    { name: "Fanta", stock: 15, min: 3, img: "/brandweerherentals/icons/drinks/fanta.png", prijs: 1.8 },
+    { name: "Water", stock: 20, min: 5, img: "/brandweerherentals/icons/drinks/water.png", prijs: 1.0 },
+    { name: "Koffie", stock: 10, min: 2, img: "/brandweerherentals/icons/drinks/coffee.png", prijs: 1.2 },
+    { name: "Chips", stock: 7, min: 3, img: "/brandweerherentals/icons/drinks/chips.png", prijs: 1.5 }
   ];
   localStorage.setItem("kantine_stock", JSON.stringify(producten));
 }
@@ -151,8 +156,9 @@ function renderProducts(){
     card.className = "product-card";
     if(prod.stock <= prod.min) card.classList.add("low-stock");
     card.innerHTML = `
+      <img src="${prod.img}" alt="${prod.name}">
       <h3>${prod.name}</h3>
-      <p>€${prod.prijs ? prod.prijs.toFixed(2) : "1.5"}</p>
+      <p>€${prod.prijs.toFixed(2)}</p>
       <p>Stock: ${prod.stock}</p>
       <div class="controls">
         <button class="minus">−</button>
@@ -191,7 +197,7 @@ function updateCart(){
 
   entries.forEach(([naam,aantal])=>{
     const prod = producten.find(p=>p.name===naam);
-    const prijs = prod.prijs||1.5;
+    const prijs = prod.prijs;
     totaal += prijs*aantal;
     const li = document.createElement("li");
     li.innerHTML = `${aantal} × ${naam} <span>€${(prijs*aantal).toFixed(2)}</span>`;
@@ -223,11 +229,10 @@ function buildEpcPayload(iban, amount, message){
 function showOverlay(){
   const totaal = Object.entries(cart).reduce((s,[naam,aantal])=>{
     const p = producten.find(x=>x.name===naam); 
-    return s + ((p.prijs||1.5)*aantal);
+    return s + (p.prijs*aantal);
   },0);
   overlayTotal.textContent = `💰 Totaal: €${totaal.toFixed(2)}`;
   
-  // QR-code automatisch genereren
   const payload = buildEpcPayload(IBAN, totaal.toFixed(2), mededeling);
   const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(payload);
   qrCodeDiv.innerHTML = `<img src="${qrUrl}" alt="QR Betaling">`;
