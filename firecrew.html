@@ -43,15 +43,6 @@
 
     <!-- Grid voor firecrew links -->
     <div class="grid" id="fireGrid"></div>
-
-    <!-- 🔹 Extra knop voor kantinebeheer -->
-    <a id="kantineBeheerBtn" class="btn" href="/brandweerherentals/kantinebeheer.html" style="display:none;">
-      <div class="icon">🍻</div>
-      <div>
-        <div>Kantinebeheer</div>
-        <small>Bekijk en beheer voorraad</small>
-      </div>
-    </a>
   </main>
 
   <!-- -----------------------------------
@@ -96,27 +87,33 @@
     }
   };
 
-  // Render Firecrew links in grid
-  const grid = document.getElementById("fireGrid");
-  Object.values(links).forEach(item => {
-    const a = document.createElement("a");
-    a.className = "btn";
-    a.href = item.url;
-
-    a.innerHTML = `
-      <div class="icon">${item.icon}</div>
-      <div>
-        <div>${item.title}</div>
-        <small>${item.desc}</small>
-      </div>
-    `;
-    grid.appendChild(a);
-  });
-
-  // Alleen tonen voor bevoegde gebruikers (VZW)
+  // Alleen toevoegen als gebruiker VZW is
   if (localStorage.getItem("isVZW") === "true") {
-    document.getElementById("kantineBeheerBtn").style.display = "flex";
+    links.kantinebeheer = {
+      title: "Kantinebeheer",
+      icon: "🍻",
+      desc: "Bekijk en beheer voorraad",
+      url: "/brandweerherentals/kantinebeheer.html"
+    };
   }
+
+  // Render alle links alfabetisch
+  const grid = document.getElementById("fireGrid");
+  Object.values(links)
+        .sort((a,b) => a.title.localeCompare(b.title, "nl"))
+        .forEach(item => {
+          const a = document.createElement("a");
+          a.className = "btn";
+          a.href = item.url;
+          a.innerHTML = `
+            <div class="icon">${item.icon}</div>
+            <div>
+              <div>${item.title}</div>
+              <small>${item.desc}</small>
+            </div>
+          `;
+          grid.appendChild(a);
+        });
 </script>
 
 <!-- Header script -->
