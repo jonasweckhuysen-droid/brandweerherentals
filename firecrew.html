@@ -20,28 +20,43 @@
        HEADER
   ------------------------------------ -->
   <header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png"
-         alt="Brandweer Herentals"
-         class="header-logo">
-  </div>
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png"
+           alt="Brandweer Herentals"
+           class="header-logo">
+    </div>
 
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
   </header>
 
-  
-
+  <!-- -----------------------------------
+       CONTENT
+  ------------------------------------ -->
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">
-  <span class="arrow">←</span> Terug naar start
+      <span class="arrow">←</span> Terug naar start
     </a>
+
+    <!-- Grid voor firecrew links -->
     <div class="grid" id="fireGrid"></div>
+
+    <!-- 🔹 Extra knop voor kantinebeheer -->
+    <a id="kantineBeheerBtn" class="btn" href="/brandweerherentals/kantinebeheer.html" style="display:none;">
+      <div class="icon">🍻</div>
+      <div>
+        <div>Kantinebeheer</div>
+        <small>Bekijk en beheer voorraad</small>
+      </div>
+    </a>
   </main>
 
+  <!-- -----------------------------------
+       FOOTER
+  ------------------------------------ -->
   <footer class="app-footer">
     <span>Firecrew v1.0</span>
     <span>🧯 Interne toegang</span>
@@ -49,76 +64,63 @@
 
 </div>
 
+<!-- ================================
+     SCRIPTS
+=============================== -->
 <script>
-// FIRECREW LINKS
-const links = {
-  agenda: {
-    title: "Agenda",
-    icon: "🗓️",
-    desc: "Evenementen & vergaderingen",
-    url: "/brandweerherentals/firecrew/agenda.html"
-  },
-  boekhouding: {
-    title: "Boekhouding",
-    icon: "💰",
-    desc: "Financieel overzicht en uitgaven",
-    url: "/brandweerherentals/firecrew/boekhouding.html"
-  },
-  documenten: {
-    title: "Documenten",
-    icon: "📄",
-    desc: "Notulen, verslagen en statuten",
-    url: "/brandweerherentals/firecrew/documenten.html"
-  },
-  werkgroepen: {
-    title: "Werkgroepen",
-    icon: "👥",
-    desc: "Overzicht van werkgroepen",
-    url: "/brandweerherentals/firecrew/werkgroepen.html"
-  }
-};
-<!-- 🔹 Extra knop voor kantinebeheer -->
-<a id="kantineBeheerBtn" class="btn" href="/brandweerherentals/kantinebeheer.html" style="display:none;">
-  <div class="icon">🍻</div>
-  <div>
-    <div>Kantinebeheer</div>
-    <small>Bekijk en beheer voorraad</small>
-  </div>
-</a>
+  // FIRECREW LINKS
+  const links = {
+    agenda: {
+      title: "Agenda",
+      icon: "🗓️",
+      desc: "Evenementen & vergaderingen",
+      url: "/brandweerherentals/firecrew/agenda.html"
+    },
+    boekhouding: {
+      title: "Boekhouding",
+      icon: "💰",
+      desc: "Financieel overzicht en uitgaven",
+      url: "/brandweerherentals/firecrew/boekhouding.html"
+    },
+    documenten: {
+      title: "Documenten",
+      icon: "📄",
+      desc: "Notulen, verslagen en statuten",
+      url: "/brandweerherentals/firecrew/documenten.html"
+    },
+    werkgroepen: {
+      title: "Werkgroepen",
+      icon: "👥",
+      desc: "Overzicht van werkgroepen",
+      url: "/brandweerherentals/firecrew/werkgroepen.html"
+    }
+  };
 
-<script>
+  // Render Firecrew links in grid
+  const grid = document.getElementById("fireGrid");
+  Object.values(links).forEach(item => {
+    const a = document.createElement("a");
+    a.className = "btn";
+    a.href = item.url;
+
+    a.innerHTML = `
+      <div class="icon">${item.icon}</div>
+      <div>
+        <div>${item.title}</div>
+        <small>${item.desc}</small>
+      </div>
+    `;
+    grid.appendChild(a);
+  });
+
   // Alleen tonen voor bevoegde gebruikers (VZW)
   if (localStorage.getItem("isVZW") === "true") {
     document.getElementById("kantineBeheerBtn").style.display = "flex";
   }
 </script>
-Object.values(links).forEach(item => {
-  const a = document.createElement("a");
-  a.className = "btn";
-  a.href = item.url;
 
-  a.innerHTML = `
-    <div class="icon">${item.icon}</div>
-    <div>
-      <div>${item.title}</div>
-      <small>${item.desc}</small>
-    </div>
-  `;
-
-  document.getElementById("fireGrid").appendChild(a);
-});
-</script>
-
-<!-- BELANGRIJK: header.js MOET ALS LAATSTE -->
+<!-- Header script -->
 <script src="/brandweerherentals/header.js"></script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
