@@ -77,7 +77,21 @@ const links = {
     url: "/brandweerherentals/firecrew/werkgroepen.html"
   }
 };
+<!-- 🔹 Extra knop voor kantinebeheer -->
+<a id="kantineBeheerBtn" class="btn" href="/brandweerherentals/kantinebeheer.html" style="display:none;">
+  <div class="icon">🍻</div>
+  <div>
+    <div>Kantinebeheer</div>
+    <small>Bekijk en beheer voorraad</small>
+  </div>
+</a>
 
+<script>
+  // Alleen tonen voor bevoegde gebruikers (VZW)
+  if (localStorage.getItem("isVZW") === "true") {
+    document.getElementById("kantineBeheerBtn").style.display = "flex";
+  }
+</script>
 Object.values(links).forEach(item => {
   const a = document.createElement("a");
   a.className = "btn";
@@ -100,6 +114,7 @@ Object.values(links).forEach(item => {
 
 </body>
 </html>
+
 
 
 
