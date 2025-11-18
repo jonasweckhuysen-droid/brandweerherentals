@@ -12,6 +12,7 @@
 .radio-card:hover { border-color: var(--red); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .radio-card input { display: none; }
 .radio-card.selected { border-color: var(--red); background: #fff0f0; }
+.radio-card.low-stock { background: #ffe6e6; border-color: #c71f1f; }
 button { background: var(--red); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 12px; }
 button:hover { background: var(--red-dark); }
 </style>
@@ -60,23 +61,31 @@ const products = [
 const grid = document.getElementById("productGrid");
 let selectedProduct = null;
 
-products.forEach((prod, index) => {
-  const card = document.createElement("label");
-  card.className = "radio-card";
-  card.innerHTML = `
-    <input type="radio" name="product" value="${index}">
-    <div><strong>${prod.name}</strong></div>
-    <div>Huidige stock: ${prod.stock}</div>
-  `;
-  card.addEventListener("click", () => {
-    selectedProduct = index;
-    document.querySelectorAll(".radio-card").forEach(c => c.classList.remove("selected"));
-    card.classList.add("selected");
-    document.getElementById("adjustSection").style.display = "block";
-    document.getElementById("newQty").value = prod.stock;
+function renderProducts() {
+  grid.innerHTML = "";
+  products.forEach((prod, index) => {
+    const card = document.createElement("label");
+    card.className = "radio-card";
+    if(prod.stock < prod.min) card.classList.add("low-stock");
+    card.innerHTML = `
+      <input type="radio" name="product" value="${index}">
+      <div><strong>${prod.name}</strong></div>
+      <div>Huidige stock: ${prod.stock}</div>
+      <div>Minimum stock: ${prod.min}</div>
+    `;
+    card.addEventListener("click", () => {
+      selectedProduct = index;
+      document.querySelectorAll(".radio-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      document.getElementById("adjustSection").style.display = "block";
+      document.getElementById("newQty").value = prod.stock;
+    });
+    grid.appendChild(card);
   });
-  grid.appendChild(card);
-});
+}
+
+// Initial render
+renderProducts();
 
 // Opslaan knop
 document.getElementById("saveBtn").addEventListener("click", () => {
@@ -85,14 +94,7 @@ document.getElementById("saveBtn").addEventListener("click", () => {
   if (isNaN(newQty) || newQty < 0) return alert("Voer een geldige hoeveelheid in!");
   
   products[selectedProduct].stock = newQty;
-  const cards = document.querySelectorAll(".radio-card");
-  cards[selectedProduct].querySelector("div:nth-child(2)").textContent = `Huidige stock: ${newQty}`;
-  if(newQty < products[selectedProduct].min){
-    cards[selectedProduct].style.background = "#fff0f0";
-  } else {
-    cards[selectedProduct].style.background = "";
-  }
-
+  renderProducts();
   alert(`${products[selectedProduct].name} voorraad aangepast naar ${newQty}`);
 });
 </script>
