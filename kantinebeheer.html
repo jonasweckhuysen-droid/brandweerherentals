@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kantinebeheer — Brandweer Herentals</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.kantine-stock-container { margin-top: 20px; padding: 12px; background: #fff4f4; border: 2px solid var(--red); border-radius: 12px; }
+#stockTable { width: 100%; border-collapse: collapse; }
+#stockTable th, #stockTable td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
+.low-stock { background-color: #ffd6d6; font-weight: bold; }
+.update-btn { margin-top: 12px; padding: 8px 12px; border-radius: 8px; border: none; background: var(--red); color: #fff; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+    </div>
+    <div class="header-right">
+      <div id="greeting"></div>
+      <div id="datetime"></div>
+    </div>
+  </header>
+
+  <main class="content">
+    <h1>Kantine Voorraadbeheer</h1>
+    
+    <div class="kantine-stock-container">
+      <table id="stockTable">
+        <thead>
+          <tr><th>Product</th><th>Aantal</th><th>Min. stock</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="updateStockBtn" class="update-btn">Voorraad aanpassen</button>
+    </div>
+    
+  </main>
+
+  <footer>Versie 1.1</footer>
+</div>
+
+<script>
+// 🔹 Init user
+let userName = localStorage.getItem("userName");
+let isVZW = localStorage.getItem("isVZW");
+
+document.getElementById("greeting").textContent = userName ? `Welkom, ${userName}!` : "";
+
+function updateDateTime() {
+  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE", {
+    weekday:"short", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"
+  });
+}
+updateDateTime();
+setInterval(updateDateTime,1000);
+
+// 🔹 Voorraad data
+let stock = JSON.parse(localStorage.getItem("kantineStock")) || [
+  { naam: "Cola", stock: 12, minStock: 5 },
+  { naam: "Water", stock: 8, minStock: 5 },
+  { naam: "Chips", stock: 3, minStock: 5 }
+];
+
+function renderStock() {
+  const tbody = document.querySelector("#stockTable tbody");
+  tbody.innerHTML = "";
+  stock.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.className = item.stock < item.minStock ? "low-stock" : "";
+    tr.innerHTML = `<td>${item.naam}</td><td>${item.stock}</td><td>${item.minStock}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+renderStock();
+
+// 🔹 Alleen VZW mag aanpassen
+const updateBtn = document.getElementById("updateStockBtn");
+if (isVZW === "true") {
+  updateBtn.addEventListener("click", () => {
+    const prod = prompt("Product naam:");
+    const qty = parseInt(prompt("Nieuw aantal:"),10);
+    if (prod && !isNaN(qty)) {
+      const idx = stock.findIndex(p => p.naam === prod);
+      if (idx > -1) stock[idx].stock = qty;
+      else stock.push({ naam: prod, stock: qty, minStock: 5 });
+      localStorage.setItem("kantineStock", JSON.stringify(stock));
+      renderStock();
+    }
+  });
+} else {
+  updateBtn.style.display = "none";
+}
+</script>
+
+</body>
+</html>
