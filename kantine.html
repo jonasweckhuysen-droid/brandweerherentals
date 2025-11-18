@@ -41,6 +41,41 @@
 .controls button:hover { background: #a10f0f; }
 .cart { margin-top: 20px; }
 .cart li { margin-bottom: 4px; }
+
+/* Overlay styling binnen app-kader */
+.overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.overlay-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+}
+.overlay-content h2 { margin-bottom: 16px; }
+.payment-buttons { display: flex; justify-content: space-between; margin: 12px 0; }
+.payment-buttons button {
+  flex: 1;
+  margin: 0 6px;
+  padding: 10px 0;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+}
+#payPayconiq { background: #1a9e39; }
+#payCash { background: #c71f1f; }
+#closeOverlay { margin-top: 16px; background: #555; }
+#qrCode img { width: 200px; height: 200px; margin: 12px 0; }
 </style>
 </head>
 <body>
@@ -68,20 +103,18 @@
       <ul id="cartList"><li>Geen producten geselecteerd.</li></ul>
       <div id="cartTotal"></div>
       <button id="confirmOrder" disabled>Bevestig bestelling</button>
-      <div class="small-muted">Na bevestiging kies je de betaalmethode.</div>
     </div>
   </main>
 </div>
 
 <!-- Overlay voor betaling -->
 <div id="paymentOverlay" class="overlay" style="display:none;">
-  <div class="overlay-content" role="dialog" aria-modal="true">
+  <div class="overlay-content">
     <h2>💳 Kies betaalmethode</h2>
     <p id="overlayTotal" class="bold"></p>
     <div class="payment-buttons">
-      <button id="payPayconiq">Payconiq</button>
+      <button id="payPayconiq">QR / Payconiq</button>
       <button id="payCash">Cash</button>
-      <button id="payTransfer">Overschrijving</button>
     </div>
     <div id="qrSection"><div id="qrCode"></div></div>
     <div id="noticeMsg"></div>
@@ -93,8 +126,6 @@
 // ---------- Load stock ----------
 let cart = {};
 let producten = JSON.parse(localStorage.getItem("kantine_stock") || "[]");
-
-// Voor eerste keer
 if (!producten.length) {
   producten = [
     { name: "Pintje", stock: 20, min: 5 },
@@ -189,26 +220,40 @@ function buildEpcPayload(iban, amount, message){
   return lines.join("\n");
 }
 
-function showOverlayAndQR(){
+function showOverlay(){
   const totaal = Object.entries(cart).reduce((s,[naam,aantal])=>{
     const p = producten.find(x=>x.name===naam); 
     return s + ((p.prijs||1.5)*aantal);
   },0);
-  overlayTotal.textContent = `💰 Totaal te betalen: €${totaal.toFixed(2)}`;
+  overlayTotal.textContent = `💰 Totaal: €${totaal.toFixed(2)}`;
+  
+  // QR-code automatisch genereren
   const payload = buildEpcPayload(IBAN, totaal.toFixed(2), mededeling);
   const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(payload);
   qrCodeDiv.innerHTML = `<img src="${qrUrl}" alt="QR Betaling">`;
+
   noticeMsg.innerHTML = "";
   overlay.style.display = "flex";
 }
 
-confirmBtn.addEventListener("click", showOverlayAndQR);
-document.getElementById("payPayconiq").addEventListener("click", ()=>{ noticeMsg.innerHTML=`📲 Scan QR via Payconiq`; clearCart(); });
-document.getElementById("payCash").addEventListener("click", ()=>{ noticeMsg.innerHTML=`💶 Contant ontvangen`; clearCart(); });
-document.getElementById("payTransfer").addEventListener("click", ()=>{ noticeMsg.innerHTML=`🏦 Overschrijving naar IBAN ${IBAN}`; clearCart(); });
-document.getElementById("closeOverlay").addEventListener("click", ()=>{ overlay.style.display="none"; noticeMsg.innerHTML=""; });
+confirmBtn.addEventListener("click", showOverlay);
 
-function clearCart(){
+document.getElementById("payPayconiq").addEventListener("click", ()=>{
+  noticeMsg.innerHTML = `📲 Scan de QR-code via je bankapp of Payconiq`;
+  completePayment();
+});
+
+document.getElementById("payCash").addEventListener("click", ()=>{
+  noticeMsg.innerHTML = `💶 Contante betaling ontvangen`;
+  completePayment();
+});
+
+document.getElementById("closeOverlay").addEventListener("click", ()=>{
+  overlay.style.display = "none";
+  noticeMsg.innerHTML="";
+});
+
+function completePayment(){
   const timestamp = new Date().toLocaleString('nl-BE');
   const order = { tijd: timestamp, items: {...cart} };
   const existing = JSON.parse(localStorage.getItem("kantine_bestellingen")||"[]");
@@ -228,7 +273,6 @@ function clearCart(){
   confirmBtn.disabled = true;
 }
 
-// Live update: luister naar wijzigingen in localStorage
 window.addEventListener("storage", (event)=>{
   if(event.key==="kantine_stock"){
     producten = JSON.parse(event.newValue);
@@ -244,4 +288,3 @@ updateCart();
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
-
