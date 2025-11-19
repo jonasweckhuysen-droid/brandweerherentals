@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandweer Herentals — Defectmelding</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
+
+<!-- Centrale layout -->
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* Grid voor knoppen */
+.content {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:80vh;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.btn {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:160px;
+  height:160px;
+  border-radius:12px;
+  background: var(--red);
+  color:#fff;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+}
+.btn:hover { background:#a10f0f; transform:scale(1.05); }
+.btn .icon {
+  font-size:2.5rem;
+  margin-bottom:10px;
+}
+.btn img.icon { width:50px; height:50px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+    </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <a href="/brandweerherentals/defectmeldingform.html" class="btn">
+      <div class="icon">🔧</div>
+      <div>Defect melding</div>
+    </a>
+    <a href="/brandweerherentals/defectstatus.html" class="btn">
+      <div class="icon">📊</div>
+      <div>Status</div>
+    </a>
+  </main>
+
+  <footer>
+    <div>Versie 1.1</div>
+    <div></div>
+  </footer>
+</div>
+
+<script src="/brandweerherentals/header.js"></script>
+</body>
+</html>
