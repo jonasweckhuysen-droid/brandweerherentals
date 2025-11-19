@@ -1,3 +1,56 @@
-<div id='tableContainer"></div>
-  <canvas id="statusChart" width="400"
-  height="200"></canvas>
+<div id="defectTableContainer">
+  <h2>Defectmeldingen Status</h2>
+  <table id="defectTable" border="1" style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr id="tableHead"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<script>
+const csvUrl = "HIER_JE_CSV_LINK"; // vervang door je CSV link
+
+// Functie om CSV te fetchen en te renderen
+async function loadDefectTable() {
+  try {
+    const response = await fetch(csvUrl);
+    const csvText = await response.text();
+
+    const rows = csvText.split("\n").map(r => r.split(","));
+
+    // Table header
+    const thead = document.getElementById("tableHead");
+    thead.innerHTML = "";
+    rows[0].forEach(header => {
+      const th = document.createElement("th");
+      th.textContent = header.trim();
+      th.style.padding = "8px";
+      thead.appendChild(th);
+    });
+
+    // Table body
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+    rows.slice(1).forEach(row => {
+      if(row.length === 1 && row[0].trim() === "") return; // lege regel skippen
+      const tr = document.createElement("tr");
+      row.forEach(cell => {
+        const td = document.createElement("td");
+        td.textContent = cell.trim();
+        td.style.padding = "6px";
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+  } catch(err) {
+    console.error("Fout bij laden CSV:", err);
+    document.getElementById("defectTableContainer").innerHTML = "<p>Kon de defectstatus niet laden.</p>";
+  }
+}
+
+// Live refresh elke 60 seconden
+loadDefectTable();
+setInterval(loadDefectTable, 60000);
+</script>
