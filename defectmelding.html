@@ -7,60 +7,66 @@
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
 <link rel="stylesheet" href="style.css">
-<style>
 
+<style>
 /* Grid voor knoppen */
 .content {
   display:flex;
   justify-content:center;
   align-items:center;
   flex-wrap:wrap;
-  gap:10px; /* kleiner geworden zodat knoppen dichter bij elkaar staan */
+  gap:16px; /* knoppen iets dichter bij elkaar */
   padding: 20px;
   min-height: 80vh;
 }
 
-/* Knoppen */
+/* Knoppen (zelfde stijl als index) */
 .btn {
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  width:120px;   /* smaller */
-  padding:30px 10px; /* verticaal groter, horizontaal smaller */
-  border-radius:16px;
+  width:140px;          /* iets breder dan eerdere versie */
+  padding:25px 12px;    /* verticaal wat langer, horizontaal iets smaller */
+  border-radius:20px;   /* meer afgerond */
   background:#fff;
   color:#000;
   text-align:center;
   text-decoration:none;
-  box-shadow:0 4px 10px rgba(0,0,0,0.12);
+  box-shadow:0 5px 12px rgba(0,0,0,0.15);
   transition:all 0.2s ease;
   border:1px solid #eee;
 }
 
 .btn:hover {
-  transform:translateY(-4px);
-  box-shadow:0 6px 14px rgba(0,0,0,0.18);
+  transform:translateY(-3px);
+  box-shadow:0 8px 18px rgba(0,0,0,0.2);
   background:#f9f9f9;
 }
 
 /* Icon */
 .btn .icon {
-  font-size:2rem; /* iets kleiner zodat het past in smallere knop */
-  margin-bottom:6px;
+  font-size:2.4rem; /* consistente grootte met indexpagina */
+  margin-bottom:8px;
 }
 
-/* png iconen */
+/* Voor png iconen */
 .btn img.icon {
-  width:36px;
-  height:36px;
-  margin-bottom:6px;
+  width:42px;
+  height:42px;
+  margin-bottom:8px;
+}
+
+.btn div {
+  font-weight:600;
+  margin-bottom:4px;
 }
 
 .btn small {
   color:#555;
-  font-size:0.8rem;
+  font-size:0.85rem;
 }
+
 /* Backlink */
 .backlink {
   display:block;
