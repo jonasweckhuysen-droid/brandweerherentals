@@ -24,7 +24,7 @@
   width: 100%;
 }
 
-/* Container voor jouw embedded Google Sheet */
+/* Container voor grafiek */
 .sheet-container {
   width: 95%;
   max-width: 1200px;
@@ -42,12 +42,10 @@
   font-weight: 700;
 }
 
-iframe {
-  width: 100%;
-  height: 650px;
-  border: none;
-  border-radius: 10px;
-  overflow: hidden;
+/* Canvas styling */
+#statusChart {
+  width: 100% !important;
+  max-height: 650px;
 }
 </style>
 
@@ -76,12 +74,8 @@ iframe {
     </a>
 
     <div class="sheet-container">
-      <h2>Defectmeldingen – Live Status</h2>
-
-      <!-- JOUW GOOGLE SHEET -->
-      <iframe 
-        src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pubhtml?widget=true&headers=false">
-      </iframe>
+      <h2>Defectmeldingen – Grafisch overzicht</h2>
+      <canvas id="statusChart"></canvas>
     </div>
 
   </main>
@@ -94,5 +88,51 @@ iframe {
 </div>
 
 <script src="/brandweerherentals/header.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadSheetData() {
+  // URL van je gepubliceerde Google Sheet CSV
+  const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv");
+  const csvText = await response.text();
+  
+  // CSV parser
+  const rows = csvText.split("\n").slice(1); // header overslaan
+  const statusCount = {};
+  
+  rows.forEach(row => {
+    const cols = row.split(",");
+    const status = cols[2]?.trim(); // pas dit aan als status in een andere kolom staat
+    if(status) {
+      statusCount[status] = (statusCount[status] || 0) + 1;
+    }
+  });
+
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(statusCount),
+      datasets: [{
+        label: 'Aantal defectmeldingen',
+        data: Object.values(statusCount),
+        backgroundColor: 'rgba(199,31,31,0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Defectmeldingen per status' }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+loadSheetData();
+</script>
+
 </body>
 </html>
