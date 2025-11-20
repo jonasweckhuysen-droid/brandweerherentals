@@ -4,25 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Defectmelding</title>
-
-<!-- PWA -->
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
-
-<!-- Centrale layout -->
 <link rel="stylesheet" href="style.css">
-
 <style>
 /* Grid voor knoppen */
 .content {
   display:flex;
   justify-content:center;
   align-items:center;
-  height:80vh;
-  gap:20px;
   flex-wrap:wrap;
+  gap:20px;
+  padding: 20px;
+  min-height: 80vh;
 }
-  /* Modernere knoppen in de stijl van de Portal */
+
+/* Modernere knoppen in de stijl van de Portal */
 .btn {
   display:flex;
   flex-direction:column;
@@ -52,7 +49,7 @@
   margin-bottom:6px;
 }
 
-  /* Voor png iconen */
+/* Voor png iconen */
 .btn img.icon {
   width:42px;
   height:42px;
@@ -62,6 +59,18 @@
 .btn small {
   color:#555;
   font-size:0.8rem;
+}
+
+/* Backlink */
+.backlink {
+  display:block;
+  margin-bottom:20px;
+  text-decoration:none;
+  color:var(--red);
+  font-weight:600;
+}
+.backlink .arrow {
+  margin-right:6px;
 }
 </style>
 </head>
@@ -80,30 +89,27 @@
     </div>
   </header>
 
+  <!-- CONTENT -->
   <main class="content">
     <a href="/brandweerherentals/" class="backlink">
       <span class="arrow">←</span> Terug naar start
     </a>
 
-  <!-- CONTENT -->
-  <main class="content">
-   <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" class="btn">
-  <div class="icon">🔧</div>
-  <div>Defect melden</div>
-  <small>Registreer een probleem</small>
-</a>
+    <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" class="btn">
+      <div class="icon">🔧</div>
+      <div>Defect melden</div>
+      <small>Registreer een probleem</small>
+    </a>
 
-<a href="/brandweerherentals/defectmeldingstatus.html" class="btn">
-  <div class="icon">📊</div>
-  <div>Status bekijken</div>
-  <small>Overzicht defecten</small>
-</a>
-
+    <a href="/brandweerherentals/defectmeldingstatus.html" class="btn">
+      <div class="icon">📊</div>
+      <div>Status bekijken</div>
+      <small>Overzicht defecten</small>
+    </a>
   </main>
 
   <footer>
     <div>Versie 1.1</div>
-    <div></div>
   </footer>
 </div>
 
