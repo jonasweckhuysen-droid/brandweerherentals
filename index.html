@@ -193,7 +193,7 @@ confirmBtn.addEventListener("click", () => {
 function addSpecialLinks(specs) {
   specs.forEach(spec => {
     if (spec !== "brandweer") {
-      if (spec === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"/brandweerherentals/ambulance.html" };
+      if (spec === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"https://dgh.brandweerzonekempen.be/" };
       if (spec === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };
       if (spec === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };
       if (spec === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };
@@ -251,4 +251,5 @@ installClose.addEventListener("click", ()=>installPrompt.style.display="none");
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
+
 
