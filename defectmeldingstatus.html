@@ -123,7 +123,9 @@
 <script src="/brandweerherentals/header.js"></script>
 <script>
 async function loadSheetData() {
-  const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv");
+  const response = await fetch(
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv"
+  );
   const csvText = await response.text();
 
   const rows = csvText.split("\n");
@@ -132,27 +134,32 @@ async function loadSheetData() {
   container.innerHTML = "";
 
   rows.slice(1).forEach(row => {
-    if(!row.trim()) return; // lege regels overslaan
+    if (!row.trim()) return; // volledig lege rijen skippen
+
     const cols = row.split(",");
-    
-    // Kolomindexen op basis van kolomnamen
+
     const naam = cols[header.indexOf("Naam")]?.trim();
     const datum = cols[header.indexOf("Datum")]?.trim();
     const omschrijving = cols[header.indexOf("Defect omschrijving")]?.trim();
     const status = cols[header.indexOf("Status")]?.trim();
 
+    // Als alles leeg is → overslaan
+    if (!naam && !datum && !omschrijving && !status) return;
+
     let statusClass = "";
-    if(status?.toLowerCase().includes("kritisch")) statusClass = "status-critical";
-    else if(status?.toLowerCase().includes("in behandeling")) statusClass = "status-inprogress";
-    else if(status?.toLowerCase().includes("afgewerkt")) statusClass = "status-done";
+    if (status?.toLowerCase().includes("kritisch")) statusClass = "status-critical";
+    else if (status?.toLowerCase().includes("in behandeling")) statusClass = "status-inprogress";
+    else if (status?.toLowerCase().includes("afgewerkt")) statusClass = "status-done";
 
     const card = document.createElement("div");
     card.className = `defect-card ${statusClass}`;
     card.innerHTML = `
-      <div class="row-title">${naam || "Onbekend"} — ${status || "Status onbekend"}</div>
-      <div class="row-detail">Datum: ${datum || "-"}</div>
-      <div class="row-detail">Omschrijving: ${omschrijving || "-"}</div>
+      <div class="row-title">${naam || "Onbekend"} – ${status || "Geen status"}</div>
+      <div class="row-detail"><strong>Datum:</strong> ${datum || "-"}</div>
+      <div class="row-detail"><strong>Omschrijving:</strong> ${omschrijving || "-"}</div>
+      <div class="row-detail"><strong>Status:</strong> ${status || "-"}</div>
     `;
+
     container.appendChild(card);
   });
 }
