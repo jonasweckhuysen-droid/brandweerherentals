@@ -8,25 +8,26 @@
 <meta name="theme-color" content="#c71f1f">
 <link rel="stylesheet" href="style.css">
 <style>
+
 /* Grid voor knoppen */
 .content {
   display:flex;
   justify-content:center;
   align-items:center;
   flex-wrap:wrap;
-  gap:20px;
+  gap:10px; /* kleiner geworden zodat knoppen dichter bij elkaar staan */
   padding: 20px;
   min-height: 80vh;
 }
 
-/* Modernere knoppen in de stijl van de Portal */
+/* Knoppen */
 .btn {
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  width:160px;
-  padding:20px 15px;
+  width:120px;   /* smaller */
+  padding:30px 10px; /* verticaal groter, horizontaal smaller */
   border-radius:16px;
   background:#fff;
   color:#000;
@@ -45,14 +46,14 @@
 
 /* Icon */
 .btn .icon {
-  font-size:2.2rem;
+  font-size:2rem; /* iets kleiner zodat het past in smallere knop */
   margin-bottom:6px;
 }
 
-/* Voor png iconen */
+/* png iconen */
 .btn img.icon {
-  width:42px;
-  height:42px;
+  width:36px;
+  height:36px;
   margin-bottom:6px;
 }
 
@@ -60,7 +61,6 @@
   color:#555;
   font-size:0.8rem;
 }
-
 /* Backlink */
 .backlink {
   display:block;
