@@ -1,11 +1,98 @@
-<div id="defectTableContainer">
-  <h2>Defectmeldingen Status</h2>
-  <table id="defectTable" border="1" style="width:100%; border-collapse: collapse;">
-    <thead>
-      <tr id="tableHead"></tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandweer Herentals — Defectmeldingen Status</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
+
+<!-- Centrale layout -->
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* Standaard layout behoud */
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+}
+
+/* Container voor jouw embedded Google Sheet */
+.sheet-container {
+  width: 95%;
+  max-width: 1200px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 20px;
+}
+
+.sheet-container h2 {
+  margin-top: 0;
+  text-align: center;
+  color: var(--red);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+iframe {
+  width: 100%;
+  height: 650px;
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+    </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <a href="/brandweerherentals/" class="backlink">
+      <span class="arrow">←</span> Terug naar start
+    </a>
+
+    <div class="sheet-container">
+      <h2>Defectmeldingen – Live Status</h2>
+
+      <!-- JOUW GOOGLE SHEET -->
+      <iframe 
+        src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pubhtml?widget=true&headers=false">
+      </iframe>
+    </div>
+
+  </main>
+
+  <footer>
+    <div>Versie 1.1 — Status</div>
+    <div></div>
+  </footer>
+
 </div>
 
-<iframe width="402" height="346" frameborder="0" scrolling="no" src="https://brandweerzonekempen-my.sharepoint.com/personal/jowe210_bwzk_be/_layouts/15/Doc.aspx?sourcedoc={ad1a66d4-a41a-470e-b6d6-65f7f52277bd}&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>
+<script src="/brandweerherentals/header.js"></script>
+</body>
+</html>
