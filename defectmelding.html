@@ -22,39 +22,47 @@
   gap:20px;
   flex-wrap:wrap;
 }
+  /* Modernere knoppen in de stijl van de Portal */
 .btn {
   display:flex;
   flex-direction:column;
-  align-items:center;
   justify-content:center;
-  width:140px;     /* minder breed */
-  height:120px;    /* lager */
-  border-radius:12px;
-  background: var(--red);
-  color:#fff;
-  font-weight:700;
+  align-items:center;
+  width:160px;
+  padding:20px 15px;
+  border-radius:16px;
+  background:#fff;
+  color:#000;
+  text-align:center;
   text-decoration:none;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-  transition: all 0.2s;
+  box-shadow:0 4px 10px rgba(0,0,0,0.12);
+  transition:all 0.2s ease;
+  border:1px solid #eee;
 }
 
-.btn:hover { 
-  background:#a10f0f; 
-  transform:scale(1.04);
+.btn:hover {
+  transform:translateY(-4px);
+  box-shadow:0 6px 14px rgba(0,0,0,0.18);
+  background:#f9f9f9;
 }
 
-/* Icon iets kleiner */
+/* Icon */
 .btn .icon {
-  font-size:2rem;
-  margin-bottom:8px;
+  font-size:2.2rem;
+  margin-bottom:6px;
 }
 
-.btn img.icon { 
-  width:40px; 
-  height:40px; 
-  margin-bottom:8px; 
+/* Voor png iconen */
+.btn img.icon {
+  width:42px;
+  height:42px;
+  margin-bottom:6px;
 }
 
+.btn small {
+  color:#555;
+  font-size:0.8rem;
+}
 </style>
 </head>
 <body>
@@ -79,14 +87,18 @@
 
   <!-- CONTENT -->
   <main class="content">
-    <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" class="btn">
-      <div class="icon">🔧</div>
-      <div>Defect melding</div>
-    </a>
-    <a href="https://brandweerzonekempen-my.sharepoint.com/:x:/g/personal/jowe210_bwzk_be/EdRmGq0apA5HttZl9_Uid70BrcUUcf8C0JHABeoJyTGoVQ?e=t07A2A" class="btn">
-      <div class="icon">📊</div>
-      <div>Status</div>
-    </a>
+   <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" class="btn">
+  <div class="icon">🔧</div>
+  <div>Defect melden</div>
+  <small>Registreer een probleem</small>
+</a>
+
+<a href="https://brandweerzonekempen-my.sharepoint.com/:x:/g/personal/jowe210_bwzk_be/EdRmGq0apA5HttZl9_Uid70BrcUUcf8C0JHABeoJyTGoVQ?e=t07A2A" class="btn">
+  <div class="icon">📊</div>
+  <div>Status bekijken</div>
+  <small>Overzicht defecten</small>
+</a>
+
   </main>
 
   <footer>
