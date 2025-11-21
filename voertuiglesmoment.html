@@ -15,14 +15,14 @@ body {
 
 .container {
   max-width: 900px;
-  margin: 20px auto 0 auto;
+  margin: 0 auto 20px auto;
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   padding: 0 20px 20px 20px;
 }
 
-/* HEADER volledig rood en bovenaan vullend tot afgeronde hoeken */
+/* HEADER volledig rood en naadloos */
 header#appHeader {
   display: flex;
   justify-content: space-between;
@@ -31,8 +31,6 @@ header#appHeader {
   color: white;
   padding: 15px 20px;
   border-radius: 15px 15px 0 0;
-  border-bottom: 1px solid #c62828;
-  margin-bottom: 20px;
 }
 
 .header-left, .header-right {
@@ -50,7 +48,6 @@ header#appHeader {
   color: white;
 }
 
-/* Spatie tussen header en terugknop */
 .backlink {
   text-decoration: none;
   font-weight: 600;
@@ -231,18 +228,18 @@ const oefenmomenten = {
   "Containers":[1]
 };
 
-// --- GROEPEN ---
+// --- GROEPEN OMGEDRAAID ---
 const currentDate = new Date();
 const month = currentDate.getMonth()+1;
 const isVoorjaar = month>=1 && month<=6;
 const yearModulo = currentDate.getFullYear()%2;
 
-// ⚡ Volgorde exact behouden zoals in originele code
 const sortedChauffeurs = Object.keys(chauffeurs);
-
 const mid = Math.ceil(sortedChauffeurs.length/2);
-const groep1 = sortedChauffeurs.slice(0,mid);
-const groep2 = sortedChauffeurs.slice(mid);
+
+// Omgedraaide groepen
+const groep1 = sortedChauffeurs.slice(mid);   // groep2 wordt nu groep1
+const groep2 = sortedChauffeurs.slice(0,mid); // groep1 wordt nu groep2
 
 const voorjaarG1 = ["B541","L544","L549","A545","D541","M545"];
 const najaarG1 = ["T545","H541","A541","Containers"];
