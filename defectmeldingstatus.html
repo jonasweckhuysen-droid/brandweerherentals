@@ -4,27 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Defectmeldingen status</title>
-
 <link rel="manifest" href="/brandweerherentals/manifest.json">
 <meta name="theme-color" content="#c71f1f">
 <link rel="stylesheet" href="style.css">
 
 <style>
-
-/* Zelfde basis als andere pagina's */
-.content {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:20px; 
-  padding:20px;
-  min-height:80vh;
+body {
+  background: #f2f2f2;
 }
 
-/* Terugknop wit */
+/* Titel */
+.page-title {
+  color: #111; /* zwart zodat zichtbaar */
+  text-align: center;
+  margin: 10px 0 20px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+/* Backlink wit */
 .backlink {
-  display:block;
-  margin-bottom:10px;
+  display:inline-block;
+  margin: 10px 0 20px;
   text-decoration:none;
   color:#fff;
   font-weight:600;
@@ -33,100 +34,86 @@
   margin-right:6px;
 }
 
-/* Meldingen */
-.meldingen-wrapper {
-  width:100%;
-  max-width:1100px;
+/* Container meldingen */
+#meldingenContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
+/* Melding kaart */
 .melding {
-  background:#fff;
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:20px;
-  box-shadow:0 5px 12px rgba(0,0,0,0.15);
-  transition:all 0.2s ease;
+  background: #fff;
+  padding: 16px;
+  border-radius: 18px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  border: 1px solid #eee;
 }
 
-.melding:hover {
-  transform: translateY(-2px);
-  box-shadow:0 8px 18px rgba(0,0,0,0.2);
-}
-
+/* Rijen */
 .row {
-  display:flex;
-  flex-wrap:wrap;
-  gap:20px;
-  margin-bottom:10px;
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  gap: 12px;
 }
 
 .item {
-  flex:1;
-  min-width:200px;
+  flex: 1;
+  min-width: 140px;
 }
 
 .label {
-  font-size:0.8rem;
-  color:#555;
-  margin-bottom:4px;
-  font-weight:600;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 3px;
 }
 
 .value {
-  font-size:1rem;
-  font-weight:500;
-  color:#111;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111;
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* Status pill */
+/* Status badges */
 .status {
-  padding:6px 14px;
-  border-radius:20px;
-  font-size:0.75rem;
-  text-transform:uppercase;
-  display:inline-block;
-  font-weight:700;
-  letter-spacing:1px;
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
-.Gemeld {
-  background:#fecaca;
-  color:#7f1d1d;
+.status.Gemeld {
+  background: #d6e4ff;
+  color: #1c3faa;
 }
 
-.Bezig {
-  background:#fde68a;
-  color:#7c2d12;
+.status.Bezig {
+  background: #fff3cd;
+  color: #856404;
 }
 
-.Afgewerkt {
-  background:#bbf7d0;
-  color:#14532d;
+.status.Afgewerkt {
+  background: #d4edda;
+  color: #155724;
 }
 
-.Onbekend {
-  background:#e5e7eb;
-  color:#374151;
+.status.Onbekend {
+  background: #eee;
+  color: #333;
 }
 
-/* Titel */
-.page-title {
-  color:white;
-  margin-top:10px;
-  margin-bottom:10px;
-  font-size:1.6rem;
-}
-
-/* Loader tekst */
+/* Loader / info */
 .loader {
-  color:white;
-  margin-top:20px;
-  font-weight:600;
-  text-align:center;
+  text-align: center;
+  margin-top: 40px;
+  font-style: italic;
+  color: #777;
 }
-
 </style>
 </head>
 
@@ -153,76 +140,75 @@
       <span class="arrow">←</span> Terug naar start
     </a>
 
-    <h2 class="page-title">📋 Defectmeldingen — Live status</h2>
+    <h2 class="page-title">📊 Defectmeldingen — Live status</h2>
 
-    <div id="meldingen-container" class="meldingen-wrapper">
+    <div id="meldingenContainer">
       <p class="loader">Meldingen worden geladen...</p>
     </div>
 
   </main>
 
   <footer>
-    <div>Versie 1.1 — Status</div>
+    <div>Versie 1.1</div>
   </footer>
-
 </div>
 
 <script src="/brandweerherentals/header.js"></script>
 
 <script>
-
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 
-const container = document.getElementById("meldingen-container");
+const container = document.getElementById("meldingenContainer");
 
-
-// Betere CSV parser (voor commas in zinnen)
 function parseCSV(text) {
-    const rows = [];
-    let row = [];
-    let value = '';
-    let inQuotes = false;
+  const rows = [];
+  let row = [];
+  let inQuotes = false;
+  let value = "";
 
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        const next = text[i + 1];
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
 
-        if (char === '"' && inQuotes && next === '"') {
-            value += '"';
-            i++;
-        } else if (char === '"') {
-            inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-            row.push(value);
-            value = '';
-        } else if (char === '\n' && !inQuotes) {
-            row.push(value);
-            rows.push(row);
-            row = [];
-            value = '';
-        } else {
-            value += char;
-        }
-    }
-
-    if (value) {
+    if (char === '"' && inQuotes && next === '"') {
+      value += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      row.push(value);
+      value = "";
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (value || row.length) {
         row.push(value);
         rows.push(row);
+        row = [];
+        value = "";
+      }
+    } else {
+      value += char;
     }
+  }
 
-    return rows;
+  if (value || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  return rows;
 }
 
-
 fetch(SHEET_URL)
-.then(response => response.text())
-.then(csvText => {
-
+  .then(response => response.text())
+  .then(csvText => {
     const rows = parseCSV(csvText);
+
+    console.log("Aantal rijen (incl. header):", rows.length);
+
     const headers = rows.shift();
 
     function getIndex(name) {
-        return headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
+      return headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
     }
 
     const naamIndex = getIndex("Naam");
@@ -230,81 +216,86 @@ fetch(SHEET_URL)
     const omschrijvingIndex = getIndex("Defect omschrijving");
     const statusIndex = getIndex("Status");
 
+    console.log("Kolomindexen:", { naamIndex, datumIndex, omschrijvingIndex, statusIndex });
+
     container.innerHTML = "";
 
-    rows.forEach(row => {
+    let count = 0;
 
-        const naam = (row[naamIndex] || "").toString().trim();
-        const datum = (row[datumIndex] || "").toString().trim();
-        const omschrijving = (row[omschrijvingIndex] || "").toString().trim();
-        const statusRaw = (row[statusIndex] || "").toString().trim().toLowerCase();
+    rows.forEach((row, i) => {
+      const naam = (row[naamIndex] || "").trim();
+      const datum = (row[datumIndex] || "").trim();
+      const omschrijving = (row[omschrijvingIndex] || "").trim();
+      const statusRaw = (row[statusIndex] || "").trim();
 
-        if (!naam && !datum && !omschrijving && !statusRaw) return;
+      console.log(`Rij ${i}`, { naam, datum, omschrijving, statusRaw });
 
-        let status = statusRaw || "Onbekend";
-        let statusClass = "Onbekend";
+      // Filter lege meldingen
+      if (!naam && !datum && !omschrijving && !statusRaw) {
+        return;
+      }
 
-        if (status.includes("gemeld")) {
-            status = "Gemeld";
-            statusClass = "Gemeld";
-        }
-        else if (status.includes("bezig") || status.includes("behandeling")) {
-            status = "In behandeling";
-            statusClass = "Bezig";
-        }
-        else if (status.includes("afgewerkt") || status.includes("opgelost")) {
-            status = "Afgewerkt";
-            statusClass = "Afgewerkt";
-        }
-        else if (!statusRaw) {
-            status = "Onbekend";
-        }
-        else {
-            status = row[statusIndex];
-        }
+      count++;
 
-        const melding = document.createElement("div");
-        melding.classList.add("melding");
+      let status = statusRaw || "Onbekend";
+      let statusClass = "Onbekend";
 
-        melding.innerHTML = `
-            <div class="row">
-                <div class="item">
-                    <div class="label">👤 Naam</div>
-                    <div class="value">${naam || "/"}</div>
-                </div>
+      const lower = statusRaw.toLowerCase();
 
-                <div class="item">
-                    <div class="label">📅 Datum</div>
-                    <div class="value">${datum || "/"}</div>
-                </div>
-            </div>
+      if (lower.includes("gemeld")) {
+        status = "Gemeld";
+        statusClass = "Gemeld";
+      } 
+      else if (lower.includes("bezig") || lower.includes("behandeling")) {
+        status = "In behandeling";
+        statusClass = "Bezig";
+      } 
+      else if (lower.includes("afgewerkt") || lower.includes("opgelost")) {
+        status = "Afgewerkt";
+        statusClass = "Afgewerkt";
+      }
 
-            <div class="row">
-                <div class="item" style="flex:2">
-                    <div class="label">🛠️ Defect omschrijving</div>
-                    <div class="value">${omschrijving || "/"}</div>
-                </div>
+      const melding = document.createElement("div");
+      melding.classList.add("melding");
 
-                <div class="item">
-                    <div class="label">📌 Status</div>
-                    <span class="status ${statusClass}">${status}</span>
-                </div>
-            </div>
-        `;
+      melding.innerHTML = `
+        <div class="row">
+          <div class="item">
+            <div class="label">👤 Naam</div>
+            <div class="value">${naam || "/"}</div>
+          </div>
+          <div class="item">
+            <div class="label">📅 Datum</div>
+            <div class="value">${datum || "/"}</div>
+          </div>
+        </div>
 
-        container.appendChild(melding);
+        <div class="row">
+          <div class="item" style="flex:2">
+            <div class="label">🛠️ Defect omschrijving</div>
+            <div class="value">${omschrijving || "/"}</div>
+          </div>
+          <div class="item">
+            <div class="label">📌 Status</div>
+            <span class="status ${statusClass}">${status}</span>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(melding);
     });
 
-    if (container.innerHTML.trim() === "") {
-        container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
+    console.log("Aantal getoonde meldingen:", count);
+
+    if (count === 0) {
+      container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
     }
 
-})
-.catch(error => {
-    console.error(error);
-    container.innerHTML = "<p class='loader' style='color:red'>Fout bij het laden van de gegevens</p>";
-});
-
+  })
+  .catch(err => {
+    console.error(err);
+    container.innerHTML = "<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>";
+  });
 </script>
 
 </body>
