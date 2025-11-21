@@ -156,8 +156,6 @@ header#appHeader {
   </div>
 </header>
 
-
-
 <main>
   <a href="index.html" class="backlink">← Terug naar menu</a>
   <input type="text" id="searchInput" placeholder="Zoek op voertuig of oefenmoment...">
@@ -175,28 +173,28 @@ header#appHeader {
 
 <script>
 const chauffeurs = {
-  "Dries": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Buyens Robin": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Cools Bart": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Cools Kurt": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Cornelis Gianni": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Dekort Roel": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Goris Rik": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Hoeylaerts Kris": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Hoeylaerts Philippe": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Leemans Vincent": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Leten Bart": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Maes Steven": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Meyskens Liese": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Moons Rutger": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Van Buren Sven": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Van den Broeck Jakke": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Van Looveren Kris": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Van Roy Noël": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Van Vracem Joris": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Verhaegen Cristoph": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Vervecken Robbe": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Vervloet Steven": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"]
+  "Dries Buyens": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Robin Buyens": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
+  "Bart Cools": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Kurt Cools": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
+  "Gianni Cornelis": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
+  "Roel Dekort": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Rik Goris": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Kris Hoeylaerts": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
+  "Philippe Hoeylaerts": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Vincent Leemans": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Bart Leten": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Steven Maes": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Liese Meyskens": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Rutger Moons": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
+  "Sven Van Buren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Jakke Van den Broeck": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Kris Van Looveren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Noël Van Roy": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Joris Van Vracem": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Cristoph Verhaegen": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
+  "Robbe Vervecken": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
+  "Steven Vervloet": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"]
 };
 
 const oefenmomenten = {
@@ -228,7 +226,7 @@ const oefenUitleg = {
 };
 
 let currentUser = localStorage.getItem("username") || "";
-const admins = ["Alain Leemans","Danny Van den Bergh","Jonas","Patrick Van Hove"];
+const admins = ["Alain Leemans","Danny Van den Bergh","Patrick Van Hove"];
 const containerDiv = document.getElementById("chauffeurContainer");
 const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
