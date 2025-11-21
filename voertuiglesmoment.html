@@ -13,19 +13,6 @@ body {
   background: #f2f4f7;
 }
 
-header#appHeader {
-  background: linear-gradient(135deg, #c62828, #8e0000);
-  color: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left img {
-  height: 50px;
-}
-
 .container {
   max-width: 900px;
   margin: 20px auto;
@@ -145,30 +132,30 @@ header#appHeader {
 
 <div class="container">
 
-<header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
-</header>
+  <!-- HEADER (Exact gelijk aan index.html) -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+    </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+  </header>
 
-<main>
-  
-  <a href="index.html" class="backlink">← Terug naar menu</a>
-  <input type="text" id="searchInput" placeholder="Zoek op voertuig of oefenmoment...">
-  <div id="chauffeurContainer"></div>
-</main>
+  <main>
+    <a href="index.html" class="backlink">← Terug naar menu</a>
+    <input type="text" id="searchInput" placeholder="Zoek op voertuig of oefenmoment...">
+    <div id="chauffeurContainer"></div>
+  </main>
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal">✖</span>
-    <div id="modalText"></div>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">✖</span>
+      <div id="modalText"></div>
+    </div>
   </div>
-</div>
 
 </div>
 
@@ -245,7 +232,6 @@ function renderChauffeurs(filter="") {
     const card = document.createElement("div");
     card.className = "chauffeur-card";
 
-    // teller berekenen
     let totaal = 0, voltooid = 0;
     voertuigen.forEach(v => totaal += oefenmomenten[v].length);
     voertuigen.forEach(v => {
