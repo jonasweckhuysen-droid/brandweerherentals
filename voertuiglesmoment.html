@@ -1,38 +1,250 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chauffeur — Brandweer Herentals</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
 <link rel="stylesheet" href="style.css">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f4f7;
+}
+
+header {
+  background: linear-gradient(135deg, #c62828, #8e0000);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.wrapper {
+  max-width: 900px;
+  margin: auto;
+  padding: 15px;
+}
+
+.back-btn {
+  background: #c62828;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.chauffeur-card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  border-left: 6px solid #c62828;
+}
+
+.vehicle {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+}
+
+.veh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.exercise-list label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.info-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.modal {
+  display: none; 
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+}
+
+.close-modal {
+  float: right;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+</style>
 </head>
 <body>
 
-<div class="container">
-
-<header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
+<header>
+  🚒 Chauffeur Oefenmomenten
 </header>
 
-<main>
-  <h2>Chauffeur Module</h2>
-  <p>Hier komen later functies voor chauffeurs: checklists, statussen, documenten, …</p>
+<div class="wrapper">
+  <button class="back-btn" onclick="location.href='chauffeurs.html'">⬅ Ga terug naar chauffeurs</button>
 
-  <a href="index.html" class="backlink">← Terug naar menu</a>
-</main>
-
-<footer>
-  <div>Brandweer Herentals</div>
-</footer>
-<script src="/brandweerherentals/header.js"></script>
+  <div id="chauffeurContainer"></div>
 </div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal">✖</span>
+    <div id="modalText"></div>
+  </div>
+</div>
+
+<script>
+const chauffeurs = {
+  "Dries": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Buyens Robin": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Cools Bart": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Cools Kurt": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Cornelis Gianni": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Dekort Roel": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Goris Rik": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Hoeylaerts Kris": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Hoeylaerts Philippe": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Leemans Vincent": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Leten Bart": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Maes Steven":["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Meyskens Liese": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Moons Rutger": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Van Buren Sven": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Van den Broeck Jakke": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Van Looveren Kris": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Van Roy Noël": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Van Vracem Joris": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Verhaegen Cristoph": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Vervecken Robbe": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Slangencontainer","Opencontainer","Stroomgroep"],
+  "Vervloet Steven": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Slangencontainer","Opencontainer","Stroomgroep"]
+};
+
+const oefenmomenten = {
+  "B541": [1,2,3,4,5,6],
+  "L544": [1,2,3,4],
+  "L549": [1,2,3,4,5],
+  "A545": [1,2,3,4,5,6],
+  "D541": [1,2,3],
+  "M545": [1,2,3,4],
+  "L545": [1,2,3],
+  "T545": [1,2,3,4,5,6],
+  "H541": [1,2,3,4,5,6],
+  "A541": [1,2,3,4,5,6],
+  "Slangencontainer": [1],
+  "Opencontainer": [1],
+  "Stroomgroep": [1]
+};
+
+const oefenUitleg = {
+  "B541":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking","4: Werken met de pomp, water geven via de verschillende armaturen, gebruik van schuim","5: Werken met de winch","6: Juist gebruik van de materialen en procedures bij grootschalige inzet"],
+  "L544":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking","4: Juiste plaatsing en gebruik van het voertuig, signalisatie, kegels/lampen"],
+  "L549":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking","4: Werken met containersysteem","5: Werken met de kraan, takel"],
+  "A545":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking, bediening laadplatform","4: Werken met de pomp, gebruik schuim","5: Gebruik wateraanvoer, aanzuigen open water","6: Gebruik lichtmast"],
+  "D541":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden + koppelen aanhangwagen","3: Kennis bepakking"],
+  "M545":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking","4: Werken met winch + stroomgroep"],
+  "L545":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking + containersysteem, sproeibalk"],
+  "T545":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking","4: Werken met pomp, water via armaturen, sproeibalk + schuim","5: Gebruik wateraanvoer","6: Aanzuigen open water"],
+  "H541":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking","4: Juist afstempelen, werken met ladderpakket","5: Procedure evacuatie","6: Blussen vanuit korf, gebruik monitor"],
+  "A541":["1: Kennis van schakelaars + instrumenten voertuig en opbouw","2: Rijden","3: Kennis bepakking, bediening laadplatform","4: Werken met pomp, gebruik schuim","5: Gebruik wateraanvoer, aanzuigen open water, werken met winch","6: Gebruik lichtmast"],
+  "Slangencontainer":["1: Kunnen werken met container, kennis bepakking"],
+  "Opencontainer":["1: Kunnen werken met container"],
+  "Stroomgroep":["1: Oppikken en terugzetten platform, werken met stroomgroep en dompelpompen"]
+};
+
+const container = document.getElementById("chauffeurContainer");
+const modal = document.getElementById("modal");
+const modalText = document.getElementById("modalText");
+const closeModal = document.querySelector(".close-modal");
+
+closeModal.onclick = () => modal.style.display="none";
+window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
+
+for (let [chauffeur, voertuigen] of Object.entries(chauffeurs)) {
+  const card = document.createElement("div");
+  card.className = "chauffeur-card";
+
+  const h3 = document.createElement("h3");
+  h3.textContent = chauffeur;
+  card.appendChild(h3);
+
+  voertuigen.forEach(voertuig => {
+    const vehicleDiv = document.createElement("div");
+    vehicleDiv.className = "vehicle";
+
+    const vehHeader = document.createElement("div");
+    vehHeader.className = "veh-header";
+    vehHeader.innerHTML = `🚒 ${voertuig} <button class="info-btn">ℹ️</button>`;
+    vehicleDiv.appendChild(vehHeader);
+
+    const exerciseDiv = document.createElement("div");
+    exerciseDiv.className = "exercise-list";
+
+    oefenmomenten[voertuig].forEach(num => {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.dataset.chauffeur = chauffeur;
+      input.dataset.vehicle = voertuig;
+      input.dataset.exercise = num;
+
+      // laden uit localStorage
+      const key = `${chauffeur}_${voertuig}_${num}`;
+      input.checked = localStorage.getItem(key) === "true";
+
+      input.addEventListener("change", () => {
+        localStorage.setItem(key, input.checked);
+      });
+
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
+      exerciseDiv.appendChild(label);
+    });
+
+    vehicleDiv.appendChild(exerciseDiv);
+
+    // info-knop
+    const infoBtn = vehHeader.querySelector(".info-btn");
+    infoBtn.addEventListener("click", () => {
+      modalText.innerHTML = `<h4>${voertuig} oefenmomenten:</h4><ul>` +
+        oefenUitleg[voertuig].map(x => `<li>${x}</li>`).join('') +
+        `</ul>`;
+      modal.style.display = "block";
+    });
+
+    card.appendChild(vehicleDiv);
+  });
+
+  container.appendChild(card);
+}
+</script>
+
 </body>
 </html>
