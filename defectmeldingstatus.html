@@ -15,11 +15,19 @@ body {
 
 /* Titel */
 .page-title {
-  color: #111; /* zwart zodat zichtbaar */
+  color: #111;
   text-align: center;
-  margin: 10px 0 20px;
+  margin: 10px 0 5px;
   font-size: 1.6rem;
   font-weight: 700;
+}
+
+/* Teller */
+.teller {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #333;
 }
 
 /* Backlink wit */
@@ -141,6 +149,7 @@ body {
     </a>
 
     <h2 class="page-title">📊 Defectmeldingen — Live status</h2>
+    <div id="teller" class="teller">Bezig met laden...</div>
 
     <div id="meldingenContainer">
       <p class="loader">Meldingen worden geladen...</p>
@@ -149,7 +158,7 @@ body {
   </main>
 
   <footer>
-    <div>Versie 1.1</div>
+    <div>Versie 1.2</div>
   </footer>
 </div>
 
@@ -159,6 +168,7 @@ body {
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 
 const container = document.getElementById("meldingenContainer");
+const teller = document.getElementById("teller");
 
 function parseCSV(text) {
   const rows = [];
@@ -198,13 +208,27 @@ function parseCSV(text) {
   return rows;
 }
 
+// Datum parser (werkt ook met dd/mm/yyyy)
+function parseDate(str) {
+  if (!str) return new Date(0);
+
+  // Probeer ISO eerst
+  let d = new Date(str);
+  if (!isNaN(d)) return d;
+
+  // Probeer dd/mm/yyyy
+  const parts = str.split("/");
+  if (parts.length === 3) {
+    return new Date(parts[2], parts[1] - 1, parts[0]);
+  }
+
+  return new Date(0);
+}
+
 fetch(SHEET_URL)
   .then(response => response.text())
   .then(csvText => {
     const rows = parseCSV(csvText);
-
-    console.log("Aantal rijen (incl. header):", rows.length);
-
     const headers = rows.shift();
 
     function getIndex(name) {
@@ -216,26 +240,15 @@ fetch(SHEET_URL)
     const omschrijvingIndex = getIndex("Defect omschrijving");
     const statusIndex = getIndex("Status");
 
-    console.log("Kolomindexen:", { naamIndex, datumIndex, omschrijvingIndex, statusIndex });
+    const meldingenData = [];
 
-    container.innerHTML = "";
-
-    let count = 0;
-
-    rows.forEach((row, i) => {
+    rows.forEach((row) => {
       const naam = (row[naamIndex] || "").trim();
       const datum = (row[datumIndex] || "").trim();
       const omschrijving = (row[omschrijvingIndex] || "").trim();
       const statusRaw = (row[statusIndex] || "").trim();
 
-      console.log(`Rij ${i}`, { naam, datum, omschrijving, statusRaw });
-
-      // Filter lege meldingen
-      if (!naam && !datum && !omschrijving && !statusRaw) {
-        return;
-      }
-
-      count++;
+      if (!naam && !datum && !omschrijving && !statusRaw) return;
 
       let status = statusRaw || "Onbekend";
       let statusClass = "Onbekend";
@@ -255,6 +268,28 @@ fetch(SHEET_URL)
         statusClass = "Afgewerkt";
       }
 
+      meldingenData.push({
+        naam,
+        datum,
+        datumObj: parseDate(datum),
+        omschrijving,
+        status,
+        statusClass
+      });
+    });
+
+    // Sorteer nieuw → oud
+    meldingenData.sort((a, b) => b.datumObj - a.datumObj);
+
+    container.innerHTML = "";
+    teller.textContent = `Totaal: ${meldingenData.length} meldingen`;
+
+    if (meldingenData.length === 0) {
+      container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
+      return;
+    }
+
+    meldingenData.forEach(m => {
       const melding = document.createElement("div");
       melding.classList.add("melding");
 
@@ -262,22 +297,22 @@ fetch(SHEET_URL)
         <div class="row">
           <div class="item">
             <div class="label">👤 Naam</div>
-            <div class="value">${naam || "/"}</div>
+            <div class="value">${m.naam || "/"}</div>
           </div>
           <div class="item">
             <div class="label">📅 Datum</div>
-            <div class="value">${datum || "/"}</div>
+            <div class="value">${m.datum || "/"}</div>
           </div>
         </div>
 
         <div class="row">
           <div class="item" style="flex:2">
             <div class="label">🛠️ Defect omschrijving</div>
-            <div class="value">${omschrijving || "/"}</div>
+            <div class="value">${m.omschrijving || "/"}</div>
           </div>
           <div class="item">
             <div class="label">📌 Status</div>
-            <span class="status ${statusClass}">${status}</span>
+            <span class="status ${m.statusClass}">${m.status}</span>
           </div>
         </div>
       `;
@@ -285,16 +320,11 @@ fetch(SHEET_URL)
       container.appendChild(melding);
     });
 
-    console.log("Aantal getoonde meldingen:", count);
-
-    if (count === 0) {
-      container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
-    }
-
   })
   .catch(err => {
     console.error(err);
     container.innerHTML = "<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>";
+    teller.textContent = "Fout bij laden";
   });
 </script>
 
