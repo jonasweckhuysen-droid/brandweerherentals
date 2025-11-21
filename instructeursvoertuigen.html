@@ -16,15 +16,6 @@ body {
   background: #f2f4f7;
 }
 
-header {
-  background: linear-gradient(135deg, #c62828, #8e0000);
-  color: white;
-  padding: 20px;
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-}
-
 /* Container */
 .wrapper {
   padding: 15px;
@@ -45,8 +36,12 @@ header {
   margin-bottom: 20px;
   text-align:center;
   text-decoration:none;
+  display:block;
 }
-.back-btn:hover, .backlink:hover { opacity:0.9; }
+
+.back-btn:hover, .backlink:hover { 
+  opacity:0.9; 
+}
 
 /* Grid en kaarten */
 .top-bar {
@@ -55,9 +50,11 @@ header {
   gap:10px;
   margin-bottom:15px;
 }
+
 .counter {
   font-weight:bold;
 }
+
 #searchInput {
   padding:10px 12px;
   border-radius:10px;
@@ -95,13 +92,9 @@ header {
   gap:8px;
 }
 
-.tel a {
-  text-decoration:none;
-  color:#111;
+.tel {
   font-weight:600;
 }
-
-.tel a::before { content: "📞 "; }
 
 .call-btn {
   margin-top:8px;
@@ -113,7 +106,10 @@ header {
   color:white;
   font-weight:bold;
 }
-.call-btn:hover { opacity:0.9; }
+
+.call-btn:hover { 
+  opacity:0.9; 
+}
 
 footer {
   margin-top:40px;
@@ -121,16 +117,21 @@ footer {
   color:#777;
   font-size:12px;
 }
+
+/* Zorgt dat header volledig breed is */
+#main-header {
+  width: 100%;
+}
 </style>
 </head>
 
 <body>
 
-<header>
-  Instructeurs - Voertuigen
-</header>
+<!-- HIER KOMT DEZELFDE HEADER ALS OP JE ANDERE PAGINA -->
+<div id="main-header"></div>
 
 <div class="wrapper">
+
   <!-- Terug knop -->
   <a href="chauffeur.html" class="backlink">⬅ Ga terug naar chauffeurs</a>
 
@@ -144,12 +145,14 @@ footer {
   <div id="grid" class="grid">
     <div class="loading">📡 Excelbestand wordt ingelezen...</div>
   </div>
+
 </div>
 
 <footer>
   Brandweer Herentals
 </footer>
 
+<!-- JOUW HEADER SCRIPT -->
 <script src="/brandweerherentals/header.js"></script>
 
 <script>
@@ -169,7 +172,9 @@ fetch(EXCEL_FILE)
 
     // Sorteren op voertuig, dan instructeur
     allData.sort((a,b) => {
-      if(a.Voertuig === b.Voertuig) return a.Instructeur.localeCompare(b.Instructeur,'nl');
+      if(a.Voertuig === b.Voertuig) 
+        return a.Instructeur.localeCompare(b.Instructeur,'nl');
+
       return a.Voertuig.localeCompare(b.Voertuig,'nl');
     });
 
@@ -198,23 +203,24 @@ function render(data){
   grid.innerHTML = "";
   counter.textContent = `👨‍🏫 ${data.length} instructeurs gevonden`;
 
-  if(data.length===0){
-    grid.innerHTML="<div>Geen resultaten gevonden.</div>";
+  if(data.length === 0){
+    grid.innerHTML = "<div>Geen resultaten gevonden.</div>";
     return;
   }
 
-  data.forEach(row=>{
+  data.forEach(row => {
     const card = document.createElement("div");
-    card.className="card";
+    card.className = "card";
 
     const icon = getVehicleIcon(row.Voertuig);
 
-    card.innerHTML=`
+    card.innerHTML = `
       <h3>${row.Instructeur}</h3>
       <div class="veh">${icon} ${row.Voertuig}</div>
       <div class="tel">📞 ${row.Telefoonnummer}</div>
       <a class="call-btn" href="tel:${row.Telefoonnummer.replace(/\s+/g,'')}">☎️ Bel nu</a>
     `;
+
     grid.appendChild(card);
   });
 }
@@ -222,8 +228,9 @@ function render(data){
 // Zoekfunctie
 document.getElementById("searchInput").addEventListener("input", function(){
   const term = this.value.toLowerCase();
-  const filtered = allData.filter(row=>
-    row.Voertuig.toLowerCase().includes(term) || row.Instructeur.toLowerCase().includes(term)
+  const filtered = allData.filter(row =>
+    row.Voertuig.toLowerCase().includes(term) ||
+    row.Instructeur.toLowerCase().includes(term)
   );
   render(filtered);
 });
