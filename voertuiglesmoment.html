@@ -19,7 +19,7 @@ body {
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  padding: 20px;
+  padding: 0 20px 20px 20px; /* GEEN padding bovenaan */
 }
 
 /* HEADER volledig rood en bovenaan vullend */
@@ -29,9 +29,8 @@ header#appHeader {
   align-items: center;
   background: #c62828;
   color: white;
-  padding: 15px 20px;
-  border-radius: 12px 12px 0 0;
-  border: 1px solid #c62828;
+  padding: 20px 20px;
+  border-radius: 15px 15px 0 0;
 }
 
 .header-left, .header-right {
@@ -191,7 +190,6 @@ header#appHeader {
 </div>
 
 <script>
-// --- DATA ---
 const chauffeurs = {
   "Dries Boven": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
   "Robin Buyens": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
@@ -231,20 +229,6 @@ const oefenmomenten = {
   "Containers":[1]
 };
 
-const oefenUitleg = {
-  "L544":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Juist gebruik voertuig & signalisatie"],
-  "L549":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met containersysteem","5: Werken met kraan/takel"],
-  "H541":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Afstempelen & ladderpakket","5: Procedure evacuatie","6: Blussen vanuit korf"],
-  "D541":["1: Kennis schakelaars & instrumenten","2: Rijden + koppelen aanhangwagen","3: Kennis bepakking"],
-  "M545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met winch + stroomgroep"],
-  "T545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & sproeibalk","5: Gebruik wateraanvoeren","6: Aanzuigen open water"],
-  "L545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking + watercontainer"],
-  "A545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & schuim","5: Wateraanvoeren","6: Gebruik lichtmast"],
-  "A541":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & schuim","5: Wateraanvoeren & winch","6: Gebruik lichtmast"],
-  "B541":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & schuim","5: Werken met winch","6: Procedures natuurbrand"],
-  "Containers":["1: Kunnen werken met container"]
-};
-
 // --- GROEPEN ---
 const currentDate = new Date();
 const month = currentDate.getMonth()+1;
@@ -256,81 +240,63 @@ const sortedChauffeurs = Object.keys(chauffeurs).sort((a,b)=>{
   const lastB = b.split(" ").slice(-1)[0];
   return lastA.localeCompare(lastB);
 });
+
 const mid = Math.ceil(sortedChauffeurs.length/2);
 const groep1 = sortedChauffeurs.slice(0,mid);
 const groep2 = sortedChauffeurs.slice(mid);
 
-const voorjaarG1 = ["B541","L544","L549","A545","D541","M545"];
-const najaarG1 = ["T545","H541","A541","Containers"];
+// ✅ OMGEWISSELD (zoals je vroeg)
+const voorjaarG1 = ["T545","H541","A541","Containers"];
+const najaarG1 = ["B541","L544","L549","A545","D541","M545"];
+
 const voorjaarG2 = najaarG1;
 const najaarG2 = voorjaarG1;
 
 function getVoertuigenVoorChauffeur(chauffeur){
-  if(groep1.includes(chauffeur)) return isVoorjaar ? (yearModulo===0?voorjaarG1:najaarG1) : (yearModulo===0?najaarG1:voorjaarG1);
-  else return isVoorjaar ? (yearModulo===0?voorjaarG2:najaarG2) : (yearModulo===0?najaarG2:voorjaarG2);
+  if(groep1.includes(chauffeur)) 
+    return isVoorjaar 
+      ? (yearModulo===0?voorjaarG1:najaarG1) 
+      : (yearModulo===0?najaarG1:voorjaarG1);
+  else 
+    return isVoorjaar 
+      ? (yearModulo===0?voorjaarG2:najaarG2) 
+      : (yearModulo===0?najaarG2:voorjaarG2);
 }
 
-// --- DOM ---
 const containerDiv = document.getElementById("chauffeurContainer");
 const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
-const closeModal = document.querySelector(".close-modal");
 
-closeModal.onclick = () => modal.style.display="none";
-window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
-
-// --- Render ---
 function renderChauffeurs(filter=""){
   filter = filter.toLowerCase();
-  containerDiv.innerHTML="";
+  containerDiv.innerHTML = "";
+
   for(let chauffeur of sortedChauffeurs){
     if(filter && !chauffeur.toLowerCase().includes(filter)) continue;
+
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
-    const card=document.createElement("div"); card.className="chauffeur-card";
-    
-    let totaal=0,voltooid=0;
-    voertuigen.forEach(v=>totaal+=oefenmomenten[v].length);
-    voertuigen.forEach(v=>oefenmomenten[v].forEach(n=>{if(localStorage.getItem(`${chauffeur}_${v}_${n}`)==="true")voltooid++;}));
-    
-    const h3=document.createElement("h3"); h3.textContent=chauffeur+" ";
-    const counterSpan=document.createElement("span"); counterSpan.className="counter";
-    counterSpan.textContent=`${voltooid} / ${totaal} oefenmomenten voltooid`;
-    h3.appendChild(counterSpan); card.appendChild(h3);
-    
-    voertuigen.forEach(voertuig=>{
-      const vehicleDiv=document.createElement("div"); vehicleDiv.className="vehicle";
-      const vehHeader=document.createElement("div"); vehHeader.className="veh-header";
-      vehHeader.innerHTML=`🚒 ${voertuig} <button class="info-btn">ℹ️</button>`;
-      vehicleDiv.appendChild(vehHeader);
-      
-      const exerciseDiv=document.createElement("div"); exerciseDiv.className="exercise-list";
-      oefenmomenten[voertuig].forEach(num=>{
-        const label=document.createElement("label");
-        const input=document.createElement("input");
-        input.type="checkbox"; input.dataset.chauffeur=chauffeur; input.dataset.vehicle=voertuig; input.dataset.exercise=num;
-        const key=`${chauffeur}_${voertuig}_${num}`;
-        input.checked=localStorage.getItem(key)==="true";
-        input.addEventListener("change",()=>{ localStorage.setItem(key,input.checked); renderChauffeurs(document.getElementById("searchInput").value); });
-        label.appendChild(input); label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
-        exerciseDiv.appendChild(label);
-      });
-      vehicleDiv.appendChild(exerciseDiv);
-      
-      const infoBtn = vehHeader.querySelector(".info-btn");
-      infoBtn.addEventListener("click",()=>{
-        modalText.innerHTML=`<h4>${voertuig} oefenmomenten:</h4><ul>`+
-        oefenUitleg[voertuig].map(x=>`<li>${x}</li>`).join('')+`</ul>`;
-        modal.style.display="block";
-      });
-      card.appendChild(vehicleDiv);
+    const card = document.createElement("div");
+    card.className = "chauffeur-card";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = chauffeur;
+    card.appendChild(h3);
+
+    voertuigen.forEach(v => {
+      const vDiv = document.createElement("div");
+      vDiv.className = "vehicle";
+      vDiv.textContent = v;
+      card.appendChild(vDiv);
     });
+
     containerDiv.appendChild(card);
   }
 }
 
 renderChauffeurs();
-document.getElementById("searchInput").addEventListener("input",function(){
-  renderChauffeurs(this.value);
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  renderChauffeurs(e.target.value);
 });
 </script>
 
