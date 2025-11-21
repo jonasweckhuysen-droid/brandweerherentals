@@ -6,6 +6,163 @@
 <title>Instructeurs voertuigen — Brandweer Herentals</title>
 
 <link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instructeurs voertuigen</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f2f4f7;
+    }
+
+    header {
+        background: linear-gradient(135deg, #c62828, #8e0000);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .wrapper {
+        padding: 15px;
+        max-width: 800px;
+        margin: auto;
+    }
+
+    .back-btn {
+        width: 100%;
+        background: #444;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        background: white;
+        padding: 15px;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        border-left: 6px solid #c62828;
+    }
+
+    .vehicle {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .instructor {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .phone {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: #2e7d32;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .phone:hover {
+        background: #1b5e20;
+    }
+
+    footer {
+        margin-top: 40px;
+        text-align: center;
+        color: #777;
+        font-size: 12px;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    Instructeurs - Voertuigen
+</header>
+
+<div class="wrapper">
+
+    <!-- TERUG KNOP -->
+    <button class="back-btn" onclick="location.href='chauffeurs.html'">
+        ⬅ Ga terug naar chauffeurs
+    </button>
+
+    <div id="container">
+        <p>Instructeurs laden...</p>
+    </div>
+
+</div>
+
+<footer>
+    Fire Crew Herentals 🔥
+</footer>
+
+<script>
+    const filePath = "data/Instructeurs voertuigen HA.xlsx";
+
+    fetch(filePath)
+        .then(res => res.arrayBuffer())
+        .then(data => {
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            rows.shift(); // kopregel verwijderen
+
+            let html = "";
+
+            rows.forEach(row => {
+                const voertuig = row[0];
+                const instructeur = row[1];
+                const telefoon = row[2];
+
+                if(!voertuig || !instructeur || !telefoon) return;
+
+                html += `
+                    <div class="card">
+                        <div class="vehicle">🚒 ${voertuig}</div>
+                        <div class="instructor">👨‍🏫 ${instructeur}</div>
+                        <a class="phone" href="tel:${telefoon}">
+                            📞 ${telefoon}
+                        </a>
+                    </div>
+                `;
+            });
+
+            if (html === "") {
+                html = "<p>Geen instructeurs gevonden.</p>";
+            }
+
+            document.getElementById("container").innerHTML = html;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("container").innerHTML = 
+            "<p style='color:red'>Fout bij het laden van het bestand.</p>";
+        });
+</script>
+
+</body>
+</html>
 
 <!-- SheetJS (xlsx inlezen) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
