@@ -28,7 +28,7 @@ header#appHeader {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  background-color: #c62828; /* hele header rood */
+  background-color: #c62828;
   color: white;
   border-radius: 12px 12px 0 0;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -48,7 +48,7 @@ header#appHeader .header-left img.header-logo {
 .header-ploeg {
   margin: 2px 0;
   font-weight: bold;
-  color: white; /* tekst wit */
+  color: white;
 }
 
 /* Terug-knop styling */
@@ -186,7 +186,7 @@ header#appHeader .header-left img.header-logo {
 
   <main>
     <a href="index.html" class="backlink">← Terug naar menu</a>
-    <input type="text" id="searchInput" placeholder="Zoek op voertuig of oefenmoment...">
+    <input type="text" id="searchInput" placeholder="Zoek op chauffeur of voertuig...">
     <div id="chauffeurContainer"></div>
   </main>
 
@@ -266,9 +266,16 @@ window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
 let visibleChauffeurs = currentUser && !admins.includes(currentUser) ? 
   { [currentUser]: chauffeurs[currentUser] } : chauffeurs;
 
+// --- FUNCTIE: renderChauffeurs aangepast voor zoek op naam of voertuig ---
 function renderChauffeurs(filter="") {
+  filter = filter.toLowerCase();
   containerDiv.innerHTML="";
   for (let [chauffeur, voertuigen] of Object.entries(visibleChauffeurs)) {
+    // Als filter niet overeenkomt met naam en niet in voertuigen voorkomt, skip
+    const matchNaam = chauffeur.toLowerCase().includes(filter);
+    const matchVoertuig = voertuigen.some(v => v.toLowerCase().includes(filter));
+    if(filter && !matchNaam && !matchVoertuig) continue;
+
     const card = document.createElement("div");
     card.className = "chauffeur-card";
 
@@ -290,7 +297,7 @@ function renderChauffeurs(filter="") {
     card.appendChild(h3);
 
     voertuigen.forEach(voertuig => {
-      if(filter && !voertuig.toLowerCase().includes(filter.toLowerCase())) return;
+      if(filter && !chauffeur.toLowerCase().includes(filter) && !voertuig.toLowerCase().includes(filter)) return;
 
       const vehicleDiv = document.createElement("div");
       vehicleDiv.className = "vehicle";
@@ -328,26 +335,4 @@ function renderChauffeurs(filter="") {
 
       const infoBtn = vehHeader.querySelector(".info-btn");
       infoBtn.addEventListener("click",()=>{
-        modalText.innerHTML = `<h4>${voertuig} oefenmomenten:</h4><ul>`+
-          oefenUitleg[voertuig].map(x=>`<li>${x}</li>`).join('')+
-          `</ul>`;
-        modal.style.display="block";
-      });
-
-      card.appendChild(vehicleDiv);
-    });
-
-    containerDiv.appendChild(card);
-  }
-}
-
-renderChauffeurs();
-
-document.getElementById("searchInput").addEventListener("input", function() {
-  renderChauffeurs(this.value);
-});
-</script>
-
-<script src="/brandweerherentals/header.js"></script>
-</body>
-</html>
+        modalText.innerHTML =
