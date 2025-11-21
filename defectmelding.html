@@ -9,24 +9,37 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-/* Grid voor knoppen */
+/* GRID voor knoppen */
 .content {
   display:flex;
-  justify-content:center;
+  flex-direction:column;
+  justify-content:flex-start;
   align-items:center;
-  flex-wrap:wrap;
-  gap:16px; 
-  padding: 20px;
-  min-height: 80vh;
+  gap:20px;
+  padding:20px;
+  width:100%;
 }
 
-/* Knoppen (zelfde stijl als index) */
+/* GA TERUG KNOP */
+.backlink {
+  display:block;
+  margin-bottom:20px;
+  text-decoration:none;
+  color:#fff; /* wit */
+  font-weight:600;
+  font-size:1rem;
+}
+.backlink .arrow {
+  margin-right:6px;
+}
+
+/* Knoppen stijl (zelfde als index/chauffeurspagina) */
 .btn {
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  width:140px;
+  width:180px;
   padding:25px 12px;
   border-radius:20px;
   background:#fff;
@@ -50,33 +63,14 @@
   margin-bottom:8px;
 }
 
-/* Voor png iconen */
-.btn img.icon {
-  width:42px;
-  height:42px;
-  margin-bottom:8px;
-}
-
+/* Titel en beschrijving */
 .btn div {
   font-weight:600;
   margin-bottom:4px;
 }
-
 .btn small {
   color:#555;
   font-size:0.85rem;
-}
-
-/* Backlink nu wit */
-.backlink {
-  display:block;
-  margin-bottom:20px;
-  text-decoration:none;
-  color:#fff; /* wit aangepast */
-  font-weight:600;
-}
-.backlink .arrow {
-  margin-right:6px;
 }
 </style>
 </head>
@@ -97,10 +91,12 @@
 
   <!-- CONTENT -->
   <main class="content">
+    <!-- Ga terug knop -->
     <a href="/brandweerherentals/" class="backlink">
       <span class="arrow">←</span> Terug naar start
     </a>
 
+    <!-- Knoppen in uniforme stijl -->
     <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" class="btn">
       <div class="icon">🔧</div>
       <div>Defect melden</div>
