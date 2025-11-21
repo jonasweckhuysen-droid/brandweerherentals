@@ -1,313 +1,228 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
-<link rel="stylesheet" href="style.css">
+<!doctype html>
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f4f7;
-}
-
-.container {
-  max-width: 900px;
-  margin: 20px auto;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  padding: 20px;
-}
-
-.backlink {
-  text-decoration: none;
-  font-weight: 600;
-  display: inline-block;
-  margin-bottom: 20px;
-  color: white;
-}
-
-#searchInput {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.chauffeur-card {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border-left: 6px solid #c62828;
-}
-
-.chauffeur-card h3 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.counter {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.vehicle {
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.veh-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.exercise-list label {
-  display: block;
-  margin-bottom: 4px;
-}
-
-.info-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-}
-
-.modal {
-  display: none; 
-  position: fixed;
-  z-index: 1000;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-  background: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 600px;
-}
-
-.close-modal {
-  float: right;
-  cursor: pointer;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.call-btn {
-  margin-top: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  text-align: center;
-  text-decoration: none;
-  background: #c62828;
-  color: white;
-  font-weight: bold;
-  display: inline-block;
-}
-.call-btn:hover {
-  opacity: 0.9;
-}
-</style>
-</head>
-<body>
-
-<div class="container">
-
-  <!-- HEADER (Exact gelijk aan index.html) -->
-  <header id="appHeader">
-    <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-    </div>
-    <div class="header-right">
-      <div id="greeting" class="header-greeting"></div>
-      <div id="datetime" class="header-datetime"></div>
-      <div id="ploegOfWeek" class="header-ploeg"></div>
-    </div>
-  </header>
-
-  <main>
-    <a href="index.html" class="backlink">← Terug naar menu</a>
-    <input type="text" id="searchInput" placeholder="Zoek op voertuig of oefenmoment...">
-    <div id="chauffeurContainer"></div>
-  </main>
-
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">✖</span>
-      <div id="modalText"></div>
-    </div>
-  </div>
-
+<html lang="nl">  
+<head>  
+<meta charset="utf-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1">  
+<title>Brandweer Herentals — Portal</title>  <!-- PWA -->  <link rel="manifest" href="/brandweerherentals/manifest.json">  
+<meta name="theme-color" content="#c71f1f">  <!-- Centrale layout -->  <link rel="stylesheet" href="style.css">  <style>  
+/* Overlay grafisch menu */  
+#welcomeOverlay {  
+  position: fixed;  
+  top:0; left:0; width:100%; height:100%;  
+  background: rgba(0,0,0,0.85);  
+  display:flex; justify-content:center; align-items:center;  
+  z-index:9999; flex-direction:column; padding:20px;  
+  color:#fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;  
+}  
+  
+#welcomeOverlay h2 {  
+  font-size: 1.8rem; margin-bottom: 16px;  
+  text-align:center; color: var(--red);  
+}  
+  
+#welcomeOverlay .input-group {  
+  display:flex; flex-direction:column; gap:12px; margin-bottom: 20px; width:100%; max-width:320px;  
+}  
+  
+#welcomeOverlay label {  
+  display:flex; align-items:center; gap:10px;  
+  cursor:pointer; background: #fff1f1; padding:10px 12px; border-radius:10px; color: #111;  
+  transition: all 0.15s;  
+}  
+  
+#welcomeOverlay label:hover {  
+  background: var(--red); color:#fff;  
+}  
+  
+#welcomeOverlay input[type=text] { flex:1; padding:8px; border-radius:6px; border:none; font-size:1rem; }  
+  
+#welcomeOverlay input[type=checkbox] { width:20px; height:20px; }  
+  
+#welcomeOverlay button {  
+  padding: 12px 20px; border:none; border-radius:10px;  
+  background: var(--red); color:#fff; font-weight:700; font-size:1rem;  
+  cursor:pointer; transition: all 0.15s;  
+}  
+  
+#welcomeOverlay button:hover { background: var(--red-dark); }  
+</style>  </head>  
+<body>  <div class="container" role="application" aria-label="Brandweer Herentals portal">    <!-- HEADER -->    <header id="appHeader">  
+    <div class="header-left">  
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">  
+    </div>  
+    <div class="header-right">  
+      <div id="greeting" class="header-greeting"></div>  
+      <div id="datetime" class="header-datetime"></div>  
+      <div id="ploegOfWeek" class="header-ploeg"></div>  
+    </div>  
+  </header>    <!-- CONTENT -->    <main class="content">  
+    <div class="grid" id="buttonGrid" aria-live="polite"></div>  <!-- Install PWA prompt -->  
+<div id="installPrompt" class="overlay" style="display:none;">  
+  <div class="overlay-content" role="dialog" aria-modal="true">  
+    <span id="installText">📲 Voeg de app toe aan je startscherm</span>  
+    <button id="installNow">Toevoegen</button>  
+    <span class="close" id="installClose">✖</span>  
+  </div>  
 </div>
 
-<script>
-const chauffeurs = {
-  "Dries Boven": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Robin Buyens": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Bart Cools": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Kurt Cools": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Gianni Cornelis": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Roel Dekort": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Rik Goris": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Kris Hoeylaerts": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Philippe Hoeylaerts": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Vincent Leemans": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Bart Leten": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Steven Maes": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Liese Meyskens": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Rutger Moons": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Sven Van Buren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Jakke Van den Broeck": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Kris Van Looveren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Noël Van Roy": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Joris Van Vracem": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Cristoph Verhaegen": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Robbe Vervecken": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Steven Vervloet": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"]
-};
-
-const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],
-  "L544":[1,2,3,4],
-  "L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3],
-  "M545":[1,2,3,4],
-  "L545":[1,2,3],
-  "T545":[1,2,3,4,5,6],
-  "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6],
-  "Containers":[1]
-};
-
-const oefenUitleg = {
-  "L544":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Juist gebruik voertuig & signalisatie"],
-  "L549":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met containersysteem","5: Werken met kraan/takel"],
-  "H541":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Afstempelen & ladderpakket","5: Procedure evacuatie","6: Blussen vanuit korf"],
-  "D541":["1: Kennis schakelaars & instrumenten","2: Rijden + koppelen aanhangwagen","3: Kennis bepakking"],
-  "M545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met winch + stroomgroep"],
-  "T545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & sproeibalk","5: Gebruik wateraanvoeren","6: Aanzuigen open water"],
-  "L545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking + watercontainer"],
-  "A545":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & schuim","5: Wateraanvoeren","6: Gebruik lichtmast"],
-  "A541":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & schuim","5: Wateraanvoeren & winch","6: Gebruik lichtmast"],
-  "B541":["1: Kennis schakelaars & instrumenten","2: Rijden","3: Kennis bepakking","4: Werken met pomp & schuim","5: Werken met winch","6: Procedures natuurbrand"],
-  "Containers":["1: Kunnen werken met container"]
-};
-
-let currentUser = localStorage.getItem("username") || "";
-const admins = ["Alain Leemans","Danny Van den Bergh","Patrick Van Hove"];
-const containerDiv = document.getElementById("chauffeurContainer");
-const modal = document.getElementById("modal");
-const modalText = document.getElementById("modalText");
-const closeModal = document.querySelector(".close-modal");
-
-closeModal.onclick = () => modal.style.display="none";
-window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
-
-let visibleChauffeurs = currentUser && !admins.includes(currentUser) ? 
-  { [currentUser]: chauffeurs[currentUser] } : chauffeurs;
-
-function renderChauffeurs(filter="") {
-  containerDiv.innerHTML="";
-  for (let [chauffeur, voertuigen] of Object.entries(visibleChauffeurs)) {
-    const card = document.createElement("div");
-    card.className = "chauffeur-card";
-
-    let totaal = 0, voltooid = 0;
-    voertuigen.forEach(v => totaal += oefenmomenten[v].length);
-    voertuigen.forEach(v => {
-      oefenmomenten[v].forEach(num => {
-        const key = `${chauffeur}_${v}_${num}`;
-        if(localStorage.getItem(key) === "true") voltooid++;
-      });
-    });
-
-    const h3 = document.createElement("h3");
-    h3.textContent = `${chauffeur} `;
-    const counterSpan = document.createElement("span");
-    counterSpan.className="counter";
-    counterSpan.textContent = `${voltooid} / ${totaal} oefenmomenten voltooid`;
-    h3.appendChild(counterSpan);
-    card.appendChild(h3);
-
-    voertuigen.forEach(voertuig => {
-      if(filter && !voertuig.toLowerCase().includes(filter.toLowerCase())) return;
-
-      const vehicleDiv = document.createElement("div");
-      vehicleDiv.className = "vehicle";
-
-      const vehHeader = document.createElement("div");
-      vehHeader.className = "veh-header";
-      vehHeader.innerHTML = `🚒 ${voertuig} <button class="info-btn">ℹ️</button>`;
-      vehicleDiv.appendChild(vehHeader);
-
-      const exerciseDiv = document.createElement("div");
-      exerciseDiv.className = "exercise-list";
-
-      oefenmomenten[voertuig].forEach(num => {
-        const label = document.createElement("label");
-        const input = document.createElement("input");
-        input.type="checkbox";
-        input.dataset.chauffeur = chauffeur;
-        input.dataset.vehicle = voertuig;
-        input.dataset.exercise = num;
-
-        const key = `${chauffeur}_${voertuig}_${num}`;
-        input.checked = localStorage.getItem(key) === "true";
-
-        input.addEventListener("change", ()=>{
-          localStorage.setItem(key,input.checked);
-          renderChauffeurs(document.getElementById("searchInput").value);
-        });
-
-        label.appendChild(input);
-        label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
-        exerciseDiv.appendChild(label);
-      });
-
-      vehicleDiv.appendChild(exerciseDiv);
-
-      const infoBtn = vehHeader.querySelector(".info-btn");
-      infoBtn.addEventListener("click",()=>{
-        modalText.innerHTML = `<h4>${voertuig} oefenmomenten:</h4><ul>`+
-          oefenUitleg[voertuig].map(x=>`<li>${x}</li>`).join('')+
-          `</ul>`;
-        modal.style.display="block";
-      });
-
-      card.appendChild(vehicleDiv);
-    });
-
-    containerDiv.appendChild(card);
-  }
-}
-
-renderChauffeurs();
-
-document.getElementById("searchInput").addEventListener("input", function() {
-  renderChauffeurs(this.value);
-});
-</script>
-
-<script src="/brandweerherentals/header.js"></script>
-</body>
-</html>
+  </main>    <footer>  
+    <div>Versie 1.1</div>  
+    <div></div>  
+  </footer>  
+</div>  <!-- ================================ -->  <script>  
+// =====================================  
+// 🌟 Variabelen  
+// =====================================  
+let links = {  
+  abiweb: { title:"Abiweb", icon:"/brandweerherentals/icons/buttons/abiweb.png", desc:"Oefeningen en prestaties", url:"https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },  
+  agenda: { title:"Agenda", icon:"📅", desc:"Belangrijke data en evenementen", url:"/brandweerherentals/agenda.html" },  
+  defect: { title:"Defectmelding", icon:"🔧", desc:"Meld defecten", url:"/brandweerherentals/defectmelding.html" },  
+  kantine: { title:"Kantine", icon:"🍻", desc:"Bestellen & betalen", url:"/brandweerherentals/kantine.html" },  
+  logistiek: { title:"Logistiek", icon:"/brandweerherentals/icons/buttons/winkelkar.png", desc:"Transport aanvragen", url:"https://form.jotform.com/230682691731055" },  
+  order: { title:"Bestelling", icon:"📦", desc:"Materiaal bestellen", url:"https://forms.cloud.microsoft/e/GjHr1Kym0w" },  
+  vehicle: { title:"Voertuigreservatie", icon:"🚒", desc:"Controle & reservatie", url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },  
+  verdi: { title:"Verdi", icon:"/brandweerherentals/icons/buttons/verdi.png", desc:"Oproepen", url:"https://kempen.verdi.cloud/" },  
+  wegenwerken: { title:"Wegenwerken", icon:"🚧", desc:"Actuele info", url:"/brandweerherentals/wegenwerken.html" },  
+  wespen: { title:"Wespen", icon:"🐝", desc:"Ploeg van dienst", url:"/brandweerherentals/wespen.html" }  
+};  
+  
+// =====================================  
+// 🌟 Overlay HTML  
+// =====================================  
+document.body.insertAdjacentHTML('beforeend', `  
+<div id="welcomeOverlay" style="display:none;">  
+  <h2>Welkom bij Brandweer Herentals</h2>  
+  <div class="input-group">  
+    <input type="text" id="userNameInput" placeholder="Vul je naam in">  
+  </div>  
+  <div class="input-group">  
+    <label><input type="checkbox" value="brandweer"> Brandweer</label>  
+    <label><input type="checkbox" value="ambulancier"> Ambulancier</label>  
+    <label><input type="checkbox" value="chauffeur"> Chauffeur</label>  
+    <label><input type="checkbox" value="duiker"> Duiker</label>  
+    <label><input type="checkbox" value="firecrew"> VZW Firecrew</label>  
+  </div>  
+  <div class="input-group" id="vzwPwdGroup" style="display:none;">  
+    <input type="text" id="vzwPwdInput" placeholder="VZW wachtwoord">  
+  </div>  
+  <button id="confirmBtn">Bevestig</button>  
+</div>  
+`);  
+  
+const overlay = document.getElementById("welcomeOverlay");  
+const confirmBtn = document.getElementById("confirmBtn");  
+const userNameInput = document.getElementById("userNameInput");  
+const vzwPwdInput = document.getElementById("vzwPwdInput");  
+const vzwPwdGroup = document.getElementById("vzwPwdGroup");  
+  
+// =====================================  
+// 🌟 Eenmalige overlay tonen  
+// =====================================  
+window.addEventListener("DOMContentLoaded", () => {  
+  const savedName = localStorage.getItem("userName");  
+  const savedSpec = JSON.parse(localStorage.getItem("specialiteiten") || "[]");  
+  
+  if (savedName && savedSpec.length > 0) {  
+    document.getElementById("greeting").textContent = `Welkom, ${savedName}!`;  
+    addSpecialLinks(savedSpec);  
+    renderGrid();  
+  } else {  
+    overlay.style.display = "flex";  
+  }  
+});  
+  
+// =====================================  
+// 🌟 Toon wachtwoord veld bij VZW  
+// =====================================  
+document.querySelectorAll('#welcomeOverlay input[type=checkbox]').forEach(cb => {  
+  cb.addEventListener('change', () => {  
+    if (cb.value === 'firecrew') {  
+      vzwPwdGroup.style.display = cb.checked ? 'block' : 'none';  
+    }  
+  });  
+});  
+  
+// =====================================  
+// 🌟 Confirm knop  
+// =====================================  
+confirmBtn.addEventListener("click", () => {  
+  const name = userNameInput.value.trim();  
+  const selectedSpecs = Array.from(document.querySelectorAll('#welcomeOverlay input[type=checkbox]:checked')).map(i => i.value);  
+  
+  if (!name) { alert("Vul je naam in."); return; }  
+  if (selectedSpecs.includes("firecrew") && vzwPwdInput.value !== "Oudstrijder") {  
+    alert("Ongeldig VZW-wachtwoord."); return;  
+  }  
+  
+  localStorage.setItem("userName", name);  
+  localStorage.setItem("specialiteiten", JSON.stringify(selectedSpecs));  
+  
+  document.getElementById("greeting").textContent = `Welkom, ${name}!`;  
+  overlay.style.display = "none";  
+  
+  addSpecialLinks(selectedSpecs);  
+  renderGrid();  
+});  
+  
+// =====================================  
+// 🌟 Functies  
+// =====================================  
+function addSpecialLinks(specs) {  
+  specs.forEach(spec => {  
+    if (spec !== "brandweer") {  
+      if (spec === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"https://dgh.brandweerzonekempen.be/" };  
+      if (spec === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };  
+      if (spec === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };  
+      if (spec === "firecrew") links.firecrew = { title:"Firecrew", icon:"🔥", desc:"Exclusief", url:"/brandweerherentals/firecrew.html" };  
+    }  
+  });  
+}  
+  
+function renderGrid() {  
+  const grid = document.getElementById("buttonGrid");  
+  grid.innerHTML = "";  
+  Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,"nl")).forEach(item => {  
+    const a = document.createElement("a");  
+    a.className = "btn";  
+    a.href = item.url;  
+    a.innerHTML = `  
+      <div class="icon">${item.icon.endsWith(".png")? `<img src="${item.icon}" alt="${item.title}">`:item.icon}</div>  
+      <div>  
+        <div>${item.title}</div>  
+        <small>${item.desc}</small>  
+      </div>  
+    `;  
+    grid.appendChild(a);  
+  });  
+}  
+  
+// =====================================  
+// 📲 PWA INSTALL PROMPT  
+// =====================================  
+let deferredPrompt;  
+const installPrompt = document.getElementById("installPrompt");  
+const installBtn = document.getElementById("installNow");  
+const installClose = document.getElementById("installClose");  
+  
+window.addEventListener("beforeinstallprompt", e => {  
+  e.preventDefault();  
+  deferredPrompt = e;  
+  installPrompt.style.display = "flex";  
+});  
+  
+installBtn.addEventListener("click", async () => {  
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);  
+  if (isIOS) { alert("Op iPhone/iPad: gebruik ‘Zet op beginscherm’."); installPrompt.style.display="none"; return; }  
+  if (deferredPrompt) {  
+    deferredPrompt.prompt();  
+    const result = await deferredPrompt.userChoice;  
+    if(result.outcome==="accepted") localStorage.setItem("appInstalled","true");  
+    installPrompt.style.display="none";  
+  }  
+});  
+  
+installClose.addEventListener("click", ()=>installPrompt.style.display="none");  
+  
+</script>  <script src="/brandweerherentals/header.js"></script>  </body>  
+</html>  
