@@ -1,53 +1,23 @@
 <!doctype html>
-
 <html lang="nl">  
 <head>  
 <meta charset="utf-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Brandweer Herentals — Portal</title>  <!-- PWA -->  <link rel="manifest" href="/brandweerherentals/manifest.json">  
-<meta name="theme-color" content="#c71f1f">  <!-- Centrale layout -->  <link rel="stylesheet" href="style.css">  <style>  
-/* Overlay grafisch menu */  
-#welcomeOverlay {  
-  position: fixed;  
-  top:0; left:0; width:100%; height:100%;  
-  background: rgba(0,0,0,0.85);  
-  display:flex; justify-content:center; align-items:center;  
-  z-index:9999; flex-direction:column; padding:20px;  
-  color:#fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;  
-}  
-  
-#welcomeOverlay h2 {  
-  font-size: 1.8rem; margin-bottom: 16px;  
-  text-align:center; color: var(--red);  
-}  
-  
-#welcomeOverlay .input-group {  
-  display:flex; flex-direction:column; gap:12px; margin-bottom: 20px; width:100%; max-width:320px;  
-}  
-  
-#welcomeOverlay label {  
-  display:flex; align-items:center; gap:10px;  
-  cursor:pointer; background: #fff1f1; padding:10px 12px; border-radius:10px; color: #111;  
-  transition: all 0.15s;  
-}  
-  
-#welcomeOverlay label:hover {  
-  background: var(--red); color:#fff;  
-}  
-  
-#welcomeOverlay input[type=text] { flex:1; padding:8px; border-radius:6px; border:none; font-size:1rem; }  
-  
-#welcomeOverlay input[type=checkbox] { width:20px; height:20px; }  
-  
-#welcomeOverlay button {  
-  padding: 12px 20px; border:none; border-radius:10px;  
-  background: var(--red); color:#fff; font-weight:700; font-size:1rem;  
-  cursor:pointer; transition: all 0.15s;  
-}  
-  
-#welcomeOverlay button:hover { background: var(--red-dark); }  
-</style>  </head>  
-<body>  <div class="container" role="application" aria-label="Brandweer Herentals portal">    <!-- HEADER -->    <header id="appHeader">  
+<title>Brandweer Herentals — Portal</title>  
+<link rel="manifest" href="/brandweerherentals/manifest.json">  
+<meta name="theme-color" content="#c71f1f">  
+<link rel="stylesheet" href="style.css">  
+
+<style>  
+/* Overlay grafisch menu verwijderd */  
+</style>  
+</head>  
+
+<body>  
+<div class="container" role="application" aria-label="Brandweer Herentals portal">    
+
+  <!-- HEADER -->    
+  <header id="appHeader">  
     <div class="header-left">  
       <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">  
     </div>  
@@ -56,23 +26,31 @@
       <div id="datetime" class="header-datetime"></div>  
       <div id="ploegOfWeek" class="header-ploeg"></div>  
     </div>  
-  </header>    <!-- CONTENT -->    <main class="content">  
-    <div class="grid" id="buttonGrid" aria-live="polite"></div>  <!-- Install PWA prompt -->  
-<div id="installPrompt" class="overlay" style="display:none;">  
-  <div class="overlay-content" role="dialog" aria-modal="true">  
-    <span id="installText">📲 Voeg de app toe aan je startscherm</span>  
-    <button id="installNow">Toevoegen</button>  
-    <span class="close" id="installClose">✖</span>  
-  </div>  
-</div>
+  </header>    
 
-  </main>    <footer>  
+  <!-- CONTENT -->    
+  <main class="content">  
+    <div class="grid" id="buttonGrid" aria-live="polite"></div>  
+
+    <!-- Install PWA prompt -->  
+    <div id="installPrompt" class="overlay" style="display:none;">  
+      <div class="overlay-content" role="dialog" aria-modal="true">  
+        <span id="installText">📲 Voeg de app toe aan je startscherm</span>  
+        <button id="installNow">Toevoegen</button>  
+        <span class="close" id="installClose">✖</span>  
+      </div>  
+    </div>
+  </main>    
+
+  <footer>  
     <div>Versie 1.1</div>  
     <div></div>  
   </footer>  
-</div>  <!-- ================================ -->  <script>  
+</div>  
+
+<script>  
 // =====================================  
-// 🌟 Variabelen  
+// 🌟 Links  
 // =====================================  
 let links = {  
   abiweb: { title:"Abiweb", icon:"/brandweerherentals/icons/buttons/abiweb.png", desc:"Oefeningen en prestaties", url:"https://abiweb.brandweerzonekempen.be/" },  
@@ -85,94 +63,10 @@ let links = {
   wegenwerken: { title:"Wegenwerken", icon:"🚧", desc:"Actuele info", url:"/brandweerherentals/wegenwerken.html" },  
   wespen: { title:"Wespen", icon:"🐝", desc:"Ploeg van dienst", url:"/brandweerherentals/wespen.html" }  
 };  
-  
+
 // =====================================  
-// 🌟 Overlay HTML  
+// 🌟 Grid renderen  
 // =====================================  
-document.body.insertAdjacentHTML('beforeend', `  
-<div id="welcomeOverlay" style="display:none;">  
-  <h2>Welkom bij Brandweer Herentals</h2>  
-  <div class="input-group">  
-    <input type="text" id="userNameInput" placeholder="Vul je volledige naam in">  
-  </div>  
-  <div class="input-group">  
-    <label><input type="checkbox" value="brandweer"> Brandweer</label>  
-    <label><input type="checkbox" value="ambulancier"> Ambulancier</label>  
-    <label><input type="checkbox" value="chauffeur"> Chauffeur</label>  
-    <label><input type="checkbox" value="duiker"> Duiker</label>  
-  </div>  
-  <button id="confirmBtn">Bevestig</button>  
-</div>  
-`);  
-  
-const overlay = document.getElementById("welcomeOverlay");  
-const confirmBtn = document.getElementById("confirmBtn");  
-const userNameInput = document.getElementById("userNameInput");  
-const vzwPwdInput = document.getElementById("vzwPwdInput");  
-const vzwPwdGroup = document.getElementById("vzwPwdGroup");  
-  
-// =====================================  
-// 🌟 Eenmalige overlay tonen  
-// =====================================  
-window.addEventListener("DOMContentLoaded", () => {  
-  const savedName = localStorage.getItem("userName");  
-  const savedSpec = JSON.parse(localStorage.getItem("specialiteiten") || "[]");  
-  
-  if (savedName && savedSpec.length > 0) {  
-    document.getElementById("greeting").textContent = `Welkom, ${savedName}!`;  
-    addSpecialLinks(savedSpec);  
-    renderGrid();  
-  } else {  
-    overlay.style.display = "flex";  
-  }  
-});  
-  
-// =====================================  
-// 🌟 Toon wachtwoord veld bij VZW  
-// =====================================  
-document.querySelectorAll('#welcomeOverlay input[type=checkbox]').forEach(cb => {  
-  cb.addEventListener('change', () => {  
-    if (cb.value === 'firecrew') {  
-      vzwPwdGroup.style.display = cb.checked ? 'block' : 'none';  
-    }  
-  });  
-});  
-  
-// =====================================  
-// 🌟 Confirm knop  
-// =====================================  
-confirmBtn.addEventListener("click", () => {  
-  const name = userNameInput.value.trim();  
-  const selectedSpecs = Array.from(document.querySelectorAll('#welcomeOverlay input[type=checkbox]:checked')).map(i => i.value);  
-  
-  if (!name) { alert("Vul je naam in."); return; }  
-  if (selectedSpecs.includes("firecrew") && vzwPwdInput.value !== "Oudstrijder") {  
-    alert("Ongeldig VZW-wachtwoord."); return;  
-  }  
-  
-  localStorage.setItem("userName", name);  
-  localStorage.setItem("specialiteiten", JSON.stringify(selectedSpecs));  
-  
-  document.getElementById("greeting").textContent = `Welkom, ${name}!`;  
-  overlay.style.display = "none";  
-  
-  addSpecialLinks(selectedSpecs);  
-  renderGrid();  
-});  
-  
-// =====================================  
-// 🌟 Functies  
-// =====================================  
-function addSpecialLinks(specs) {  
-  specs.forEach(spec => {  
-    if (spec !== "brandweer") {  
-      if (spec === "ambulancier") links.ambulance = { title:"Ambulance", icon:"🚑", desc:"Toegang Ambulance", url:"https://dgh.brandweerzonekempen.be/" };  
-      if (spec === "chauffeur") links.chauffeur = { title:"Chauffeur", icon:"🚛", desc:"Toegang Chauffeur", url:"/brandweerherentals/chauffeur.html" };  
-      if (spec === "duiker") links.duiker = { title:"Duiker", icon:"🤿", desc:"Toegang Duiker", url:"/brandweerherentals/duiker.html" };  
-    }  
-  });  
-}  
-  
 function renderGrid() {  
   const grid = document.getElementById("buttonGrid");  
   grid.innerHTML = "";  
@@ -189,8 +83,11 @@ function renderGrid() {
     `;  
     grid.appendChild(a);  
   });  
-}  
-  
+}
+
+// Zometeen automatisch renderen
+renderGrid();
+
 // =====================================  
 // 📲 PWA INSTALL PROMPT  
 // =====================================  
@@ -198,13 +95,13 @@ let deferredPrompt;
 const installPrompt = document.getElementById("installPrompt");  
 const installBtn = document.getElementById("installNow");  
 const installClose = document.getElementById("installClose");  
-  
+
 window.addEventListener("beforeinstallprompt", e => {  
   e.preventDefault();  
   deferredPrompt = e;  
   installPrompt.style.display = "flex";  
 });  
-  
+
 installBtn.addEventListener("click", async () => {  
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);  
   if (isIOS) { alert("Op iPhone/iPad: gebruik ‘Zet op beginscherm’."); installPrompt.style.display="none"; return; }  
@@ -215,11 +112,10 @@ installBtn.addEventListener("click", async () => {
     installPrompt.style.display="none";  
   }  
 });  
-  
+
 installClose.addEventListener("click", ()=>installPrompt.style.display="none");  
-  
-</script>  <script src="/brandweerherentals/header.js"></script>  </body>  
-</html>  
 
-
-
+</script>  
+<script src="/brandweerherentals/header.js"></script>  
+</body>  
+</html>
