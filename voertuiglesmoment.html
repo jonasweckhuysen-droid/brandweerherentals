@@ -22,7 +22,7 @@ body {
   padding: 20px;
 }
 
-/* HEADER volledig rood */
+/* HEADER volledig rood met afgeronde hoeken */
 header#appHeader {
   display: flex;
   justify-content: space-between;
@@ -31,6 +31,12 @@ header#appHeader {
   color: white;
   padding: 10px 20px;
   border-radius: 12px;
+  border: 1px solid #c62828;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
 }
 
 .header-logo {
@@ -40,6 +46,7 @@ header#appHeader {
 .header-greeting, .header-datetime, .header-ploeg {
   margin-left: 10px;
   font-weight: bold;
+  color: white;
 }
 
 .backlink {
@@ -204,7 +211,7 @@ const chauffeurs = {
   "Steven Maes": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
   "Steven Vervloet": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
   "Sven Van Buren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Vincent Leemans": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"]
+  "Vincent Leemans": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541"]
 };
 
 const oefenmomenten = {
@@ -235,14 +242,19 @@ const oefenUitleg = {
   "Containers":["1: Kunnen werken met container"]
 };
 
-// --- Dynamische groepsverdeling ---
+// --- Groepindeling ---
 const currentDate = new Date();
 const currentYear = currentDate.getFullYear();
 const month = currentDate.getMonth() + 1;
-const isVoorjaar = month >= 1 && month <= 6;
+const isVoorjaar = month >=1 && month <=6;
 
-const sortedChauffeurs = Object.keys(chauffeurs).sort();
-const mid = Math.ceil(sortedChauffeurs.length / 2);
+const sortedChauffeurs = Object.keys(chauffeurs).sort((a,b)=>{
+  const lastA = a.split(" ").slice(-1)[0];
+  const lastB = b.split(" ").slice(-1)[0];
+  return lastA.localeCompare(lastB);
+});
+
+const mid = Math.ceil(sortedChauffeurs.length/2);
 const groep1 = sortedChauffeurs.slice(0, mid);
 const groep2 = sortedChauffeurs.slice(mid);
 
@@ -251,17 +263,18 @@ const najaarG1 = ["T545","H541","A541","Containers"];
 const voorjaarG2 = najaarG1;
 const najaarG2 = voorjaarG1;
 
-function getVoertuigenVoorChauffeur(chauffeur) {
+function getVoertuigenVoorChauffeur(chauffeur){
   const jaarModulo = currentYear % 2;
-  const groep1Voorjaar = jaarModulo === 0 ? voorjaarG1 : najaarG1;
-  const groep1Najaar = jaarModulo === 0 ? najaarG1 : voorjaarG1;
-  const groep2Voorjaar = jaarModulo === 0 ? voorjaarG2 : najaarG2;
-  const groep2Najaar = jaarModulo === 0 ? najaarG2 : voorjaarG2;
-
-  if(groep1.includes(chauffeur)) return isVoorjaar ? groep1Voorjaar : groep1Najaar;
-  else return isVoorjaar ? groep2Voorjaar : groep2Najaar;
+  const g1Voorjaar = jaarModulo===0?voorjaarG1:najaarG1;
+  const g1Najaar = jaarModulo===0?najaarG1:voorjaarG1;
+  const g2Voorjaar = jaarModulo===0?voorjaarG2:najaarG2;
+  const g2Najaar = jaarModulo===0?najaarG2:voorjaarG2;
+  
+  if(groep1.includes(chauffeur)) return isVoorjaar? g1Voorjaar : g1Najaar;
+  else return isVoorjaar? g2Voorjaar : g2Najaar;
 }
 
+// --- DOM ---
 const containerDiv = document.getElementById("chauffeurContainer");
 const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
@@ -270,87 +283,73 @@ const closeModal = document.querySelector(".close-modal");
 closeModal.onclick = () => modal.style.display="none";
 window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
 
-// --- Render functie ---
-function renderChauffeurs(filter="") {
+// --- Render ---
+function renderChauffeurs(filter=""){
   filter = filter.toLowerCase();
   containerDiv.innerHTML = "";
   for(let chauffeur of sortedChauffeurs){
-    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
     if(filter && !chauffeur.toLowerCase().includes(filter)) continue;
-
+    
+    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
     const card = document.createElement("div");
-    card.className = "chauffeur-card";
-
-    let totaal = 0, voltooid = 0;
-    voertuigen.forEach(v => totaal += oefenmomenten[v].length);
-    voertuigen.forEach(v => {
-      oefenmomenten[v].forEach(num => {
-        const key = `${chauffeur}_${v}_${num}`;
-        if(localStorage.getItem(key) === "true") voltooid++;
-      });
-    });
-
-    const h3 = document.createElement("h3");
-    h3.textContent = chauffeur + " ";
-    const counterSpan = document.createElement("span");
+    card.className="chauffeur-card";
+    
+    let totaal=0,voltooid=0;
+    voertuigen.forEach(v=>totaal+=oefenmomenten[v].length);
+    voertuigen.forEach(v=>oefenmomenten[v].forEach(n=>{
+      if(localStorage.getItem(`${chauffeur}_${v}_${n}`)==="true") voltooid++;
+    }));
+    
+    const h3=document.createElement("h3");
+    h3.textContent=chauffeur+" ";
+    const counterSpan=document.createElement("span");
     counterSpan.className="counter";
-    counterSpan.textContent = `${voltooid} / ${totaal} oefenmomenten voltooid`;
+    counterSpan.textContent=`${voltooid} / ${totaal} oefenmomenten voltooid`;
     h3.appendChild(counterSpan);
     card.appendChild(h3);
-
-    voertuigen.forEach(voertuig => {
-      const vehicleDiv = document.createElement("div");
-      vehicleDiv.className = "vehicle";
-
-      const vehHeader = document.createElement("div");
-      vehHeader.className = "veh-header";
-      vehHeader.innerHTML = `🚒 ${voertuig} <button class="info-btn">ℹ️</button>`;
+    
+    voertuigen.forEach(voertuig=>{
+      const vehicleDiv=document.createElement("div");
+      vehicleDiv.className="vehicle";
+      const vehHeader=document.createElement("div");
+      vehHeader.className="veh-header";
+      vehHeader.innerHTML=`🚒 ${voertuig} <button class="info-btn">ℹ️</button>`;
       vehicleDiv.appendChild(vehHeader);
-
-      const exerciseDiv = document.createElement("div");
-      exerciseDiv.className = "exercise-list";
-
-      oefenmomenten[voertuig].forEach(num => {
-        const label = document.createElement("label");
-        const input = document.createElement("input");
+      
+      const exerciseDiv=document.createElement("div");
+      exerciseDiv.className="exercise-list";
+      oefenmomenten[voertuig].forEach(num=>{
+        const label=document.createElement("label");
+        const input=document.createElement("input");
         input.type="checkbox";
-        input.dataset.chauffeur = chauffeur;
-        input.dataset.vehicle = voertuig;
-        input.dataset.exercise = num;
-
-        const key = `${chauffeur}_${voertuig}_${num}`;
-        input.checked = localStorage.getItem(key) === "true";
-
-        input.addEventListener("change", ()=>{
-          localStorage.setItem(key,input.checked);
-          renderChauffeurs(document.getElementById("searchInput").value);
-        });
-
+        input.dataset.chauffeur=chauffeur;
+        input.dataset.vehicle=voertuig;
+        input.dataset.exercise=num;
+        const key=`${chauffeur}_${voertuig}_${num}`;
+        input.checked=localStorage.getItem(key)==="true";
+        input.addEventListener("change",()=>{ localStorage.setItem(key,input.checked); renderChauffeurs(document.getElementById("searchInput").value); });
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
       });
-
       vehicleDiv.appendChild(exerciseDiv);
-
+      
       const infoBtn = vehHeader.querySelector(".info-btn");
       infoBtn.addEventListener("click",()=>{
-        modalText.innerHTML = `<h4>${voertuig} oefenmomenten:</h4><ul>`+
-          oefenUitleg[voertuig].map(x=>`<li>${x}</li>`).join('')+
-          `</ul>`;
+        modalText.innerHTML=`<h4>${voertuig} oefenmomenten:</h4><ul>`+
+        oefenUitleg[voertuig].map(x=>`<li>${x}</li>`).join('')+`</ul>`;
         modal.style.display="block";
       });
-
+      
       card.appendChild(vehicleDiv);
     });
-
+    
     containerDiv.appendChild(card);
   }
 }
 
 renderChauffeurs();
-
-document.getElementById("searchInput").addEventListener("input", function() {
+document.getElementById("searchInput").addEventListener("input",function(){
   renderChauffeurs(this.value);
 });
 </script>
