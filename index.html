@@ -78,7 +78,6 @@ let links = {
   abiweb: { title:"Abiweb", icon:"/brandweerherentals/icons/buttons/abiweb.png", desc:"Oefeningen en prestaties", url:"https://identity.brandweerzonekempen.be/Identity/Account/Login?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3Dabiweb.client.new" },  
   agenda: { title:"Agenda", icon:"📅", desc:"Belangrijke data en evenementen", url:"/brandweerherentals/agenda.html" },  
   defect: { title:"Defectmelding", icon:"🔧", desc:"Meld defecten", url:"/brandweerherentals/defectmelding.html" },  
-  kantine: { title:"Kantine", icon:"🍻", desc:"Bestellen & betalen", url:"/brandweerherentals/kantine.html" },  
   logistiek: { title:"Logistiek", icon:"/brandweerherentals/icons/buttons/winkelkar.png", desc:"Transport aanvragen", url:"https://form.jotform.com/230682691731055" },  
   order: { title:"Bestelling", icon:"📦", desc:"Materiaal bestellen", url:"https://forms.cloud.microsoft/e/GjHr1Kym0w" },  
   vehicle: { title:"Voertuigreservatie", icon:"🚒", desc:"Controle & reservatie", url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },  
@@ -94,7 +93,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="welcomeOverlay" style="display:none;">  
   <h2>Welkom bij Brandweer Herentals</h2>  
   <div class="input-group">  
-    <input type="text" id="userNameInput" placeholder="Vul je naam in">  
+    <input type="text" id="userNameInput" placeholder="Vul je volledige naam in">  
   </div>  
   <div class="input-group">  
     <label><input type="checkbox" value="brandweer"> Brandweer</label>  
@@ -226,3 +225,4 @@ installClose.addEventListener("click", ()=>installPrompt.style.display="none");
   
 </script>  <script src="/brandweerherentals/header.js"></script>  </body>  
 </html>  
+
