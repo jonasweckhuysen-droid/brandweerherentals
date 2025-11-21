@@ -6,396 +6,228 @@
 <title>Instructeurs voertuigen — Brandweer Herentals</title>
 
 <link rel="stylesheet" href="style.css">
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Instructeurs voertuigen</title>
-
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f2f4f7;
-    }
+/* Basis */
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: #f2f4f7;
+}
 
-    header {
-        background: linear-gradient(135deg, #c62828, #8e0000);
-        color: white;
-        padding: 20px;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-    }
+header {
+  background: linear-gradient(135deg, #c62828, #8e0000);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
 
-    .wrapper {
-        padding: 15px;
-        max-width: 800px;
-        margin: auto;
-    }
+/* Container */
+.wrapper {
+  padding: 15px;
+  max-width: 800px;
+  margin:auto;
+}
 
-    .back-btn {
-        width: 100%;
-        background: #444;
-        color: white;
-        border: none;
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 16px;
-        cursor: pointer;
-        margin-bottom: 20px;
-    }
+/* Terug knop */
+.back-btn, .backlink {
+  width: 100%;
+  background: #444;
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  text-align:center;
+  text-decoration:none;
+}
+.back-btn:hover, .backlink:hover { opacity:0.9; }
 
-    .card {
-        background: white;
-        padding: 15px;
-        border-radius: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        border-left: 6px solid #c62828;
-    }
+/* Grid en kaarten */
+.top-bar {
+  display: flex;
+  flex-direction: column;
+  gap:10px;
+  margin-bottom:15px;
+}
+.counter {
+  font-weight:bold;
+}
+#searchInput {
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:1rem;
+}
 
-    .vehicle {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
+.grid {
+  display:grid;
+  gap:12px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
 
-    .instructor {
-        font-size: 16px;
-        margin-bottom: 5px;
-    }
+.card {
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.06);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  border-left:6px solid #c62828;
+}
 
-    .phone {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 8px 12px;
-        background: #2e7d32;
-        color: white;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: bold;
-    }
+.card h3 {
+  margin:0;
+  font-size:1.1rem;
+  color:#c62828;
+}
 
-    .phone:hover {
-        background: #1b5e20;
-    }
+.veh {
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 
-    footer {
-        margin-top: 40px;
-        text-align: center;
-        color: #777;
-        font-size: 12px;
-    }
+.tel a {
+  text-decoration:none;
+  color:#111;
+  font-weight:600;
+}
+
+.tel a::before { content: "📞 "; }
+
+.call-btn {
+  margin-top:8px;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+  text-decoration:none;
+  background:#c62828;
+  color:white;
+  font-weight:bold;
+}
+.call-btn:hover { opacity:0.9; }
+
+footer {
+  margin-top:40px;
+  text-align:center;
+  color:#777;
+  font-size:12px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-    Instructeurs - Voertuigen
+  Instructeurs - Voertuigen
 </header>
 
 <div class="wrapper">
+  <!-- Terug knop -->
+  <a href="chauffeur.html" class="backlink">⬅ Ga terug naar chauffeurs</a>
 
-    <!-- TERUG KNOP -->
-    <button class="back-btn" onclick="location.href='chauffeurs.html'">
-        ⬅ Ga terug naar chauffeurs
-    </button>
-
-    <div id="container">
-        <p>Instructeurs laden...</p>
-    </div>
-
-</div>
-
-<footer>
-    Fire Crew Herentals 🔥
-</footer>
-
-<script>
-    const filePath = "data/Instructeurs voertuigen HA.xlsx";
-
-    fetch(filePath)
-        .then(res => res.arrayBuffer())
-        .then(data => {
-            const workbook = XLSX.read(data, { type: "array" });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            rows.shift(); // kopregel verwijderen
-
-            let html = "";
-
-            rows.forEach(row => {
-                const voertuig = row[0];
-                const instructeur = row[1];
-                const telefoon = row[2];
-
-                if(!voertuig || !instructeur || !telefoon) return;
-
-                html += `
-                    <div class="card">
-                        <div class="vehicle">🚒 ${voertuig}</div>
-                        <div class="instructor">👨‍🏫 ${instructeur}</div>
-                        <a class="phone" href="tel:${telefoon}">
-                            📞 ${telefoon}
-                        </a>
-                    </div>
-                `;
-            });
-
-            if (html === "") {
-                html = "<p>Geen instructeurs gevonden.</p>";
-            }
-
-            document.getElementById("container").innerHTML = html;
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("container").innerHTML = 
-            "<p style='color:red'>Fout bij het laden van het bestand.</p>";
-        });
-</script>
-
-</body>
-</html>
-
-<!-- SheetJS (xlsx inlezen) -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<style>
-main {
-  padding: 10px;
-}
-
-.page-title {
-  margin: 0.5rem 0 0.2rem;
-  font-size: 1.5rem;
-}
-
-.subtitle {
-  color: #444;
-  margin-bottom: 15px;
-}
-
-.top-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-#searchInput {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.counter {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-}
-
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-left: 6px solid var(--red);
-}
-
-.card h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: var(--red);
-}
-
-.veh {
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tel a {
-  text-decoration: none;
-  color: #111;
-  font-weight: 600;
-}
-
-.tel a::before {
-  content: "📞 ";
-}
-
-.backlink {
-  text-decoration: none;
-  font-weight: 600;
-  margin-top: 20px;
-  display: inline-block;
-  color: var(--red);
-}
-
-.loading {
-  color: #666;
-}
-  .call-btn {
-  margin-top: 8px;
-  padding: 10px;
-  border-radius: 10px;
-  text-align: center;
-  text-decoration: none;
-  background: var(--red);
-  color: white;
-  font-weight: bold;
-}
-.call-btn:hover {
-  opacity: 0.9;
-}
-</style>
-</head>
-<body>
-
-<div class="container">
-
-<header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
-</header>
-
-<main>
-
-  <h2 class="page-title">🚒 Instructeurs voertuigen</h2>
-  <p class="subtitle">Overzicht van alle beschikbare voertuig-instructeurs</p>
-
+  <!-- Teller + zoekfunctie -->
   <div class="top-bar">
     <div class="counter" id="counter">Inladen...</div>
     <input type="text" id="searchInput" placeholder="Zoek op instructeur of voertuig...">
   </div>
 
+  <!-- Grid -->
   <div id="grid" class="grid">
     <div class="loading">📡 Excelbestand wordt ingelezen...</div>
   </div>
-
-  <a href="chauffeur.html" class="backlink">← Terug naar Chauffeur</a>
-
-</main>
+</div>
 
 <footer>
-  <div>Brandweer Herentals</div>
+  Brandweer Herentals
 </footer>
 
 <script src="/brandweerherentals/header.js"></script>
 
 <script>
 const EXCEL_FILE = "/brandweerherentals/data/Instructeurs voertuigen HA.xlsx";
-
 let allData = [];
 
+// Excel uitlezen
 fetch(EXCEL_FILE)
   .then(res => res.arrayBuffer())
   .then(buffer => {
-    const workbook = XLSX.read(buffer, { type: "array" });
+    const workbook = XLSX.read(buffer, { type:"array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(sheet);
 
-    // Lege rijen eruit filteren
-    allData = data.filter(row => row.Voertuig && row.Instructeur);
+    // Filter lege rijen
+    allData = data.filter(row => row.Voertuig && row.Instructeur && row.Telefoonnummer);
 
-    // Sorteren op voertuig -> instructeur
-    allData.sort((a, b) => {
-      if (a.Voertuig === b.Voertuig) {
-        return a.Instructeur.localeCompare(b.Instructeur, 'nl');
-      }
-      return a.Voertuig.localeCompare(b.Voertuig, 'nl');
+    // Sorteren op voertuig, dan instructeur
+    allData.sort((a,b) => {
+      if(a.Voertuig === b.Voertuig) return a.Instructeur.localeCompare(b.Instructeur,'nl');
+      return a.Voertuig.localeCompare(b.Voertuig,'nl');
     });
 
     render(allData);
   })
   .catch(err => {
     console.error(err);
-    document.getElementById("grid").innerHTML =
-      "<div>❌ Fout bij het laden van het Excelbestand.</div>";
+    document.getElementById("grid").innerHTML = "<div>❌ Fout bij het laden van het Excelbestand.</div>";
   });
 
-
-function getVehicleIcon(name = "") {
+// Icon kiezen op voertuignaam
+function getVehicleIcon(name="") {
   const n = name.toLowerCase();
-  if (n.includes("ladder")) return "🪜";
-  if (n.includes("ambulance")) return "🚑";
-  if (n.includes("tank")) return "🚛";
-  if (n.includes("command")) return "🚓";
+  if(n.includes("ladder")) return "🪜";
+  if(n.includes("ambulance")) return "🚑";
+  if(n.includes("tank")) return "🚛";
+  if(n.includes("command")) return "🚓";
   return "🚒";
 }
 
-
-function render(data) {
+// Render functie
+function render(data){
   const grid = document.getElementById("grid");
   const counter = document.getElementById("counter");
 
   grid.innerHTML = "";
   counter.textContent = `👨‍🏫 ${data.length} instructeurs gevonden`;
 
-  if (data.length === 0) {
-    grid.innerHTML = "<div>Geen resultaten gevonden.</div>";
+  if(data.length===0){
+    grid.innerHTML="<div>Geen resultaten gevonden.</div>";
     return;
   }
 
-  data.forEach(row => {
+  data.forEach(row=>{
     const card = document.createElement("div");
-    card.className = "card";
+    card.className="card";
 
-    const icon = getVehicleIcon(row.Voertuig || "");
+    const icon = getVehicleIcon(row.Voertuig);
 
- card.innerHTML = `
-  <h3>${row.Instructeur}</h3>
-  <div class="veh">${icon} ${row.Voertuig}</div>
-  <div class="tel">📞 ${row.Telefoonnummer || "Onbekend"}</div>
-
-  <a class="call-btn" 
-     href="tel:${(row.Telefoonnummer || "").replace(/\s+/g,'')}">
-     ☎️ Bel nu
-  </a>
-`;
-
+    card.innerHTML=`
+      <h3>${row.Instructeur}</h3>
+      <div class="veh">${icon} ${row.Voertuig}</div>
+      <div class="tel">📞 ${row.Telefoonnummer}</div>
+      <a class="call-btn" href="tel:${row.Telefoonnummer.replace(/\s+/g,'')}">☎️ Bel nu</a>
+    `;
     grid.appendChild(card);
   });
 }
 
-
-// ZOEKFUNCTIE
-document.getElementById("searchInput").addEventListener("input", function () {
+// Zoekfunctie
+document.getElementById("searchInput").addEventListener("input", function(){
   const term = this.value.toLowerCase();
-
-  const filtered = allData.filter(row =>
-    (row.Voertuig || "").toLowerCase().includes(term) ||
-    (row.Instructeur || "").toLowerCase().includes(term)
+  const filtered = allData.filter(row=>
+    row.Voertuig.toLowerCase().includes(term) || row.Instructeur.toLowerCase().includes(term)
   );
-
   render(filtered);
 });
-
 </script>
 
-</div>
 </body>
 </html>
