@@ -15,11 +15,11 @@ body {
 
 .container {
   max-width: 900px;
-  margin: 20px auto 0 auto; /* top margin alleen, header vult nu volledig */
+  margin: 20px auto 0 auto;
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  padding: 0 20px 20px 20px; /* padding boven is 0 om header volledig te laten doorlopen */
+  padding: 0 20px 20px 20px;
 }
 
 /* HEADER volledig rood en bovenaan vullend tot afgeronde hoeken */
@@ -30,9 +30,9 @@ header#appHeader {
   background: #c62828;
   color: white;
   padding: 15px 20px;
-  border-radius: 15px 15px 0 0; /* gelijk aan container */
+  border-radius: 15px 15px 0 0;
   border-bottom: 1px solid #c62828;
-  margin-bottom: 20px; /* ruimte onder header */
+  margin-bottom: 20px;
 }
 
 .header-left, .header-right {
@@ -237,16 +237,12 @@ const month = currentDate.getMonth()+1;
 const isVoorjaar = month>=1 && month<=6;
 const yearModulo = currentDate.getFullYear()%2;
 
-const sortedChauffeurs = Object.keys(chauffeurs).sort((a,b)=>{
-  const lastA = a.split(" ").slice(-1)[0];
-  const lastB = b.split(" ").slice(-1)[0];
-  return lastA.localeCompare(lastB);
-});
-const mid = Math.ceil(sortedChauffeurs.length/2);
+// ⚡ Volgorde exact behouden zoals in originele code
+const sortedChauffeurs = Object.keys(chauffeurs);
 
-// ✅ OMGEWISSELD: enkel groep1 ⇄ groep2
-const groep1 = sortedChauffeurs.slice(mid);
-const groep2 = sortedChauffeurs.slice(0, mid);
+const mid = Math.ceil(sortedChauffeurs.length/2);
+const groep1 = sortedChauffeurs.slice(0,mid);
+const groep2 = sortedChauffeurs.slice(mid);
 
 const voorjaarG1 = ["B541","L544","L549","A545","D541","M545"];
 const najaarG1 = ["T545","H541","A541","Containers"];
@@ -264,7 +260,7 @@ function getVoertuigenVoorChauffeur(chauffeur){
       : (yearModulo===0?najaarG2:voorjaarG2);
 }
 
-// --- DOM ---
+// --- DOM & Render ---
 const containerDiv = document.getElementById("chauffeurContainer");
 const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
@@ -273,7 +269,6 @@ const closeModal = document.querySelector(".close-modal");
 closeModal.onclick = () => modal.style.display="none";
 window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
 
-// --- Render ---
 function renderChauffeurs(filter=""){
   filter = filter.toLowerCase();
   containerDiv.innerHTML="";
