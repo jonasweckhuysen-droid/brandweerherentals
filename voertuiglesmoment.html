@@ -4,7 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
+
 <link rel="stylesheet" href="style.css">
+
 <style>
   :root {
     --red: #c62828;
@@ -24,7 +26,6 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     padding: 20px;
     position: relative;
-    overflow: visible;
   }
 
   header#appHeader {
@@ -33,11 +34,10 @@
     align-items:center;
     background: var(--red);
     color: #fff;
-    padding: 14px 20px;
-    border-radius: 12px;
-    margin: -20px -20px 16px -20px;
+    padding: 16px 20px;
+    border-radius: 15px;
+    margin: -20px -20px 25px -20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    border: 1px solid var(--red);
   }
 
   .header-left, .header-right { 
@@ -59,8 +59,8 @@
 
   .backlink {
     display:inline-block;
-    margin: 12px 0 18px 0;
-    padding: 8px 12px;
+    margin: 15px 0 18px 0;
+    padding: 10px 14px;
     background: var(--red);
     color: #fff;
     text-decoration: none;
@@ -86,84 +86,16 @@
   }
 
   .chauffeur-card h3 {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
     margin:0 0 8px 0;
   }
 
-  .counter { 
-    font-size:0.9rem; 
-    color:#555; 
-    font-weight:600; 
-  }
-
   .vehicle {
-    margin-top:10px;
+    margin-top:8px;
     padding:10px;
     border:1px solid #eee;
     border-radius:12px;
     background:#fff;
-  }
-
-  .veh-header { 
-    display:flex; 
-    justify-content:space-between; 
-    align-items:center; 
-    font-weight:700; 
-    margin-bottom:8px; 
-  }
-
-  .exercise-list label { 
-    display:block; 
-    margin-bottom:6px; 
-    cursor: pointer; 
-  }
-
-  .info-btn { 
-    background:transparent; 
-    border:none; 
-    cursor:pointer; 
-    font-size:1.05rem; 
-  }
-
-  .modal {
-    display:none;
-    position:fixed;
-    z-index:1000;
-    left:0; 
-    top:0; 
-    width:100%; 
-    height:100%;
-    overflow:auto;
-    background-color:rgba(0,0,0,0.5);
-  }
-
-  .modal-content {
-    background:#fff; 
-    margin:8% auto; 
-    padding:18px; 
-    border-radius:12px; 
-    width:92%; 
-    max-width:640px;
-  }
-
-  .close-modal { 
-    float:right; 
-    cursor:pointer; 
-    font-size:1.2rem; 
-    font-weight:700; 
-  }
-
-  .call-btn {
-    margin-top:8px; 
-    padding:8px 12px; 
-    border-radius:8px; 
-    text-decoration:none; 
-    background:var(--red); 
-    color:#fff; 
-    font-weight:700; 
-    display:inline-block;
+    font-weight: 600;
   }
 </style>
 </head>
@@ -184,74 +116,72 @@
 
 <main>
   <a href="index.html" class="backlink">← Terug naar menu</a>
+
   <input type="text" id="searchInput" placeholder="Zoek op naam...">
+
   <div id="chauffeurContainer"></div>
 </main>
-
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal">✖</span>
-    <div id="modalText"></div>
-  </div>
-</div>
 
 </div>
 
 <script>
-
+/* CHAUFFEURS */
 const chauffeurs = {
-  "Dries Boven": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Robin Buyens": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Bart Cools": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Kurt Cools": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Gianni Cornelis": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Roel Dekort": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Rik Goris": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Kris Hoeylaerts": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Philippe Hoeylaerts": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Vincent Leemans": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Bart Leten": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Steven Maes": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Liese Meyskens": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Rutger Moons": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Sven Van Buren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Jakke Van den Broeck": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Kris Van Looveren": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Noël Van Roy": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Joris Van Vracem": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Cristoph Verhaegen": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"],
-  "Robbe Vervecken": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
-  "Steven Vervloet": ["B541","L544","L549","A545","D541","M545","L545","T545","H541","A541","Containers"]
+  "Dries Boven": [],
+  "Robin Buyens": [],
+  "Bart Cools": [],
+  "Kurt Cools": [],
+  "Gianni Cornelis": [],
+  "Roel Dekort": [],
+  "Rik Goris": [],
+  "Kris Hoeylaerts": [],
+  "Philippe Hoeylaerts": [],
+  "Vincent Leemans": [],
+  "Bart Leten": [],
+  "Steven Maes": [],
+  "Liese Meyskens": [],
+  "Rutger Moons": [],
+  "Sven Van Buren": [],
+  "Jakke Van den Broeck": [],
+  "Kris Van Looveren": [],
+  "Noël Van Roy": [],
+  "Joris Van Vracem": [],
+  "Cristoph Verhaegen": [],
+  "Robbe Vervecken": [],
+  "Steven Vervloet": []
 };
 
-const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],
-  "L544":[1,2,3,4],
-  "L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3],
-  "M545":[1,2,3,4],
-  "L545":[1,2,3],
-  "T545":[1,2,3,4,5,6],
-  "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6],
-  "Containers":[1]
-};
+/* Alfabetisch sorteren op ACHTERNAAM */
+const orderedChauffeurs = Object.keys(chauffeurs).sort((a, b) => {
+  const lastA = a.split(" ").pop().toLowerCase();
+  const lastB = b.split(" ").pop().toLowerCase();
+  return lastA.localeCompare(lastB);
+});
 
-const oefenUitleg = {...}; // onveranderd
-
-const currentDate = new Date();
-const month = currentDate.getMonth() + 1;
-const isVoorjaar = (month >= 1 && month <= 6);
-
-const orderedChauffeurs = Object.keys(chauffeurs);
+/* Groepen in 2 splitsen */
 const mid = Math.ceil(orderedChauffeurs.length / 2);
 const groep1 = orderedChauffeurs.slice(0, mid);
 const groep2 = orderedChauffeurs.slice(mid);
 
-const voorjaarG1 = ["T545","H541","A541","Containers"];
-const najaarG1  = ["B541","L544","L549","A545","D541","M545"];
+/* Datum bepalen */
+const currentDate = new Date();
+const month = currentDate.getMonth() + 1;
+const year = currentDate.getFullYear();
+const isVoorjaar = (month >= 1 && month <= 6);
+const isEvenYear = year % 2 === 0;
 
+/* Jaarlijks wisselen */
+let voorjaarG1, najaarG1;
+
+if (isEvenYear) {
+  voorjaarG1 = ["B541","L544","L549","A545","D541","M541"];
+  najaarG1   = ["T545","H541","A541","Containers"];
+} else {
+  voorjaarG1 = ["T545","H541","A541","Containers"];
+  najaarG1   = ["B541","L544","L549","A545","D541","M541"];
+}
+
+/* Groep 2 is altijd het tegenovergestelde */
 const voorjaarG2 = najaarG1;
 const najaarG2   = voorjaarG1;
 
@@ -263,36 +193,45 @@ function getVoertuigenVoorChauffeur(chauffeur) {
   }
 }
 
-const containerDiv = document.getElementById("chauffeurContainer");
+const container = document.getElementById("chauffeurContainer");
 
-function renderChauffeurs() {
-  containerDiv.innerHTML = "";
-  for (let chauffeur of orderedChauffeurs) {
+/* Renderen */
+function renderChauffeurs(filter = "") {
+  container.innerHTML = "";
 
-    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+  orderedChauffeurs
+    .filter(name => name.toLowerCase().includes(filter.toLowerCase()))
+    .forEach(chauffeur => {
 
-    const card = document.createElement("div");
-    card.className = "chauffeur-card";
+      const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
 
-    const h3 = document.createElement("h3");
-    h3.innerText = chauffeur;
-    card.appendChild(h3);
+      const card = document.createElement("div");
+      card.className = "chauffeur-card";
 
-    voertuigen.forEach(v => {
-      const d = document.createElement("div");
-      d.className = "vehicle";
-      d.innerText = v;
-      card.appendChild(d);
-    });
+      const title = document.createElement("h3");
+      title.textContent = chauffeur;
+      card.appendChild(title);
 
-    containerDiv.appendChild(card);
-  }
+      voertuigen.forEach(v => {
+        const d = document.createElement("div");
+        d.className = "vehicle";
+        d.textContent = v;
+        card.appendChild(d);
+      });
+
+      container.appendChild(card);
+  });
 }
 
 renderChauffeurs();
 
+/* Zoekfunctie */
+document.getElementById("searchInput").addEventListener("input", function() {
+  renderChauffeurs(this.value);
+});
 </script>
 
 <script src="/brandweerherentals/header.js"></script>
+
 </body>
 </html>
