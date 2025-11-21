@@ -3,9 +3,112 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chauffeur — Brandweer Herentals</title>
+<title>Instructeurs voertuigen — Brandweer Herentals</title>
 
 <link rel="stylesheet" href="style.css">
+
+<!-- SheetJS (xlsx inlezen) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+main {
+  padding: 10px;
+}
+
+.page-title {
+  margin: 0.5rem 0 0.2rem;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  color: #444;
+  margin-bottom: 15px;
+}
+
+.top-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#searchInput {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.counter {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 6px solid var(--red);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--red);
+}
+
+.veh {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tel a {
+  text-decoration: none;
+  color: #111;
+  font-weight: 600;
+}
+
+.tel a::before {
+  content: "📞 ";
+}
+
+.backlink {
+  text-decoration: none;
+  font-weight: 600;
+  margin-top: 20px;
+  display: inline-block;
+  color: var(--red);
+}
+
+.loading {
+  color: #666;
+}
+  .call-btn {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  text-decoration: none;
+  background: var(--red);
+  color: white;
+  font-weight: bold;
+}
+.call-btn:hover {
+  opacity: 0.9;
+}
+</style>
 </head>
 <body>
 
@@ -23,16 +126,119 @@
 </header>
 
 <main>
-  <h2>Chauffeur Module</h2>
-  <p>Hier komen later functies voor chauffeurs: checklists, statussen, documenten, …</p>
 
-  <a href="index.html" class="backlink">← Terug naar menu</a>
+  <h2 class="page-title">🚒 Instructeurs voertuigen</h2>
+  <p class="subtitle">Overzicht van alle beschikbare voertuig-instructeurs</p>
+
+  <div class="top-bar">
+    <div class="counter" id="counter">Inladen...</div>
+    <input type="text" id="searchInput" placeholder="Zoek op instructeur of voertuig...">
+  </div>
+
+  <div id="grid" class="grid">
+    <div class="loading">📡 Excelbestand wordt ingelezen...</div>
+  </div>
+
+  <a href="chauffeur.html" class="backlink">← Terug naar Chauffeur</a>
+
 </main>
 
 <footer>
   <div>Brandweer Herentals</div>
 </footer>
+
 <script src="/brandweerherentals/header.js"></script>
+
+<script>
+const EXCEL_FILE = "/brandweerherentals/data/Instructeurs voertuigen HA.xlsx";
+
+let allData = [];
+
+fetch(EXCEL_FILE)
+  .then(res => res.arrayBuffer())
+  .then(buffer => {
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(sheet);
+
+    // Lege rijen eruit filteren
+    allData = data.filter(row => row.Voertuig && row.Instructeur);
+
+    // Sorteren op voertuig -> instructeur
+    allData.sort((a, b) => {
+      if (a.Voertuig === b.Voertuig) {
+        return a.Instructeur.localeCompare(b.Instructeur, 'nl');
+      }
+      return a.Voertuig.localeCompare(b.Voertuig, 'nl');
+    });
+
+    render(allData);
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("grid").innerHTML =
+      "<div>❌ Fout bij het laden van het Excelbestand.</div>";
+  });
+
+
+function getVehicleIcon(name = "") {
+  const n = name.toLowerCase();
+  if (n.includes("ladder")) return "🪜";
+  if (n.includes("ambulance")) return "🚑";
+  if (n.includes("tank")) return "🚛";
+  if (n.includes("command")) return "🚓";
+  return "🚒";
+}
+
+
+function render(data) {
+  const grid = document.getElementById("grid");
+  const counter = document.getElementById("counter");
+
+  grid.innerHTML = "";
+  counter.textContent = `👨‍🏫 ${data.length} instructeurs gevonden`;
+
+  if (data.length === 0) {
+    grid.innerHTML = "<div>Geen resultaten gevonden.</div>";
+    return;
+  }
+
+  data.forEach(row => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const icon = getVehicleIcon(row.Voertuig || "");
+
+ card.innerHTML = `
+  <h3>${row.Instructeur}</h3>
+  <div class="veh">${icon} ${row.Voertuig}</div>
+  <div class="tel">📞 ${row.Telefoonnummer || "Onbekend"}</div>
+
+  <a class="call-btn" 
+     href="tel:${(row.Telefoonnummer || "").replace(/\s+/g,'')}">
+     ☎️ Bel nu
+  </a>
+`;
+
+    grid.appendChild(card);
+  });
+}
+
+
+// ZOEKFUNCTIE
+document.getElementById("searchInput").addEventListener("input", function () {
+  const term = this.value.toLowerCase();
+
+  const filtered = allData.filter(row =>
+    (row.Voertuig || "").toLowerCase().includes(term) ||
+    (row.Instructeur || "").toLowerCase().includes(term)
+  );
+
+  render(filtered);
+});
+
+</script>
+
 </div>
 </body>
 </html>
