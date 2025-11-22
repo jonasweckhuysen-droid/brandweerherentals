@@ -19,7 +19,8 @@ header#appHeader { display:flex; justify-content:space-between; align-items:cent
 .chauffeur-card h3 { display:flex; justify-content:space-between; align-items:center; }
 .counter { font-size:0.9rem; color:#555; }
 .vehicle { margin-top:10px; padding:10px; border:1px solid #eee; border-radius:12px; background:#fff; }
-.veh-header { font-weight:bold; margin-bottom:8px; }
+.veh-header { font-weight:bold; margin-bottom:8px; display:flex; align-items:center; }
+.veh-header label { margin-right:8px; font-weight:bold; }
 .exercise-list label { display:block; margin-bottom:4px; }
 </style>
 </head>
@@ -120,38 +121,46 @@ function renderChauffeurs(filter=""){
 
     let totaal=0, voltooid=0;
 
-    voertuigen.forEach(v=>{
-      if(!oefenmomenten[v]) return;
-      totaal += oefenmomenten[v].length;
-      oefenmomenten[v].forEach(n=>{
-        const ref = database.ref(`oefenmomenten/${chauffeur}/${v}_${n}`);
-        ref.on("value", snap=>{
-          if(snap.val()===true) voltooid++;
-          h3.querySelector(".counter").textContent=`${voltooid} / ${totaal} oefenmomenten voltooid`;
-        });
-      });
-    });
-
     const h3 = document.createElement("h3");
     h3.innerHTML=`${chauffeur}<span class="counter">${voltooid} / ${totaal} oefenmomenten voltooid</span>`;
     card.appendChild(h3);
 
     voertuigen.forEach(voertuig=>{
       if(!oefenmomenten[voertuig]) return;
-      const vehicleDiv=document.createElement("div"); vehicleDiv.className="vehicle";
 
-      const vehHeader=document.createElement("div"); vehHeader.className="veh-header";
-      vehHeader.textContent="🚒 "+voertuig;
+      const vehicleDiv = document.createElement("div");
+      vehicleDiv.className = "vehicle";
 
-      const exerciseDiv=document.createElement("div"); exerciseDiv.className="exercise-list";
+      const vehHeader = document.createElement("div");
+      vehHeader.className = "veh-header";
+
+      // Master checkbox
+      const masterCheckbox = document.createElement("input");
+      masterCheckbox.type="checkbox";
+      masterCheckbox.style.marginRight="8px";
+      const masterLabel = document.createElement("label");
+      masterLabel.appendChild(masterCheckbox);
+      masterLabel.appendChild(document.createTextNode("Alles"));
+      vehHeader.textContent = "🚒 " + voertuig;
+      vehHeader.prepend(masterLabel);
+
+      const exerciseDiv = document.createElement("div");
+      exerciseDiv.className="exercise-list";
 
       oefenmomenten[voertuig].forEach(num=>{
-        const label=document.createElement("label");
-        const input=document.createElement("input");
-        input.type="checkbox";
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        input.type = "checkbox";
 
-        const ref = database.ref(`oefenmomenten/${chauffeur}/${voertuig}_${num}`);
-        ref.on("value", snap=>{ input.checked = snap.val()===true; });
+        const key = `${chauffeur}/${voertuig}_${num}`;
+        const ref = database.ref(`oefenmomenten/${key}`);
+
+        // Realtime sync
+        ref.on("value", snap=>{
+          input.checked = snap.val()===true;
+          updateCounter();
+          updateMasterCheckbox();
+        });
 
         input.addEventListener("change", ()=>{
           ref.set(input.checked);
@@ -160,6 +169,33 @@ function renderChauffeurs(filter=""){
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
+      });
+
+      // Master checkbox functionaliteit
+      function updateMasterCheckbox(){
+        const allChecked = Array.from(exerciseDiv.querySelectorAll("input[type=checkbox]"))
+                            .every(cb=>cb.checked);
+        masterCheckbox.checked = allChecked;
+      }
+
+      function updateCounter(){
+        let done=0, total=0;
+        oefenmomenten[voertuig].forEach(num=>{
+          total++;
+          const cb = exerciseDiv.querySelector(`label:nth-child(${num}) input`);
+          if(cb && cb.checked) done++;
+        });
+        const oldText = h3.querySelector(".counter");
+        oldText.textContent = `${done} / ${total} oefenmomenten voltooid`;
+      }
+
+      masterCheckbox.addEventListener("change", ()=>{
+        const checked = masterCheckbox.checked;
+        exerciseDiv.querySelectorAll("input[type=checkbox]").forEach((cb, i)=>{
+          cb.checked = checked;
+          const num = oefenmomenten[voertuig][i];
+          database.ref(`oefenmomenten/${chauffeur}/${voertuig}_${num}`).set(checked);
+        });
       });
 
       vehicleDiv.appendChild(vehHeader);
@@ -177,7 +213,6 @@ function renderChauffeurs(filter=""){
 
 renderChauffeurs();
 document.getElementById("searchInput").addEventListener("input",function(){renderChauffeurs(this.value);});
-
 </script>
 
 <script src="/brandweerherentals/header.js"></script>
