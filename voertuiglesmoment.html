@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
-<link rel="stylesheet" href="style.css">
 
 <style>
 body { margin:0; font-family: Arial, sans-serif; background:#f2f4f7; }
@@ -34,8 +33,6 @@ header#appHeader { display:flex; justify-content:space-between; align-items:cent
   </div>
   <div class="header-right">
     <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
   </div>
 </header>
 
@@ -44,7 +41,6 @@ header#appHeader { display:flex; justify-content:space-between; align-items:cent
   <input type="text" id="searchInput" placeholder="Zoek op naam...">
   <div id="chauffeurContainer"></div>
 </main>
-
 </div>
 
 <!-- Firebase -->
@@ -52,48 +48,67 @@ header#appHeader { display:flex; justify-content:space-between; align-items:cent
 <script src="https://www.gstatic.com/firebasejs/9.30.0/firebase-database-compat.js"></script>
 
 <script>
-// ===================== FIREBASE INITIALISATIE =====================
-const firebaseConfig = {
+// ===================== FIREBASE =====================
+firebase.initializeApp({
   databaseURL: "https://bwhchauffeur-default-rtdb.europe-west1.firebasedatabase.app/"
-};
-firebase.initializeApp(firebaseConfig);
+});
 const database = firebase.database();
 
-// ===================== TOEGANGSRECHTEN =====================
-const loggedInUser = localStorage.getItem("userName") || "";
-const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
+// ===================== LOGIN =====================
+let loggedInUser = localStorage.getItem("userName");
+
+if(!loggedInUser || loggedInUser.trim() === ""){
+  loggedInUser = prompt("Geef je naam in (exact zoals geregistreerd):");
+  if(loggedInUser){
+    localStorage.setItem("userName", loggedInUser);
+  }
+}
+
+// ===================== ADMINS =====================
+const admins = [
+  "Patrick Van Hove",
+  "Alain Leemans",
+  "Jonas Weckhuysen",
+  "Danny Van Den Bergh"
+];
+
 const isAdmin = admins.includes(loggedInUser);
 
 // ===================== DATA =====================
-const chauffeurs = {
-  "Dries Boven": [], "Robin Buyens": [], "Bart Cools": [], "Kurt Cools": [], "Gianni Cornelis": [],
-  "Roel Dekort": [], "Rik Goris": [], "Kris Hoeylaerts": [], "Philippe Hoeylaerts": [], "Vincent Leemans": [],
-  "Bart Leten": [], "Steven Maes": [], "Liese Meyskens": [], "Rutger Moons": [], "Sven Van Buren": [],
-  "Jakke Van den Broeck": [], "Kris Van Looveren": [], "Noël Van Roy": [], "Joris Van Vracem": [],
-  "Cristoph Verhaegen": [], "Robbe Vervecken": [], "Steven Vervloet": []
-};
+const chauffeurs = [
+  "Dries Boven","Robin Buyens","Bart Cools","Kurt Cools","Gianni Cornelis",
+  "Roel Dekort","Rik Goris","Kris Hoeylaerts","Philippe Hoeylaerts","Vincent Leemans",
+  "Bart Leten","Steven Maes","Liese Meyskens","Rutger Moons","Sven Van Buren",
+  "Jakke Van den Broeck","Kris Van Looveren","Noël Van Roy","Joris Van Vracem",
+  "Cristoph Verhaegen","Robbe Vervecken","Steven Vervloet"
+];
 
 const oefenmomenten = {
-  "B541":[1,2,3,4,5,6], "L544":[1,2,3,4], "L549":[1,2,3,4,5], "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3], "M545":[1,2,3,4], "T545":[1,2,3,4,5,6], "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6], "Containers":[1]
+  "B541":[1,2,3,4,5,6],
+  "L544":[1,2,3,4],
+  "L549":[1,2,3,4,5],
+  "A545":[1,2,3,4,5,6],
+  "D541":[1,2,3],
+  "M545":[1,2,3,4],
+  "T545":[1,2,3,4,5,6],
+  "H541":[1,2,3,4,5,6],
+  "A541":[1,2,3,4,5,6],
+  "Containers":[1]
 };
 
 // ===================== GROEPEN =====================
-const chauffeursVolgorde = Object.keys(chauffeurs);
-const mid = Math.ceil(chauffeursVolgorde.length/2);
-const groep1 = chauffeursVolgorde.slice(0,mid);
-const groep2 = chauffeursVolgorde.slice(mid);
+const mid = Math.ceil(chauffeurs.length/2);
+const groep1 = chauffeurs.slice(0,mid);
+const groep2 = chauffeurs.slice(mid);
 
 const voorjaarSetA = ["B541","L544","L549","A545","D541","M545"];
 const najaarSetA = ["T545","H541","A541","Containers"];
 const voorjaarSetB = najaarSetA;
 const najaarSetB = voorjaarSetA;
 
-const currentDate = new Date();
-const month = currentDate.getMonth()+1;
+const month = new Date().getMonth()+1;
 const isVoorjaar = month<=6;
-const evenYear = currentDate.getFullYear()%2===0;
+const evenYear = new Date().getFullYear()%2===0;
 
 function getVoertuigenVoorChauffeur(chauffeur){
   const inGroep1 = groep1.includes(chauffeur);
@@ -105,117 +120,116 @@ function getVoertuigenVoorChauffeur(chauffeur){
 }
 
 // ===================== RENDER =====================
-const containerDiv = document.getElementById("chauffeurContainer");
+const container = document.getElementById("chauffeurContainer");
 
 function renderChauffeurs(filter=""){
-  filter = (filter||"").toLowerCase();
-  containerDiv.innerHTML="";
+  container.innerHTML="";
+  filter = filter.toLowerCase();
 
-  chauffeursVolgorde.forEach(chauffeur=>{
-    // Admins zien iedereen, anderen alleen zichzelf
-    if(!isAdmin && chauffeur!==loggedInUser) return;
+  chauffeurs.forEach(chauffeur => {
+
+    if(!isAdmin && chauffeur !== loggedInUser) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+
     const card = document.createElement("div");
-    card.className="chauffeur-card";
+    card.className = "chauffeur-card";
 
-    const h3 = document.createElement("h3");
-    h3.innerHTML = `${chauffeur}<span class="counter">0 / 0 oefenmomenten voltooid</span>`;
-    card.appendChild(h3);
+    const counter = document.createElement("span");
+    counter.className = "counter";
 
-    voertuigen.forEach(voertuig=>{
+    const title = document.createElement("h3");
+    title.appendChild(document.createTextNode(chauffeur));
+    title.appendChild(counter);
+    card.appendChild(title);
+
+    let totaal = 0;
+    let done = 0;
+
+    voertuigen.forEach(voertuig => {
+
       if(!oefenmomenten[voertuig]) return;
 
-      const vehicleDiv = document.createElement("div");
-      vehicleDiv.className = "vehicle";
+      const voertuigDiv = document.createElement("div");
+      voertuigDiv.className = "vehicle";
 
-      const vehHeader = document.createElement("div");
-      vehHeader.className = "veh-header";
+      const header = document.createElement("div");
+      header.className = "veh-header";
 
-      // Master checkbox
-      const masterCheckbox = document.createElement("input");
-      masterCheckbox.type = "checkbox";
-      masterCheckbox.style.marginRight="8px";
-      const masterLabel = document.createElement("label");
-      masterLabel.appendChild(masterCheckbox);
-      masterLabel.appendChild(document.createTextNode("Alles"));
-      vehHeader.textContent = "🚒 " + voertuig;
-      vehHeader.prepend(masterLabel);
+      const master = document.createElement("input");
+      master.type = "checkbox";
 
-      const exerciseDiv = document.createElement("div");
-      exerciseDiv.className = "exercise-list";
+      const label = document.createElement("label");
+      label.appendChild(master);
+      label.appendChild(document.createTextNode(" Alles — 🚒 " + voertuig));
 
-      oefenmomenten[voertuig].forEach((num, index)=>{
-        const label = document.createElement("label");
-        const input = document.createElement("input");
-        input.type = "checkbox";
+      header.appendChild(label);
+      voertuigDiv.appendChild(header);
 
-        const key = `${chauffeur}/${voertuig}_${num}`;
-        const ref = database.ref(`oefenmomenten/${key}`);
+      const list = document.createElement("div");
+      list.className = "exercise-list";
 
-        // Realtime sync
-        ref.on("value", snap=>{
-          input.checked = snap.val()===true;
+      oefenmomenten[voertuig].forEach(num => {
+        totaal++;
+        const oefLabel = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+
+        const ref = database.ref(`oefenmomenten/${chauffeur}/${voertuig}_${num}`);
+
+        ref.on("value", snap => {
+          cb.checked = snap.val() === true;
           updateCounter();
-          updateMasterCheckbox();
+          checkMaster();
         });
 
-        input.addEventListener("change", ()=>{
-          ref.set(input.checked);
+        cb.addEventListener("change", () => {
+          ref.set(cb.checked);
         });
 
-        label.appendChild(input);
-        label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
-        exerciseDiv.appendChild(label);
+        oefLabel.appendChild(cb);
+        oefLabel.appendChild(document.createTextNode(` Oefenmoment ${num}`));
+        list.appendChild(oefLabel);
       });
 
-      // Master checkbox functionaliteit
-      function updateMasterCheckbox(){
-        const allChecked = Array.from(exerciseDiv.querySelectorAll("input[type=checkbox]"))
-                            .every(cb=>cb.checked);
-        masterCheckbox.checked = allChecked;
+      function checkMaster(){
+        const allChecked = [...list.querySelectorAll("input")].every(c=>c.checked);
+        master.checked = allChecked;
       }
 
-      function updateCounter(){
-        let totaalDone = 0, totaalAll = 0;
-        voertuigen.forEach(v=>{
-          if(!oefenmomenten[v]) return;
-          totaalAll += oefenmomenten[v].length;
-          oefenmomenten[v].forEach((n, idx)=>{
-            const cb2 = card.querySelector(`.vehicle:nth-child(${voertuigen.indexOf(v)+2}) label:nth-child(${idx+1}) input`);
-            if(cb2 && cb2.checked) totaalDone++;
-          });
-        });
-        h3.querySelector(".counter").textContent = `${totaalDone} / ${totaalAll} oefenmomenten voltooid`;
-      }
-
-      masterCheckbox.addEventListener("change", ()=>{
-        const checked = masterCheckbox.checked;
-        exerciseDiv.querySelectorAll("input[type=checkbox]").forEach((cb, i)=>{
-          cb.checked = checked;
+      master.addEventListener("change", ()=>{
+        const state = master.checked;
+        list.querySelectorAll("input").forEach((cb,i)=>{
+          cb.checked = state;
           const num = oefenmomenten[voertuig][i];
-          database.ref(`oefenmomenten/${chauffeur}/${voertuig}_${num}`).set(checked);
+          database.ref(`oefenmomenten/${chauffeur}/${voertuig}_${num}`).set(state);
         });
       });
 
-      vehicleDiv.appendChild(vehHeader);
-      vehicleDiv.appendChild(exerciseDiv);
-      card.appendChild(vehicleDiv);
+      voertuigDiv.appendChild(list);
+      card.appendChild(voertuigDiv);
     });
 
-    containerDiv.appendChild(card);
+    function updateCounter(){
+      done = card.querySelectorAll(".exercise-list input:checked").length;
+      counter.textContent = ` ${done} / ${totaal} voltooid`;
+    }
+
+    container.appendChild(card);
   });
 
-  if(!containerDiv.hasChildNodes()){
-    containerDiv.innerHTML="<div style='color:#666;padding:12px;border-radius:8px;background:#fff;border:1px dashed #ddd;'>Geen chauffeurs gevonden of geen rechten.</div>";
+  if(container.innerHTML.trim() === ""){
+    container.innerHTML = "<p style='color:#999;'>Geen chauffeurs gevonden</p>";
   }
 }
 
 renderChauffeurs();
-document.getElementById("searchInput").addEventListener("input",function(){renderChauffeurs(this.value);});
+document.getElementById("searchInput").addEventListener("input", e=>renderChauffeurs(e.target.value));
+
+document.getElementById("greeting").textContent = 
+  isAdmin ? `Admin: ${loggedInUser}` : `Welkom ${loggedInUser}`;
 </script>
 
-<script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
