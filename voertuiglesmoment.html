@@ -135,10 +135,10 @@ header#appHeader {
 <script>
 
 /* ======================================================
-   TOEGANGSRECHTEN
+   TOEGANGSRECHTEN - GEFIXT
 ====================================================== */
 
-const loggedInUser = localStorage.getItem("username") || "";
+const loggedInUser = localStorage.getItem("userName") || "";
 
 const admins = [
   "Patrick Van Hove",
@@ -149,8 +149,12 @@ const admins = [
 
 const isAdmin = admins.includes(loggedInUser);
 
+// Debug (mag je laten staan)
+console.log("Ingelogd als:", loggedInUser);
+console.log("Is admin:", isAdmin);
+
 /* ======================================================
-   DATA (JOUW VOLGORDE BLIJFT!)
+   DATA (JOUW VOLGORDE - NIET GEWIJZIGD)
 ====================================================== */
 
 const chauffeurs = {
@@ -192,27 +196,32 @@ const oefenmomenten = {
 };
 
 /* ======================================================
-   GROEPVERDELING (OP BASIS VAN JOUW VOLGORDE)
+   GROEPEN (OP BASIS VAN JOUW LIJST)
 ====================================================== */
 
-const chauffeursVolgorde = Object.keys(chauffeurs); // <-- GEEN SORT MEER
+const chauffeursVolgorde = Object.keys(chauffeurs);
 
 const mid = Math.ceil(chauffeursVolgorde.length / 2);
 const groep1 = chauffeursVolgorde.slice(0, mid);
 const groep2 = chauffeursVolgorde.slice(mid);
 
+// Sets zoals je eerder vastlegde
 const voorjaarSetA = ["B541","L544","L549","A545","D541","M545"];
 const najaarSetA  = ["T545","H541","A541","Containers"];
 
 const voorjaarSetB = najaarSetA;
 const najaarSetB  = voorjaarSetA;
 
+// Periode bepalen
 const currentDate = new Date();
 const month = currentDate.getMonth() + 1;
 const isVoorjaar = month <= 6;
+
+// Jaarwissel (om de 2 jaar switch)
 const evenYear = currentDate.getFullYear() % 2 === 0;
 
 function getVoertuigenVoorChauffeur(chauffeur){
+
   const inGroep1 = groep1.includes(chauffeur);
 
   if (inGroep1) {
@@ -238,7 +247,10 @@ function renderChauffeurs(filter=""){
 
   chauffeursVolgorde.forEach(chauffeur => {
 
+    // ADMIN = iedereen zien
     if(!isAdmin && chauffeur !== loggedInUser) return;
+
+    // Zoeken
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
