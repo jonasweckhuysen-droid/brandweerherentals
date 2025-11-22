@@ -1,314 +1,301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voertuig oefenmomenten — Brandweer Herentals</title>
+
+<link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#f2f4f7;
+/* ZEKERE HEADER FIX */
+#appHeader {
+  background: #b30000;
+  border-radius: 16px 16px 0 0;
+  padding: 15px;
+  margin: -15px -15px 10px -15px;
 }
 
-.container {
-  max-width:900px;
-  margin:0 auto 20px auto;
-  background:#fff;
-  border-radius:15px;
-  box-shadow:0 6px 15px rgba(0,0,0,0.1);
-  padding:0 20px 20px 20px;
+#appHeader .header-left,
+#appHeader .header-right {
+  display: flex;
+  align-items: center;
 }
 
-/* VOLLEDIGE RODE HEADER */
-header#appHeader {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#c62828;
-  color:white;
-  margin:-20px -20px 0 -20px;
-  padding:15px 20px;
-  border-radius:15px 15px 0 0;
-}
-
-.header-left, .header-right {
-  display:flex;
-  align-items:center;
+#appHeader .header-right {
+  flex-direction: column;
+  align-items: flex-end;
+  color: white;
+  font-weight: bold;
 }
 
 .header-logo {
-  height:50px;
-}
-
-.header-greeting {
-  margin-left:10px;
-  font-weight: bold;
-  color: white;
-}
-
-/* SPATIE ONDER HEADER */
-main {
-  margin-top: 15px;
+  height: 50px;
 }
 
 .backlink {
-  text-decoration:none;
-  font-weight:600;
-  display:inline-block;
-  margin:15px 0 20px 0;
-  color:white;
-  background:#c62828;
-  padding:6px 12px;
-  border-radius:8px;
+  display: inline-block;
+  color: #fff;
+  background: #b30000;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  margin: 15px 0 20px 0;
+  font-weight: bold;
 }
 
-#searchInput {
-  padding:10px 12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:1rem;
-  margin-bottom:20px;
-  width:100%;
+.searchbar {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
 }
 
-.chauffeur-card {
-  background:#f9f9f9;
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:20px;
-  border-left:6px solid #c62828;
+.card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.chauffeur-card h3 {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+.driver-name {
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.counter {
-  font-size:0.9rem;
-  color:#555;
+.period {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #b30000;
 }
 
-.vehicle {
-  margin-top:10px;
-  padding:10px;
-  border:1px solid #eee;
-  border-radius:12px;
-  background:#fff;
+.exercise-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.veh-header {
-  font-weight:bold;
-  margin-bottom:8px;
+.exercise {
+  background: #eee;
+  padding: 6px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.exercise-list label {
-  display:block;
-  margin-bottom:4px;
+.exercise.done {
+  background: #b30000;
+  color: white;
+  text-decoration: line-through;
+}
+
+.info {
+  font-size: 13px;
+  margin-top: 10px;
+  display: none;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.info-btn {
+  cursor: pointer;
+  margin-left: 6px;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  color: #888;
 }
 </style>
 </head>
-<body>
 
+<body>
 <div class="container">
 
 <header id="appHeader">
   <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+    <img src="/brandweerherentals/icons/logo.png" class="header-logo">
   </div>
+
   <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
+    <div id="greeting"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
   </div>
 </header>
 
-<main>
-  <a href="index.html" class="backlink">← Terug naar menu</a>
-  <input type="text" id="searchInput" placeholder="Zoek op naam...">
-  <div id="chauffeurContainer"></div>
-</main>
+<a href="chauffeur.html" class="backlink">← Terug naar Chauffeur module</a>
 
-</div>
+<input type="text" id="searchInput" class="searchbar" placeholder="Zoek op naam...">
+
+<div id="driversContainer"></div>
+
+<footer>
+  Brandweer Herentals
+</footer>
+
+<script src="/brandweerherentals/header.js"></script>
 
 <script>
-// ===================== LOGIN =====================
-let loggedInUser = localStorage.getItem("userName");
 
-if(!loggedInUser || loggedInUser.trim() === ""){
-  loggedInUser = prompt("Geef je naam in (exact zoals geregistreerd):");
-  if(loggedInUser){
-    localStorage.setItem("userName", loggedInUser);
-  }
-}
-
-// ===================== ADMINS =====================
+/* ===================== ADMINS ===================== */
 const admins = [
-  "Patrick Van Hove",
   "Alain Leemans",
-  "Jonas Weckhuysen",
-  "Danny Van Den Bergh"
+  "Danny Van den Bergh",
+  "Patrick Van Hove",
+  "Jonas Weckhuysen"
 ];
 
-const isAdmin = admins.includes(loggedInUser);
+let loggedInUser = localStorage.getItem("username");
 
-// ===================== CHAUFFEURS (alfabetisch op achternaam) =====================
-const chauffeurs = [
-  "Dries Boven",
-  "Robin Buyens",
-  "Bart Cools",
-  "Kurt Cools",
-  "Gianni Cornelis",
-  "Roel Dekort",
-  "Rik Goris",
-  "Kris Hoeylaerts",
-  "Philippe Hoeylaerts",
-  "Vincent Leemans",
-  "Bart Leten",
-  "Steven Maes",
-  "Liese Meyskens",
-  "Rutger Moons",
-  "Sven Van Buren",
-  "Jakke Van den Broeck",
-  "Kris Van Looveren",
-  "Noël Van Roy",
-  "Joris Van Vracem",
-  "Cristoph Verhaegen",
-  "Robbe Vervecken",
-  "Steven Vervloet"
-];
-
-// ===================== OEFENMOMENTEN =====================
-const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],
-  "L544":[1,2,3,4],
-  "L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3],
-  "M545":[1,2,3,4],
-  "T545":[1,2,3,4,5,6],
-  "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6],
-  "Containers":[1]
-};
-
-// ===================== GROEPEN =====================
-const mid = Math.ceil(chauffeurs.length/2);
-const groep1 = chauffeurs.slice(0,mid);
-const groep2 = chauffeurs.slice(mid);
-
-const voorjaarSetA = ["B541","L544","L549","A545","D541","M545"];
-const najaarSetA   = ["T545","H541","A541","Containers"];
-
-const voorjaarSetB = najaarSetA;
-const najaarSetB   = voorjaarSetA;
-
-const today = new Date();
-const month = today.getMonth() + 1;
-const isVoorjaar = month <= 6;
-const evenYear = today.getFullYear() % 2 === 0;
-
-function getVoertuigenVoorChauffeur(chauffeur){
-
-  const inGroep1 = groep1.includes(chauffeur);
-
-  if(inGroep1){
-    return isVoorjaar
-      ? (evenYear ? voorjaarSetB : najaarSetB)
-      : (evenYear ? najaarSetB : voorjaarSetB);
-  } else {
-    return isVoorjaar
-      ? (evenYear ? voorjaarSetA : najaarSetA)
-      : (evenYear ? najaarSetA : voorjaarSetA);
+if (!loggedInUser || loggedInUser.trim() === "") {
+  loggedInUser = prompt("Geef je naam in (exact zoals geregistreerd):");
+  if (loggedInUser) {
+    localStorage.setItem("username", loggedInUser);
   }
 }
 
-// ===================== RENDER =====================
-const container = document.getElementById("chauffeurContainer");
+/* ===================== DATA ===================== */
+const drivers = [
+  { name: "Dries Boven", group: 2 },
+  { name: "Robin Buyens", group: 2 },
+  { name: "Bart Cools", group: 2 },
+  { name: "Kurt Cools", group: 2 },
+  { name: "Gianni Cornelis", group: 1 },
+  { name: "Roel Dekort", group: 1 },
+  { name: "Rik Goris", group: 1 },
+  { name: "Kris Hoeylaerts", group: 1 }
+];
 
-function renderChauffeurs(filter=""){
+/* ===================== PERIODE ===================== */
+function getPeriod() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  return (month <= 6) ? "voorjaar" : "najaar";
+}
 
+const voorjaarA = ["B541","L544","L549","A545","D541","M541"];
+const voorjaarB = ["T545","H541","A541","Containers"];
+
+const najaarA  = voorjaarB;
+const najaarB  = voorjaarA;
+
+function getExercises(group) {
+  const period = getPeriod();
+
+  if (group === 1) {
+    return (period === "voorjaar") ? voorjaarB : najaarB;
+  } else {
+    return (period === "voorjaar") ? voorjaarA : najaarA;
+  }
+}
+
+function canView(driver) {
+  if (admins.includes(loggedInUser)) return true;
+  return driver.name === loggedInUser;
+}
+
+/* ===================== LOCAL STORAGE ===================== */
+function toggleExercise(el, driver, ex) {
+  el.classList.toggle("done");
+
+  let data = JSON.parse(localStorage.getItem("oefeningen") || "{}");
+  if(!data[driver]) data[driver] = [];
+
+  if (data[driver].includes(ex)) {
+    data[driver] = data[driver].filter(e => e !== ex);
+  } else {
+    data[driver].push(ex);
+  }
+
+  localStorage.setItem("oefeningen", JSON.stringify(data));
+}
+
+function isDone(driver, ex) {
+  const data = JSON.parse(localStorage.getItem("oefeningen") || "{}");
+  return data[driver]?.includes(ex);
+}
+
+/* ===================== RENDER ===================== */
+function renderDrivers(list) {
+  const container = document.getElementById("driversContainer");
   container.innerHTML = "";
-  filter = filter.toLowerCase();
 
-  chauffeurs.forEach(chauffeur => {
+  list.forEach(d => {
+    if (!canView(d)) return;
 
-    // Alleen jezelf zien, behalve als admin
-    if(!isAdmin && chauffeur !== loggedInUser) return;
+    const exercises = getExercises(d.group);
 
-    // Zoeken op naam
-    if(filter && !chauffeur.toLowerCase().includes(filter)) return;
+    const div = document.createElement("div");
+    div.className = "card";
 
-    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+    div.innerHTML = `
+      <div class="driver-name">${d.name}</div>
+      <div class="period">${getPeriod().toUpperCase()} 2025</div>
 
-    const card = document.createElement("div");
-    card.className = "chauffeur-card";
+      <div class="exercise-list">
+        ${exercises.map(e => `
+          <div
+            class="exercise ${isDone(d.name, e) ? "done" : ""}"
+            onclick="toggleExercise(this,'${d.name}','${e}')"
+          >
+            ${e} 
+            <span class="info-btn" onclick="event.stopPropagation();toggleInfo(this)">ℹ️</span>
+            <div class="info">Oefenmoment voor ${e}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
 
-    const counter = document.createElement("span");
-    counter.className = "counter";
-
-    const title = document.createElement("h3");
-    title.appendChild(document.createTextNode(chauffeur));
-    title.appendChild(counter);
-    card.appendChild(title);
-
-    let totaal = 0;
-
-    voertuigen.forEach(voertuig => {
-
-      const voertuigDiv = document.createElement("div");
-      voertuigDiv.className = "vehicle";
-
-      const header = document.createElement("div");
-      header.className = "veh-header";
-      header.textContent = "🚒 " + voertuig;
-      voertuigDiv.appendChild(header);
-
-      const list = document.createElement("div");
-      list.className = "exercise-list";
-
-      oefenmomenten[voertuig].forEach(num => {
-        totaal++;
-
-        const label = document.createElement("label");
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-
-        cb.addEventListener("change", updateCounter);
-
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode(" Oefenmoment " + num));
-        list.appendChild(label);
-      });
-
-      voertuigDiv.appendChild(list);
-      card.appendChild(voertuigDiv);
-    });
-
-    function updateCounter(){
-      const done = card.querySelectorAll(".exercise-list input:checked").length;
-      counter.textContent = ` ${done} / ${totaal} voltooid`;
-    }
-
-    container.appendChild(card);
+    container.appendChild(div);
   });
 
   if(container.innerHTML.trim() === ""){
-    container.innerHTML = "<p style='color:#999;'>Geen chauffeurs gevonden…</p>";
+    container.innerHTML = "<p style='color:#999;'>Geen chauffeurs gevonden</p>";
   }
 }
 
-// ===================== EVENTS =====================
-renderChauffeurs();
+function toggleInfo(el){
+  const info = el.parentElement.querySelector(".info");
+  info.style.display = (info.style.display === "block") ? "none" : "block";
+}
 
-document.getElementById("searchInput").addEventListener("input", e => {
-  renderChauffeurs(e.target.value);
+/* ===================== ZOEKEN ===================== */
+document.getElementById("searchInput").addEventListener("keyup", function(){
+  const q = this.value.toLowerCase();
+  const result = drivers.filter(d => d.name.toLowerCase().includes(q));
+  renderDrivers(result);
 });
 
-document.getElementById("greeting").textContent = 
-  isAdmin ? `Admin: ${loggedInUser}` : `Welkom ${loggedInUser}`;
+/* ===================== HEADER INFO ===================== */
+const greetingEl = document.getElementById("greeting");
+greetingEl.textContent = admins.includes(loggedInUser)
+    ? `Admin: ${loggedInUser}`
+    : `Welkom ${loggedInUser}`;
+
+function updateDateTime(){
+  const now = new Date();
+  document.getElementById("datetime").textContent =
+    now.toLocaleDateString("nl-BE") + " - " + now.toLocaleTimeString("nl-BE");
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();
+
+/* Simpele ploeg berekening */
+const ploegen = ["A-ploeg", "B-ploeg", "C-ploeg", "D-ploeg"];
+document.getElementById("ploegOfWeek").textContent =
+  "Ploeg: " + ploegen[new Date().getWeek?.() % 4 || 0];
+
+/* ===================== START ===================== */
+renderDrivers(drivers);
+
 </script>
 
+</div>
 </body>
 </html>
