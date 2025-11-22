@@ -29,14 +29,10 @@ header#appHeader {
   align-items: center;
   background: #c62828;
   color: white;
-
-  /* trek hem over de padding van de container */
   margin: -20px -20px 0 -20px;
-
   padding: 15px 20px;
   border-radius: 15px 15px 0 0;
 }
-
 
 .header-left, .header-right {
   display: flex;
@@ -163,38 +159,55 @@ header#appHeader {
 </style>
 </head>
 <body>
- 
-  
+
 <div class="container">
-<!-- HEADER -->
-  <header id="appHeader">
-    <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-    </div>
-    <div class="header-right">
-      <div id="greeting" class="header-greeting"></div>
-      <div id="datetime" class="header-datetime"></div>
-      <div id="ploegOfWeek" class="header-ploeg"></div>
-    </div>
-  </header>
 
-
-  <main>
-    <a href="index.html" class="backlink">← Terug naar menu</a>
-    <input type="text" id="searchInput" placeholder="Zoek op naam...">
-    <div id="chauffeurContainer"></div>
-  </main>
-
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">✖</span>
-      <div id="modalText"></div>
-    </div>
+<header id="appHeader">
+  <div class="header-left">
+    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
   </div>
+  <div class="header-right">
+    <div id="greeting" class="header-greeting"></div>
+    <div id="datetime" class="header-datetime"></div>
+    <div id="ploegOfWeek" class="header-ploeg"></div>
+  </div>
+</header>
+
+<main>
+  <a href="index.html" class="backlink">← Terug naar menu</a>
+  <input type="text" id="searchInput" placeholder="Zoek op naam...">
+  <div id="chauffeurContainer"></div>
+</main>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal">✖</span>
+    <div id="modalText"></div>
+  </div>
+</div>
 
 </div>
 
 <script>
+/* ======================================================
+   TOEGANGSRECHTEN
+   ====================================================== */
+
+const loggedInUser = localStorage.getItem("username") || "";
+
+const admins = [
+  "Patrick Van Hove",
+  "Alain Leemans",
+  "Jonas Weckhuysen",
+  "Danny Van Den Bergh"
+];
+
+const isAdmin = admins.includes(loggedInUser);
+
+/* ======================================================
+   DATA
+   ====================================================== */
+
 const chauffeurs = {
   "Dries Boven": ["B541","L544","A545","D541","M545","L545","T545","H541","A541","Containers"],
   "Robin Buyens": ["B541","L544","L549","A545","D541","M545","L545","T545","A541","Containers"],
@@ -234,23 +247,28 @@ const oefenmomenten = {
   "Containers":[1]
 };
 
-// --- GROEPEN OMGEDRAAID ---
+/* ======================================================
+   GROEPEN OMGEDRAAID (blijft hetzelfde)
+   ====================================================== */
+
 const currentDate = new Date();
 const month = currentDate.getMonth()+1;
 const isVoorjaar = month>=1 && month<=6;
 const yearModulo = currentDate.getFullYear()%2;
 
-const sortedChauffeurs = Object.keys(chauffeurs);
-const mid = Math.ceil(sortedChauffeurs.length/2);
+const sortedChauffeurs = Object.keys(chauffeurs).sort((a,b)=> 
+  a.split(' ').pop().localeCompare(b.split(' ').pop())
+);
 
-// Omgedraaide groepen
-const groep1 = sortedChauffeurs.slice(mid);   // groep2 wordt nu groep1
-const groep2 = sortedChauffeurs.slice(0,mid); // groep1 wordt nu groep2
+const mid = Math.ceil(sortedChauffeurs.length/2);
+const groep1 = sortedChauffeurs.slice(mid);
+const groep2 = sortedChauffeurs.slice(0,mid);
 
 const voorjaarG1 = ["B541","L544","L549","A545","D541","M545"];
-const najaarG1 = ["T545","H541","A541","Containers"];
+const najaarG1  = ["T545","H541","A541","Containers"];
+
 const voorjaarG2 = najaarG1;
-const najaarG2 = voorjaarG1;
+const najaarG2  = voorjaarG1;
 
 function getVoertuigenVoorChauffeur(chauffeur){
   if(groep1.includes(chauffeur)) 
@@ -263,7 +281,10 @@ function getVoertuigenVoorChauffeur(chauffeur){
       : (yearModulo===0?najaarG2:voorjaarG2);
 }
 
-// --- DOM & Render ---
+/* ======================================================
+   RENDER
+   ====================================================== */
+
 const containerDiv = document.getElementById("chauffeurContainer");
 const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
@@ -275,57 +296,85 @@ window.onclick = e => { if(e.target === modal) modal.style.display="none"; };
 function renderChauffeurs(filter=""){
   filter = filter.toLowerCase();
   containerDiv.innerHTML="";
+
   for(let chauffeur of sortedChauffeurs){
+
+    // --- FILTER OP TOEGANG ---
+    if(!isAdmin && chauffeur !== loggedInUser) continue;
+
     if(filter && !chauffeur.toLowerCase().includes(filter)) continue;
+
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
-    const card=document.createElement("div"); card.className="chauffeur-card";
+    const card=document.createElement("div"); 
+    card.className="chauffeur-card";
     
     let totaal=0,voltooid=0;
     voertuigen.forEach(v=>totaal+=oefenmomenten[v].length);
-    voertuigen.forEach(v=>oefenmomenten[v].forEach(n=>{if(localStorage.getItem(`${chauffeur}_${v}_${n}`)==="true")voltooid++;}));
-    
-    const h3=document.createElement("h3"); h3.textContent=chauffeur+" ";
-    const counterSpan=document.createElement("span"); counterSpan.className="counter";
+    voertuigen.forEach(v=>oefenmomenten[v].forEach(n=>{
+      if(localStorage.getItem(`${chauffeur}_${v}_${n}`)==="true") voltooid++;
+    }));
+
+    const h3=document.createElement("h3"); 
+    h3.textContent=chauffeur+" ";
+
+    const counterSpan=document.createElement("span"); 
+    counterSpan.className="counter";
     counterSpan.textContent=`${voltooid} / ${totaal} oefenmomenten voltooid`;
-    h3.appendChild(counterSpan); card.appendChild(h3);
-    
+
+    h3.appendChild(counterSpan); 
+    card.appendChild(h3);
+
     voertuigen.forEach(voertuig=>{
-      const vehicleDiv=document.createElement("div"); vehicleDiv.className="vehicle";
-      const vehHeader=document.createElement("div"); vehHeader.className="veh-header";
-      vehHeader.innerHTML=`🚒 ${voertuig} <button class="info-btn">ℹ️</button>`;
+      const vehicleDiv=document.createElement("div"); 
+      vehicleDiv.className="vehicle";
+
+      const vehHeader=document.createElement("div"); 
+      vehHeader.className="veh-header";
+      vehHeader.innerHTML=`🚒 ${voertuig}`;
+
       vehicleDiv.appendChild(vehHeader);
-      
-      const exerciseDiv=document.createElement("div"); exerciseDiv.className="exercise-list";
+
+      const exerciseDiv=document.createElement("div"); 
+      exerciseDiv.className="exercise-list";
+
       oefenmomenten[voertuig].forEach(num=>{
         const label=document.createElement("label");
         const input=document.createElement("input");
-        input.type="checkbox"; input.dataset.chauffeur=chauffeur; input.dataset.vehicle=voertuig; input.dataset.exercise=num;
+
+        input.type="checkbox"; 
+        input.dataset.chauffeur=chauffeur; 
+        input.dataset.vehicle=voertuig; 
+        input.dataset.exercise=num;
+
         const key=`${chauffeur}_${voertuig}_${num}`;
         input.checked=localStorage.getItem(key)==="true";
-        input.addEventListener("change",()=>{ localStorage.setItem(key,input.checked); renderChauffeurs(document.getElementById("searchInput").value); });
-        label.appendChild(input); label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
+
+        input.addEventListener("change",()=>{ 
+          localStorage.setItem(key,input.checked); 
+          renderChauffeurs(document.getElementById("searchInput").value); 
+        });
+
+        label.appendChild(input); 
+        label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
       });
+
       vehicleDiv.appendChild(exerciseDiv);
-      
-      const infoBtn = vehHeader.querySelector(".info-btn");
-      infoBtn.addEventListener("click",()=>{
-        modalText.innerHTML=`<h4>${voertuig} oefenmomenten:</h4><ul>`+
-        oefenUitleg[voertuig].map(x=>`<li>${x}</li>`).join('')+`</ul>`;
-        modal.style.display="block";
-      });
       card.appendChild(vehicleDiv);
     });
+
     containerDiv.appendChild(card);
   }
 }
 
 renderChauffeurs();
+
 document.getElementById("searchInput").addEventListener("input",function(){
   renderChauffeurs(this.value);
 });
 </script>
 
 <script src="/brandweerherentals/header.js"></script>
+
 </body>
 </html>
