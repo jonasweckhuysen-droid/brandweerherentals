@@ -98,9 +98,9 @@ const evenYear = currentDate.getFullYear()%2===0;
 function getVoertuigenVoorChauffeur(chauffeur){
   const inGroep1 = groep1.includes(chauffeur);
   if(inGroep1){
-    return isVoorjaar?(evenYear?voorjaarSetB:najaarSetB):(evenYear?najaarSetB:voorjaarSetB);
-  }else{
-    return isVoorjaar?(evenYear?voorjaarSetA:najaarSetA):(evenYear?najaarSetA:voorjaarSetA);
+    return isVoorjaar ? (evenYear ? voorjaarSetB : najaarSetB) : (evenYear ? najaarSetB : voorjaarSetB);
+  } else {
+    return isVoorjaar ? (evenYear ? voorjaarSetA : najaarSetA) : (evenYear ? najaarSetA : voorjaarSetA);
   }
 }
 
@@ -112,6 +112,7 @@ function renderChauffeurs(filter=""){
   containerDiv.innerHTML="";
 
   chauffeursVolgorde.forEach(chauffeur=>{
+    // Admins zien iedereen, anderen alleen zichzelf
     if(!isAdmin && chauffeur!==loggedInUser) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
@@ -119,10 +120,8 @@ function renderChauffeurs(filter=""){
     const card = document.createElement("div");
     card.className="chauffeur-card";
 
-    let totaal=0, voltooid=0;
-
     const h3 = document.createElement("h3");
-    h3.innerHTML=`${chauffeur}<span class="counter">${voltooid} / ${totaal} oefenmomenten voltooid</span>`;
+    h3.innerHTML = `${chauffeur}<span class="counter">0 / 0 oefenmomenten voltooid</span>`;
     card.appendChild(h3);
 
     voertuigen.forEach(voertuig=>{
@@ -136,7 +135,7 @@ function renderChauffeurs(filter=""){
 
       // Master checkbox
       const masterCheckbox = document.createElement("input");
-      masterCheckbox.type="checkbox";
+      masterCheckbox.type = "checkbox";
       masterCheckbox.style.marginRight="8px";
       const masterLabel = document.createElement("label");
       masterLabel.appendChild(masterCheckbox);
@@ -145,9 +144,9 @@ function renderChauffeurs(filter=""){
       vehHeader.prepend(masterLabel);
 
       const exerciseDiv = document.createElement("div");
-      exerciseDiv.className="exercise-list";
+      exerciseDiv.className = "exercise-list";
 
-      oefenmomenten[voertuig].forEach(num=>{
+      oefenmomenten[voertuig].forEach((num, index)=>{
         const label = document.createElement("label");
         const input = document.createElement("input");
         input.type = "checkbox";
@@ -179,14 +178,16 @@ function renderChauffeurs(filter=""){
       }
 
       function updateCounter(){
-        let done=0, total=0;
-        oefenmomenten[voertuig].forEach(num=>{
-          total++;
-          const cb = exerciseDiv.querySelector(`label:nth-child(${num}) input`);
-          if(cb && cb.checked) done++;
+        let totaalDone = 0, totaalAll = 0;
+        voertuigen.forEach(v=>{
+          if(!oefenmomenten[v]) return;
+          totaalAll += oefenmomenten[v].length;
+          oefenmomenten[v].forEach((n, idx)=>{
+            const cb2 = card.querySelector(`.vehicle:nth-child(${voertuigen.indexOf(v)+2}) label:nth-child(${idx+1}) input`);
+            if(cb2 && cb2.checked) totaalDone++;
+          });
         });
-        const oldText = h3.querySelector(".counter");
-        oldText.textContent = `${done} / ${total} oefenmomenten voltooid`;
+        h3.querySelector(".counter").textContent = `${totaalDone} / ${totaalAll} oefenmomenten voltooid`;
       }
 
       masterCheckbox.addEventListener("change", ()=>{
