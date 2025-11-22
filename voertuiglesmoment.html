@@ -53,7 +53,7 @@ header#appHeader {
   text-decoration: none;
   font-weight: 600;
   display: inline-block;
-  margin: 25px 0 15px 0;
+  margin: 25px 0 20px 0;
   color: white;
   background: #c62828;
   padding: 6px 12px;
@@ -113,7 +113,7 @@ header#appHeader {
 
 <header id="appHeader">
   <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
   </div>
   <div class="header-right">
     <div id="greeting" class="header-greeting"></div>
@@ -124,33 +124,34 @@ header#appHeader {
 
 <main>
   <a href="index.html" class="backlink">← Terug naar menu</a>
+
   <input type="text" id="searchInput" placeholder="Zoek op naam...">
+
   <div id="chauffeurContainer"></div>
 </main>
 
 </div>
 
 <script>
-/* ================================
-   LOGIN CHECK
-================================ */
 
-const loggedInUser =
-  (localStorage.getItem("username") || "").trim();
+/* ======================================================
+   TOEGANGSRECHTEN
+====================================================== */
 
-/* Admins */
+const loggedInUser = localStorage.getItem("username") || "";
+
 const admins = [
   "Patrick Van Hove",
   "Alain Leemans",
   "Jonas Weckhuysen",
-  "Danny Van den Bergh"
+  "Danny Van Den Bergh"
 ];
 
-const isAdmin = admins.includes(loggedInUser) || loggedInUser === "";
+const isAdmin = admins.includes(loggedInUser);
 
-/* ================================
-   CHAUFFEURS + OEFENMOMENTEN
-================================ */
+/* ======================================================
+   DATA (JOUW VOLGORDE BLIJFT!)
+====================================================== */
 
 const chauffeurs = {
   "Dries Boven": [],
@@ -183,121 +184,131 @@ const oefenmomenten = {
   "L549":[1,2,3,4,5],
   "A545":[1,2,3,4,5,6],
   "D541":[1,2,3],
-  "M541":[1,2,3,4],
+  "M545":[1,2,3,4],
   "T545":[1,2,3,4,5,6],
   "H541":[1,2,3,4,5,6],
   "A541":[1,2,3,4,5,6],
   "Containers":[1]
 };
 
-/* ================================
-   GROEPEN (alfabetisch op achternaam)
-================================ */
+/* ======================================================
+   GROEPVERDELING (OP BASIS VAN JOUW VOLGORDE)
+====================================================== */
 
-const sorted = Object.keys(chauffeurs).sort((a,b)=>{
-  return a.split(" ").pop().localeCompare(b.split(" ").pop());
-});
+const chauffeursVolgorde = Object.keys(chauffeurs); // <-- GEEN SORT MEER
 
-const mid = Math.ceil(sorted.length / 2);
-const groep1 = sorted.slice(0, mid);
-const groep2 = sorted.slice(mid);
+const mid = Math.ceil(chauffeursVolgorde.length / 2);
+const groep1 = chauffeursVolgorde.slice(0, mid);
+const groep2 = chauffeursVolgorde.slice(mid);
 
-const voorjaarA = ["T545","H541","A541","Containers"];
-const najaarA = ["B541","L544","L549","A545","D541","M541"];
+const voorjaarSetA = ["B541","L544","L549","A545","D541","M545"];
+const najaarSetA  = ["T545","H541","A541","Containers"];
 
-const voorjaarB = najaarA;
-const najaarB = voorjaarA;
+const voorjaarSetB = najaarSetA;
+const najaarSetB  = voorjaarSetA;
 
-const now = new Date();
-const isVoorjaar = now.getMonth() < 6;
-const isEvenYear = now.getFullYear() % 2 === 0;
+const currentDate = new Date();
+const month = currentDate.getMonth() + 1;
+const isVoorjaar = month <= 6;
+const evenYear = currentDate.getFullYear() % 2 === 0;
 
-function voertuigenVoorNaam(naam){
-  const groep = groep1.includes(naam) ? 1 : 2;
+function getVoertuigenVoorChauffeur(chauffeur){
+  const inGroep1 = groep1.includes(chauffeur);
 
-  if(groep === 1){
-    if(isVoorjaar) return isEvenYear ? voorjaarA : najaarA;
-    return isEvenYear ? najaarA : voorjaarA;
+  if (inGroep1) {
+    return isVoorjaar
+      ? (evenYear ? voorjaarSetB : najaarSetB)
+      : (evenYear ? najaarSetB : voorjaarSetB);
   } else {
-    if(isVoorjaar) return isEvenYear ? voorjaarB : najaarB;
-    return isEvenYear ? najaarB : voorjaarB;
+    return isVoorjaar
+      ? (evenYear ? voorjaarSetA : najaarSetA)
+      : (evenYear ? najaarSetA : voorjaarSetA);
   }
 }
 
-/* ================================
+/* ======================================================
    RENDER
-================================ */
+====================================================== */
 
-const container = document.getElementById("chauffeurContainer");
+const containerDiv = document.getElementById("chauffeurContainer");
 
-function render(filter=""){
-  container.innerHTML = "";
+function renderChauffeurs(filter=""){
   filter = filter.toLowerCase();
+  containerDiv.innerHTML="";
 
-  sorted.forEach(naam => {
+  chauffeursVolgorde.forEach(chauffeur => {
 
-    if(!isAdmin && naam !== loggedInUser) return;
-    if(filter && !naam.toLowerCase().includes(filter)) return;
+    if(!isAdmin && chauffeur !== loggedInUser) return;
+    if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
-    const voertuigen = voertuigenVoorNaam(naam);
+    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+
     const card = document.createElement("div");
-    card.className="chauffeur-card";
+    card.className = "chauffeur-card";
 
-    let totaal=0, klaar=0;
+    let totaal = 0;
+    let voltooid = 0;
 
-    voertuigen.forEach(v=>{
+    voertuigen.forEach(v => {
       totaal += oefenmomenten[v].length;
-      oefenmomenten[v].forEach(n=>{
-        if(localStorage.getItem(`${naam}_${v}_${n}`) === "true")
-          klaar++;
+      oefenmomenten[v].forEach(n => {
+        if(localStorage.getItem(`${chauffeur}_${v}_${n}`) === "true") voltooid++;
       });
     });
 
-    card.innerHTML = `
-      <h3>${naam}<span class="counter">${klaar} / ${totaal} voltooid</span></h3>
+    const h3 = document.createElement("h3");
+    h3.innerHTML = `
+      ${chauffeur}
+      <span class="counter">${voltooid} / ${totaal} oefenmomenten voltooid</span>
     `;
+    card.appendChild(h3);
 
-    voertuigen.forEach(v => {
-      const div = document.createElement("div");
-      div.className="vehicle";
-      div.innerHTML = `<div class="veh-header">🚒 ${v}</div>`;
+    voertuigen.forEach(voertuig => {
+      const vehicleDiv = document.createElement("div");
+      vehicleDiv.className = "vehicle";
 
-      const list = document.createElement("div");
-      list.className="exercise-list";
+      const vehHeader = document.createElement("div");
+      vehHeader.className = "veh-header";
+      vehHeader.textContent = "🚒 " + voertuig;
 
-      oefenmomenten[v].forEach(n=>{
-        const key = `${naam}_${v}_${n}`;
+      const exerciseDiv = document.createElement("div");
+      exerciseDiv.className = "exercise-list";
+
+      oefenmomenten[voertuig].forEach(num => {
         const label = document.createElement("label");
         const input = document.createElement("input");
 
-        input.type="checkbox";
-        input.checked = localStorage.getItem(key)==="true";
+        input.type = "checkbox";
 
-        input.onchange = ()=> {
-          localStorage.setItem(key,input.checked);
-          render(document.getElementById("searchInput").value);
-        }
+        const key = `${chauffeur}_${voertuig}_${num}`;
+        input.checked = localStorage.getItem(key) === "true";
+
+        input.addEventListener("change", () => {
+          localStorage.setItem(key, input.checked);
+          renderChauffeurs(document.getElementById("searchInput").value);
+        });
 
         label.appendChild(input);
-        label.append(" Oefenmoment "+n);
-        list.appendChild(label);
+        label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
+        exerciseDiv.appendChild(label);
       });
 
-      div.appendChild(list);
-      card.appendChild(div);
+      vehicleDiv.appendChild(vehHeader);
+      vehicleDiv.appendChild(exerciseDiv);
+      card.appendChild(vehicleDiv);
     });
 
-    container.appendChild(card);
-
+    containerDiv.appendChild(card);
   });
-
 }
 
-render();
+renderChauffeurs();
 
-document.getElementById("searchInput").addEventListener("input", function(){
-  render(this.value);
+/* ZOEKFUNCTIE */
+document.getElementById("searchInput").addEventListener("input",function(){
+  renderChauffeurs(this.value);
 });
+
 </script>
 
 <script src="/brandweerherentals/header.js"></script>
