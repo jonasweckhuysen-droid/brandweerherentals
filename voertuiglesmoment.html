@@ -7,104 +7,20 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f4f7;
-}
-
-.container {
-  max-width: 900px;
-  margin: 0 auto 20px auto;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  padding: 0 20px 20px 20px;
-}
-
-/* HEADER volledig rood en naadloos */
-header#appHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #c62828;
-  color: white;
-  margin: -20px -20px 0 -20px;
-  padding: 15px 20px;
-  border-radius: 15px 15px 0 0;
-}
-
-.header-left, .header-right {
-  display: flex;
-  align-items: center;
-}
-
-.header-logo {
-  height: 50px;
-}
-
-.header-greeting, .header-datetime, .header-ploeg {
-  margin-left: 10px;
-  font-weight: bold;
-  color: white;
-}
-
-.backlink {
-  text-decoration: none;
-  font-weight: 600;
-  display: inline-block;
-  margin: 25px 0 20px 0;
-  color: white;
-  background: #c62828;
-  padding: 6px 12px;
-  border-radius: 8px;
-}
-
-#searchInput {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.chauffeur-card {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border-left: 6px solid #c62828;
-}
-
-.chauffeur-card h3 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.counter {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.vehicle {
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.veh-header {
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.exercise-list label {
-  display: block;
-  margin-bottom: 4px;
-}
+body { margin:0; font-family: Arial, sans-serif; background:#f2f4f7; }
+.container { max-width:900px; margin:0 auto 20px auto; background:#fff; border-radius:15px; box-shadow:0 6px 15px rgba(0,0,0,0.1); padding:0 20px 20px 20px; }
+header#appHeader { display:flex; justify-content:space-between; align-items:center; background:#c62828; color:white; margin:-20px -20px 0 -20px; padding:15px 20px; border-radius:15px 15px 0 0; }
+.header-left, .header-right { display:flex; align-items:center; }
+.header-logo { height:50px; }
+.header-greeting, .header-datetime, .header-ploeg { margin-left:10px; font-weight:bold; color:white; }
+.backlink { text-decoration:none; font-weight:600; display:inline-block; margin:25px 0 20px 0; color:white; background:#c62828; padding:6px 12px; border-radius:8px; }
+#searchInput { padding:10px 12px; border-radius:10px; border:1px solid #ccc; font-size:1rem; margin-bottom:20px; width:100%; }
+.chauffeur-card { background:#f9f9f9; padding:15px; border-radius:12px; margin-bottom:20px; border-left:6px solid #c62828; }
+.chauffeur-card h3 { display:flex; justify-content:space-between; align-items:center; }
+.counter { font-size:0.9rem; color:#555; }
+.vehicle { margin-top:10px; padding:10px; border:1px solid #eee; border-radius:12px; background:#fff; }
+.veh-header { font-weight:bold; margin-bottom:8px; }
+.exercise-list label { display:block; margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -124,188 +40,121 @@ header#appHeader {
 
 <main>
   <a href="index.html" class="backlink">← Terug naar menu</a>
-
   <input type="text" id="searchInput" placeholder="Zoek op naam...">
-
   <div id="chauffeurContainer"></div>
 </main>
 
 </div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.30.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.30.0/firebase-database-compat.js"></script>
+
 <script>
+// ===================== FIREBASE INITIALISATIE =====================
+const firebaseConfig = {
+  databaseURL: "https://bwhchauffeur-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-/* ======================================================
-   TOEGANGSRECHTEN - GEFIXT
-====================================================== */
-
-/* let op: de login code in jouw index/overlay schrijft de naam als "userName"
-   daarom gebruiken we hier exact dezelfde key. */
+// ===================== TOEGANGSRECHTEN =====================
 const loggedInUser = localStorage.getItem("userName") || "";
-
-const admins = [
-  "Patrick Van Hove",
-  "Alain Leemans",
-  "Jonas Weckhuysen",
-  "Danny Van Den Bergh"
-];
-
+const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
 const isAdmin = admins.includes(loggedInUser);
 
-// Debug (optioneel)
-console.log("Ingelogd als:", loggedInUser);
-console.log("Is admin:", isAdmin);
-
-/* ======================================================
-   DATA (JOUW VOLGORDE - NIET GEWIJZIGD)
-====================================================== */
-
+// ===================== DATA =====================
 const chauffeurs = {
-  "Dries Boven": [],
-  "Robin Buyens": [],
-  "Bart Cools": [],
-  "Kurt Cools": [],
-  "Gianni Cornelis": [],
-  "Roel Dekort": [],
-  "Rik Goris": [],
-  "Kris Hoeylaerts": [],
-  "Philippe Hoeylaerts": [],
-  "Vincent Leemans": [],
-  "Bart Leten": [],
-  "Steven Maes": [],
-  "Liese Meyskens": [],
-  "Rutger Moons": [],
-  "Sven Van Buren": [],
-  "Jakke Van den Broeck": [],
-  "Kris Van Looveren": [],
-  "Noël Van Roy": [],
-  "Joris Van Vracem": [],
-  "Cristoph Verhaegen": [],
-  "Robbe Vervecken": [],
-  "Steven Vervloet": []
+  "Dries Boven": [], "Robin Buyens": [], "Bart Cools": [], "Kurt Cools": [], "Gianni Cornelis": [],
+  "Roel Dekort": [], "Rik Goris": [], "Kris Hoeylaerts": [], "Philippe Hoeylaerts": [], "Vincent Leemans": [],
+  "Bart Leten": [], "Steven Maes": [], "Liese Meyskens": [], "Rutger Moons": [], "Sven Van Buren": [],
+  "Jakke Van den Broeck": [], "Kris Van Looveren": [], "Noël Van Roy": [], "Joris Van Vracem": [],
+  "Cristoph Verhaegen": [], "Robbe Vervecken": [], "Steven Vervloet": []
 };
 
 const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],
-  "L544":[1,2,3,4],
-  "L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3],
-  "M545":[1,2,3,4],
-  "T545":[1,2,3,4,5,6],
-  "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6],
-  "Containers":[1]
+  "B541":[1,2,3,4,5,6], "L544":[1,2,3,4], "L549":[1,2,3,4,5], "A545":[1,2,3,4,5,6],
+  "D541":[1,2,3], "M545":[1,2,3,4], "T545":[1,2,3,4,5,6], "H541":[1,2,3,4,5,6],
+  "A541":[1,2,3,4,5,6], "Containers":[1]
 };
 
-/* ======================================================
-   GROEPEN (OP BASIS VAN JOUW LIJST)
-====================================================== */
-
-/* behoud exact de volgorde zoals jij 'm in de object literal zette */
+// ===================== GROEPEN =====================
 const chauffeursVolgorde = Object.keys(chauffeurs);
-
-const mid = Math.ceil(chauffeursVolgorde.length / 2);
-const groep1 = chauffeursVolgorde.slice(0, mid);
+const mid = Math.ceil(chauffeursVolgorde.length/2);
+const groep1 = chauffeursVolgorde.slice(0,mid);
 const groep2 = chauffeursVolgorde.slice(mid);
 
-// Sets zoals je eerder vastlegde
 const voorjaarSetA = ["B541","L544","L549","A545","D541","M545"];
-const najaarSetA  = ["T545","H541","A541","Containers"];
-
+const najaarSetA = ["T545","H541","A541","Containers"];
 const voorjaarSetB = najaarSetA;
-const najaarSetB  = voorjaarSetA;
+const najaarSetB = voorjaarSetA;
 
-// Periode bepalen
 const currentDate = new Date();
-const month = currentDate.getMonth() + 1;
-const isVoorjaar = month <= 6;
-
-// Jaarwissel (om de 2 jaar switch)
-const evenYear = currentDate.getFullYear() % 2 === 0;
+const month = currentDate.getMonth()+1;
+const isVoorjaar = month<=6;
+const evenYear = currentDate.getFullYear()%2===0;
 
 function getVoertuigenVoorChauffeur(chauffeur){
-
   const inGroep1 = groep1.includes(chauffeur);
-
-  if (inGroep1) {
-    return isVoorjaar
-      ? (evenYear ? voorjaarSetB : najaarSetB)
-      : (evenYear ? najaarSetB : voorjaarSetB);
-  } else {
-    return isVoorjaar
-      ? (evenYear ? voorjaarSetA : najaarSetA)
-      : (evenYear ? najaarSetA : voorjaarSetA);
+  if(inGroep1){
+    return isVoorjaar?(evenYear?voorjaarSetB:najaarSetB):(evenYear?najaarSetB:voorjaarSetB);
+  }else{
+    return isVoorjaar?(evenYear?voorjaarSetA:najaarSetA):(evenYear?najaarSetA:voorjaarSetA);
   }
 }
 
-/* ======================================================
-   RENDER
-====================================================== */
-
+// ===================== RENDER =====================
 const containerDiv = document.getElementById("chauffeurContainer");
 
 function renderChauffeurs(filter=""){
-  filter = (filter || "").toLowerCase();
+  filter = (filter||"").toLowerCase();
   containerDiv.innerHTML="";
 
-  chauffeursVolgorde.forEach(chauffeur => {
-
-    // ADMIN = iedereen zien
-    if(!isAdmin && chauffeur !== loggedInUser) return;
-
-    // Zoeken
+  chauffeursVolgorde.forEach(chauffeur=>{
+    if(!isAdmin && chauffeur!==loggedInUser) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
-
     const card = document.createElement("div");
-    card.className = "chauffeur-card";
+    card.className="chauffeur-card";
 
-    let totaal = 0;
-    let voltooid = 0;
+    let totaal=0, voltooid=0;
 
-    voertuigen.forEach(v => {
+    voertuigen.forEach(v=>{
       if(!oefenmomenten[v]) return;
       totaal += oefenmomenten[v].length;
-      oefenmomenten[v].forEach(n => {
-        if(localStorage.getItem(`${chauffeur}_${v}_${n}`) === "true") voltooid++;
+      oefenmomenten[v].forEach(n=>{
+        const ref = database.ref(`oefenmomenten/${chauffeur}/${v}_${n}`);
+        ref.on("value", snap=>{
+          if(snap.val()===true) voltooid++;
+          h3.querySelector(".counter").textContent=`${voltooid} / ${totaal} oefenmomenten voltooid`;
+        });
       });
     });
 
     const h3 = document.createElement("h3");
-    h3.innerHTML = `
-      ${chauffeur}
-      <span class="counter">${voltooid} / ${totaal} oefenmomenten voltooid</span>
-    `;
+    h3.innerHTML=`${chauffeur}<span class="counter">${voltooid} / ${totaal} oefenmomenten voltooid</span>`;
     card.appendChild(h3);
 
-    voertuigen.forEach(voertuig => {
+    voertuigen.forEach(voertuig=>{
       if(!oefenmomenten[voertuig]) return;
+      const vehicleDiv=document.createElement("div"); vehicleDiv.className="vehicle";
 
-      const vehicleDiv = document.createElement("div");
-      vehicleDiv.className = "vehicle";
+      const vehHeader=document.createElement("div"); vehHeader.className="veh-header";
+      vehHeader.textContent="🚒 "+voertuig;
 
-      const vehHeader = document.createElement("div");
-      vehHeader.className = "veh-header";
-      vehHeader.textContent = "🚒 " + voertuig;
+      const exerciseDiv=document.createElement("div"); exerciseDiv.className="exercise-list";
 
-      const exerciseDiv = document.createElement("div");
-      exerciseDiv.className = "exercise-list";
+      oefenmomenten[voertuig].forEach(num=>{
+        const label=document.createElement("label");
+        const input=document.createElement("input");
+        input.type="checkbox";
 
-      oefenmomenten[voertuig].forEach(num => {
-        const label = document.createElement("label");
-        const input = document.createElement("input");
+        const ref = database.ref(`oefenmomenten/${chauffeur}/${voertuig}_${num}`);
+        ref.on("value", snap=>{ input.checked = snap.val()===true; });
 
-        input.type = "checkbox";
-
-        const key = `${chauffeur}_${voertuig}_${num}`;
-        input.checked = localStorage.getItem(key) === "true";
-
-        input.addEventListener("change", () => {
-          // bewaar string "true" of remove
-          if(input.checked) localStorage.setItem(key, "true");
-          else localStorage.removeItem(key);
-          renderChauffeurs(document.getElementById("searchInput").value);
+        input.addEventListener("change", ()=>{
+          ref.set(input.checked);
         });
 
         label.appendChild(input);
@@ -321,22 +170,16 @@ function renderChauffeurs(filter=""){
     containerDiv.appendChild(card);
   });
 
-  // geen resultaten tonen
-  if (!containerDiv.hasChildNodes()) {
-    containerDiv.innerHTML = "<div style='color:#666;padding:12px;border-radius:8px;background:#fff;border:1px dashed #ddd;'>Geen chauffeurs gevonden of geen rechten.</div>";
+  if(!containerDiv.hasChildNodes()){
+    containerDiv.innerHTML="<div style='color:#666;padding:12px;border-radius:8px;background:#fff;border:1px dashed #ddd;'>Geen chauffeurs gevonden of geen rechten.</div>";
   }
 }
 
 renderChauffeurs();
-
-/* ZOEKFUNCTIE */
-document.getElementById("searchInput").addEventListener("input",function(){
-  renderChauffeurs(this.value);
-});
+document.getElementById("searchInput").addEventListener("input",function(){renderChauffeurs(this.value);});
 
 </script>
 
 <script src="/brandweerherentals/header.js"></script>
-
 </body>
 </html>
