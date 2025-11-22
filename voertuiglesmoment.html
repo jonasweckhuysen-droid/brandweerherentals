@@ -138,6 +138,8 @@ header#appHeader {
    TOEGANGSRECHTEN - GEFIXT
 ====================================================== */
 
+/* let op: de login code in jouw index/overlay schrijft de naam als "userName"
+   daarom gebruiken we hier exact dezelfde key. */
 const loggedInUser = localStorage.getItem("userName") || "";
 
 const admins = [
@@ -149,7 +151,7 @@ const admins = [
 
 const isAdmin = admins.includes(loggedInUser);
 
-// Debug (mag je laten staan)
+// Debug (optioneel)
 console.log("Ingelogd als:", loggedInUser);
 console.log("Is admin:", isAdmin);
 
@@ -199,6 +201,7 @@ const oefenmomenten = {
    GROEPEN (OP BASIS VAN JOUW LIJST)
 ====================================================== */
 
+/* behoud exact de volgorde zoals jij 'm in de object literal zette */
 const chauffeursVolgorde = Object.keys(chauffeurs);
 
 const mid = Math.ceil(chauffeursVolgorde.length / 2);
@@ -242,7 +245,7 @@ function getVoertuigenVoorChauffeur(chauffeur){
 const containerDiv = document.getElementById("chauffeurContainer");
 
 function renderChauffeurs(filter=""){
-  filter = filter.toLowerCase();
+  filter = (filter || "").toLowerCase();
   containerDiv.innerHTML="";
 
   chauffeursVolgorde.forEach(chauffeur => {
@@ -262,6 +265,7 @@ function renderChauffeurs(filter=""){
     let voltooid = 0;
 
     voertuigen.forEach(v => {
+      if(!oefenmomenten[v]) return;
       totaal += oefenmomenten[v].length;
       oefenmomenten[v].forEach(n => {
         if(localStorage.getItem(`${chauffeur}_${v}_${n}`) === "true") voltooid++;
@@ -276,6 +280,8 @@ function renderChauffeurs(filter=""){
     card.appendChild(h3);
 
     voertuigen.forEach(voertuig => {
+      if(!oefenmomenten[voertuig]) return;
+
       const vehicleDiv = document.createElement("div");
       vehicleDiv.className = "vehicle";
 
@@ -296,7 +302,9 @@ function renderChauffeurs(filter=""){
         input.checked = localStorage.getItem(key) === "true";
 
         input.addEventListener("change", () => {
-          localStorage.setItem(key, input.checked);
+          // bewaar string "true" of remove
+          if(input.checked) localStorage.setItem(key, "true");
+          else localStorage.removeItem(key);
           renderChauffeurs(document.getElementById("searchInput").value);
         });
 
@@ -312,6 +320,11 @@ function renderChauffeurs(filter=""){
 
     containerDiv.appendChild(card);
   });
+
+  // geen resultaten tonen
+  if (!containerDiv.hasChildNodes()) {
+    containerDiv.innerHTML = "<div style='color:#666;padding:12px;border-radius:8px;background:#fff;border:1px dashed #ddd;'>Geen chauffeurs gevonden of geen rechten.</div>";
+  }
 }
 
 renderChauffeurs();
