@@ -1,121 +1,190 @@
 <!doctype html>
-<html lang="nl">  
-<head>  
-<meta charset="utf-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Brandweer Herentals — Portal</title>  
-<link rel="manifest" href="/brandweerherentals/manifest.json">  
-<meta name="theme-color" content="#c71f1f">  
-<link rel="stylesheet" href="style.css">  
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandweer Herentals - Portal</title>
 
-<style>  
-/* Overlay grafisch menu verwijderd */  
-</style>  
-</head>  
+<meta name="theme-color" content="#c71f1f">
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<link rel="stylesheet" href="style.css">
 
-<body>  
-<div class="container" role="application" aria-label="Brandweer Herentals portal">    
-
-  <!-- HEADER -->    
-  <header id="appHeader">  
-    <div class="header-left">  
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">  
-    </div>  
-    <div class="header-right">  
-      <div id="greeting" class="header-greeting"></div>  
-      <div id="datetime" class="header-datetime"></div>  
-      <div id="ploegOfWeek" class="header-ploeg"></div>  
-    </div>  
-  </header>    
-
-  <!-- CONTENT -->    
-  <main class="content">  
-    <div class="grid" id="buttonGrid" aria-live="polite"></div>  
-
-    <!-- Install PWA prompt -->  
-    <div id="installPrompt" class="overlay" style="display:none;">  
-      <div class="overlay-content" role="dialog" aria-modal="true">  
-        <span id="installText">📲 Voeg de app toe aan je startscherm</span>  
-        <button id="installNow">Toevoegen</button>  
-        <span class="close" id="installClose">✖</span>  
-      </div>  
-    </div>
-  </main>    
-
-  <footer>  
-    <div>Versie 1.1</div>  
-    <div></div>  
-  </footer>  
-</div>  
-
-<script>  
-// =====================================  
-// 🌟 Links  
-// =====================================  
-let links = {  
-  abiweb: { title:"Abiweb", icon:"/brandweerherentals/icons/buttons/abiweb.png", desc:"Oefeningen en prestaties", url:"https://abiweb.brandweerzonekempen.be/" },  
-  agenda: { title:"Agenda", icon:"📅", desc:"Belangrijke data en evenementen", url:"/brandweerherentals/agenda.html" },  
-  defect: { title:"Defectmelding", icon:"🔧", desc:"Meld defecten", url:"/brandweerherentals/defectmelding.html" },  
-  logistiek: { title:"Logistiek", icon:"/brandweerherentals/icons/buttons/winkelkar.png", desc:"Transport aanvragen", url:"https://form.jotform.com/230682691731055" },  
-  order: { title:"Bestelling", icon:"📦", desc:"Materiaal bestellen", url:"https://forms.cloud.microsoft/e/GjHr1Kym0w" },  
-  vehicle: { title:"Voertuigreservatie", icon:"🚒", desc:"Controle & reservatie", url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u" },  
-  verdi: { title:"Verdi", icon:"/brandweerherentals/icons/buttons/verdi.png", desc:"Oproepen", url:"https://kempen.verdi.cloud/" },  
-  wegenwerken: { title:"Wegenwerken", icon:"🚧", desc:"Actuele info", url:"/brandweerherentals/wegenwerken.html" },  
-  wespen: { title:"Wespen", icon:"🐝", desc:"Ploeg van dienst", url:"/brandweerherentals/wespen.html" }  
-};  
-
-// =====================================  
-// 🌟 Grid renderen  
-// =====================================  
-function renderGrid() {  
-  const grid = document.getElementById("buttonGrid");  
-  grid.innerHTML = "";  
-  Object.values(links).sort((a,b)=>a.title.localeCompare(b.title,"nl")).forEach(item => {  
-    const a = document.createElement("a");  
-    a.className = "btn";  
-    a.href = item.url;  
-    a.innerHTML = `  
-      <div class="icon">${item.icon.endsWith(".png")? `<img src="${item.icon}" alt="${item.title}">`:item.icon}</div>  
-      <div>  
-        <div>${item.title}</div>  
-        <small>${item.desc}</small>  
-      </div>  
-    `;  
-    grid.appendChild(a);  
-  });  
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#2b2b2b;
+    display:flex;
+    justify-content:center;
 }
 
-// Zometeen automatisch renderen
-renderGrid();
+.container{
+    width:100%;
+    max-width:480px;
+    background:#1f1f1f;
+    min-height:100vh;
+    padding-bottom:20px;
+}
 
-// =====================================  
-// 📲 PWA INSTALL PROMPT  
-// =====================================  
-let deferredPrompt;  
-const installPrompt = document.getElementById("installPrompt");  
-const installBtn = document.getElementById("installNow");  
-const installClose = document.getElementById("installClose");  
+/* HEADER */
+#appHeader{
+    width:100%;
+    background:#c71f1f;
+    border-radius:0 0 20px 20px;
+    padding:15px;
+    color:white;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    box-sizing:border-box;
+}
 
-window.addEventListener("beforeinstallprompt", e => {  
-  e.preventDefault();  
-  deferredPrompt = e;  
-  installPrompt.style.display = "flex";  
-});  
+.header-logo{
+    height:50px;
+}
 
-installBtn.addEventListener("click", async () => {  
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);  
-  if (isIOS) { alert("Op iPhone/iPad: gebruik ‘Zet op beginscherm’."); installPrompt.style.display="none"; return; }  
-  if (deferredPrompt) {  
-    deferredPrompt.prompt();  
-    const result = await deferredPrompt.userChoice;  
-    if(result.outcome==="accepted") localStorage.setItem("appInstalled","true");  
-    installPrompt.style.display="none";  
-  }  
-});  
+.header-right{
+    display:flex;
+    flex-direction:column;
+    font-size:14px;
+}
 
-installClose.addEventListener("click", ()=>installPrompt.style.display="none");  
+.header-ploeg{
+    font-weight:bold;
+}
 
-</script>  
-<script src="/brandweerherentals/header.js"></script>  
-</body>  
+/* CONTENT */
+.content{
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+/* FUNCTION BUTTONS */
+.role-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.role-btn{
+    background:#333;
+    color:white;
+    text-decoration:none;
+    padding:20px;
+    border-radius:18px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 5px 10px rgba(0,0,0,0.4);
+    font-size:15px;
+    transition:0.2s;
+}
+
+.role-btn:active{
+    transform:scale(0.95);
+}
+
+.role-icon{
+    font-size:30px;
+    margin-bottom:6px;
+}
+
+footer{
+    text-align:center;
+    color:#999;
+    font-size:12px;
+    padding:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<header id="appHeader">
+    <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+    <div class="header-right">
+        <div id="greeting"></div>
+        <div id="datetime"></div>
+        <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+</header>
+
+<!-- CONTENT -->
+<div class="content">
+
+    <h3 style="color:white;text-align:center;margin-bottom:5px;">
+        Kies je functie
+    </h3>
+
+    <div class="role-grid">
+
+        <a href="brandweer.html" class="role-btn">
+            <div class="role-icon">🚒</div>
+            <strong>Brandweer</strong>
+        </a>
+
+        <a href="chauffeur.html" class="role-btn">
+            <div class="role-icon">🚛</div>
+            <strong>Chauffeur</strong>
+        </a>
+
+        <a href="ambulancier.html" class="role-btn">
+            <div class="role-icon">🚑</div>
+            <strong>Ambulancier</strong>
+        </a>
+
+        <a href="duiker.html" class="role-btn">
+            <div class="role-icon">🤿</div>
+            <strong>Duiker</strong>
+        </a>
+
+    </div>
+
+</div>
+
+<footer>Versie 1.2</footer>
+
+</div>
+
+<script>
+// ==================================
+// HEADER INFO
+// ==================================
+function updateHeader(){
+    const now = new Date();
+
+    document.getElementById("datetime").innerText =
+        now.toLocaleDateString("nl-BE",{day:'2-digit',month:'2-digit',year:'numeric'}) +
+        " - " +
+        now.toLocaleTimeString("nl-BE",{hour:'2-digit',minute:'2-digit'});
+
+    let h = now.getHours();
+    let greet = "Goedenavond";
+    if(h < 12) greet = "Goedemorgen";
+    else if(h < 18) greet = "Goedemiddag";
+
+    let name = localStorage.getItem("gebruikersnaam") || "collega";
+    document.getElementById("greeting").innerText = greet + " " + name;
+}
+
+setInterval(updateHeader, 1000);
+updateHeader();
+
+// ==================================
+// PLOEG VAN DE WEEK
+// ==================================
+const ploegen = ["Alpha","Bravo","Charlie","Delta"];
+const week = Math.floor((new Date() - new Date(2024,0,1)) / (1000*60*60*24*7));
+document.getElementById("ploegOfWeek").innerText =
+    "Ploeg van de week: " + ploegen[week % ploegen.length];
+</script>
+
+</body>
 </html>
