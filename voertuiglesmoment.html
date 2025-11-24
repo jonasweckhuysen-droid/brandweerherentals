@@ -6,19 +6,37 @@
 <title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
 <link rel="stylesheet" href="style.css">
 <style>
-/* ========== EXTRA LAYOUT STIJLEN ========== */
 .container {
   max-width:900px;
   margin:0 auto 20px auto;
   background:#fff;
   border-radius:20px;
   box-shadow:0 6px 15px rgba(0,0,0,0.1);
-  padding:0 20px 20px 20px;
+  overflow:hidden; /* zodat de header over de hoeken kan lopen */
+}
+
+#appHeader {
+  background:#c62828;
+  color:white;
+  padding:15px 20px;
+  text-align:center;
+}
+
+.header-logo {
+  height:60px;
+  margin-bottom:10px;
+}
+
+.header-greeting,
+.header-datetime,
+.header-ploeg {
+  margin:2px 0;
+  font-weight:600;
 }
 
 .backlink {
   display:inline-block;
-  margin:15px 0 10px 0;
+  margin:20px 0 10px 0;
   padding:6px 12px;
   background:#c62828;
   color:white;
@@ -44,17 +62,7 @@
   border-left:6px solid #c62828;
 }
 
-.chauffeur-card h3 {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.counter {
-  font-size:0.9rem;
-  color:#555;
-}
-
+/* Vehicle & exercises layout */
 .vehicle {
   margin-top:10px;
   padding:10px;
@@ -64,11 +72,10 @@
 }
 
 .veh-header {
+  display:flex;
+  justify-content:space-between;
   font-weight:bold;
   margin-bottom:8px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
 }
 
 .veh-left {
@@ -87,32 +94,6 @@
   display:flex;
   align-items:center;
   gap:6px;
-}
-
-/* ===== HEADER ===== */
-#appHeader {
-  background:#c62828;
-  color:white;
-  padding:15px 20px;
-  border-radius:20px; /* helemaal afgerond */
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-  box-sizing: border-box;
-  margin-bottom:15px;
-}
-
-.header-logo {
-  height:60px;
-  margin-bottom:10px;
-}
-
-.header-greeting,
-.header-datetime,
-.header-ploeg {
-  margin:2px 0;
-  font-weight:600;
 }
 </style>
 </head>
@@ -137,31 +118,33 @@
 
 </div>
 
-<script src="header.js"></script> <!-- Header wordt netjes via header.js geladen -->
+<script src="header.js"></script>
 
 <script>
-/* =================== GEBRUIKER =================== */
+/* Gebruiker */
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 
-/* =================== DATUM & TIJD =================== */
+/* Datum & Tijd - gescheiden date & time voor minder flitsen */
 function updateDateTime(){
   const now = new Date();
-  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE");
+  const date = now.toLocaleDateString('nl-BE');
+  const time = now.toLocaleTimeString('nl-BE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById("datetime").textContent = `${date} ${time}`;
 }
 setInterval(updateDateTime,1000);
 updateDateTime();
 
-/* =================== PLOEG VAN DE WEEK =================== */
-const ploegen = ["Ploeg A", "Ploeg B", "Ploeg C", "Ploeg D"];
+/* Ploeg van de week */
+const ploegen = ["Ploeg A","Ploeg B","Ploeg C","Ploeg D"];
 const weekNum = Math.ceil((new Date() - new Date(new Date().getFullYear(),0,1))/604800000);
 document.getElementById("ploegOfWeek").textContent = `Ploeg van de week: ${ploegen[weekNum % ploegen.length]}`;
 
-/* =================== ADMINS =================== */
+/* Admin check */
 const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
 const isAdmin = admins.includes(huidigeGebruiker);
 
-/* =================== CHAUFFEURS =================== */
+/* Chauffeurs */
 const chauffeurs = [
   "Dries Boven","Robin Buyens","Bart Cools","Kurt Cools","Gianni Cornelis",
   "Roel Dekort","Rik Goris","Kris Hoeylaerts","Philippe Hoeylaerts","Vincent Leemans",
@@ -170,47 +153,32 @@ const chauffeurs = [
   "Cristoph Verhaegen","Robbe Vervecken","Steven Vervloet"
 ];
 
-/* =================== OEFENMOMENTEN =================== */
+/* Oefenmomenten */
 const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],
-  "L544":[1,2,3,4],
-  "L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3],
-  "M545":[1,2,3,4],
-  "T545":[1,2,3,4,5,6],
-  "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6],
+  "B541":[1,2,3,4,5,6],"L544":[1,2,3,4],"L549":[1,2,3,4,5],
+  "A545":[1,2,3,4,5,6],"D541":[1,2,3],"M545":[1,2,3,4],
+  "T545":[1,2,3,4,5,6],"H541":[1,2,3,4,5,6],"A541":[1,2,3,4,5,6],
   "Containers":[1]
 };
 
-/* =================== GROEPEN & SETS =================== */
+/* Groepen & sets */
 const mid = Math.ceil(chauffeurs.length/2);
 const groep1 = chauffeurs.slice(0, mid);
 const groep2 = chauffeurs.slice(mid);
-
-// Sets omgewisseld voor seizoen
 const setA = ["T545","H541","A541","Containers"];
 const setB = ["B541","L544","L549","A545","D541","M545"];
-
 const maand = new Date().getMonth()+1;
-const isVoorjaar = maand <= 6;
-
+const isVoorjaar = maand <=6;
 function getVoertuigenVoorChauffeur(chauffeur){
-  if(groep1.includes(chauffeur)){
-    return isVoorjaar ? setB : setA;
-  } else {
-    return isVoorjaar ? setA : setB;
-  }
+  if(groep1.includes(chauffeur)) return isVoorjaar? setB:setA;
+  else return isVoorjaar? setA:setB;
 }
 
-/* =================== RENDER CHAUFFEURS MET TELLER =================== */
+/* Render */
 const containerDiv = document.getElementById("chauffeurContainer");
-
 function renderChauffeurs(filter=""){
   containerDiv.innerHTML="";
-  filter = filter.toLowerCase();
-
+  filter=filter.toLowerCase();
   chauffeurs.forEach(chauffeur=>{
     if(!isAdmin && chauffeur!==huidigeGebruiker) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
@@ -220,85 +188,74 @@ function renderChauffeurs(filter=""){
     card.className="chauffeur-card";
 
     const h3 = document.createElement("h3");
-    h3.textContent = chauffeur + " ";
+    h3.textContent = chauffeur+" ";
     const counter = document.createElement("span");
     counter.className="counter";
-    counter.textContent = "0 / 0 oefenmomenten voltooid";
+    counter.textContent="0 / 0 oefenmomenten voltooid";
     h3.appendChild(counter);
     card.appendChild(h3);
 
-    let totaleOefenmomenten = 0;
-    let voltooideOefenmomenten = 0;
-
+    let totale=0, voltooide=0;
     voertuigen.forEach(voertuig=>{
       if(!oefenmomenten[voertuig]) return;
-      totaleOefenmomenten += oefenmomenten[voertuig].length;
+      totale += oefenmomenten[voertuig].length;
 
       const vehicleDiv = document.createElement("div");
       vehicleDiv.className="vehicle";
 
-      const vehHeader = document.createElement("div");
-      vehHeader.className="veh-header";
+      const vhHeader = document.createElement("div");
+      vhHeader.className="veh-header";
 
-      const vehLeft = document.createElement("div");
-      vehLeft.className="veh-left";
-      vehLeft.textContent = "🚒 " + voertuig;
+      const vhLeft = document.createElement("div");
+      vhLeft.className="veh-left";
+      vhLeft.textContent="🚒 "+voertuig;
 
       const selectAllLabel = document.createElement("label");
       selectAllLabel.className="select-all-label";
-
       const selectAllCheckbox = document.createElement("input");
       selectAllCheckbox.type="checkbox";
-
       selectAllLabel.appendChild(selectAllCheckbox);
       selectAllLabel.appendChild(document.createTextNode(" Alles aanduiden"));
 
-      vehHeader.appendChild(vehLeft);
-      vehHeader.appendChild(selectAllLabel);
-      vehicleDiv.appendChild(vehHeader);
+      vhHeader.appendChild(vhLeft);
+      vhHeader.appendChild(selectAllLabel);
+      vehicleDiv.appendChild(vhHeader);
 
       const exerciseDiv = document.createElement("div");
       exerciseDiv.className="exercise-list";
-
-      const checkboxes = [];
-
+      const checkboxes=[];
       oefenmomenten[voertuig].forEach(num=>{
-        const label = document.createElement("label");
-        const input = document.createElement("input");
+        const label=document.createElement("label");
+        const input=document.createElement("input");
         input.type="checkbox";
         checkboxes.push(input);
-
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
-
         input.addEventListener("change",()=>{
-          voltooideOefenmomenten = checkboxes.filter(cb=>cb.checked).length;
-          counter.textContent=`${voltooideOefenmomenten} / ${totaleOefenmomenten} oefenmomenten voltooid`;
+          voltooide=checkboxes.filter(cb=>cb.checked).length;
+          counter.textContent=`${voltooide} / ${totale} oefenmomenten voltooid`;
         });
       });
-
       selectAllCheckbox.addEventListener("change",()=>{
         checkboxes.forEach(cb=>cb.checked=selectAllCheckbox.checked);
-        voltooideOefenmomenten = checkboxes.filter(cb=>cb.checked).length;
-        counter.textContent=`${voltooideOefenmomenten} / ${totaleOefenmomenten} oefenmomenten voltooid`;
+        voltooide=checkboxes.filter(cb=>cb.checked).length;
+        counter.textContent=`${voltooide} / ${totale} oefenmomenten voltooid`;
       });
 
       vehicleDiv.appendChild(exerciseDiv);
       card.appendChild(vehicleDiv);
     });
-
-    counter.textContent=`${voltooideOefenmomenten} / ${totaleOefenmomenten} oefenmomenten voltooid`;
+    counter.textContent=`${voltooide} / ${totale} oefenmomenten voltooid`;
     containerDiv.appendChild(card);
   });
-
   if(!containerDiv.hasChildNodes()){
     containerDiv.innerHTML="<div style='color:#666;padding:12px;border-radius:8px;background:#fff;border:1px dashed #ddd;'>Geen chauffeurs gevonden of geen rechten.</div>";
   }
 }
 
 renderChauffeurs();
-document.getElementById("searchInput").addEventListener("input", e=>renderChauffeurs(e.target.value));
+document.getElementById("searchInput").addEventListener("input",e=>renderChauffeurs(e.target.value));
 </script>
 
 </body>
