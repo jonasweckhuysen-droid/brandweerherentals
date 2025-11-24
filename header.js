@@ -1,6 +1,5 @@
 (function () {
   const NAME_KEY = "userName";
-  const VZW_KEY = "isVZW";
 
   window.addEventListener("DOMContentLoaded", initHeader);
 
@@ -10,23 +9,14 @@
     setInterval(updateDateTime, 1000);
   }
 
+  // Haalt ALLEEN de naam uit localStorage (geen prompts meer)
   function restoreUser() {
-    let user = localStorage.getItem(NAME_KEY);
-    let vzw = localStorage.getItem(VZW_KEY);
-
-    if (!user) {
-      user = prompt("Wat is je naam?");
-      if (user) localStorage.setItem(NAME_KEY, user);
-    }
-
-    if (!vzw) {
-      const pwd = prompt("Ben je lid van de VZW? Vul wachtwoord in:");
-      vzw = pwd === "Oudstrijder" ? "true" : "false";
-      localStorage.setItem(VZW_KEY, vzw);
-    }
-
+    const user = localStorage.getItem(NAME_KEY);
     const greet = document.getElementById("greeting");
-    if (greet && user) greet.textContent = `Welkom, ${user}!`;
+
+    if (greet && user) {
+      greet.textContent = `Welkom, ${user}!`;
+    }
   }
 
   function updateDateTime() {
@@ -47,8 +37,8 @@
       const cycle = ["A1", "B1", "C1", "A2", "B2", "C2"];
       const ref = new Date("2025-01-03T12:00:00");
       const now = new Date();
-      const weeks = Math.floor((now - ref) / (7 * 24 * 60 * 60 * 1000));
 
+      const weeks = Math.floor((now - ref) / (7 * 24 * 60 * 60 * 1000));
       ploeg.textContent = "Ploeg van week: " + cycle[(weeks % 6 + 6) % 6];
     }
   }
