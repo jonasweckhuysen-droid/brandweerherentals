@@ -6,25 +6,38 @@
 <title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
 <link rel="stylesheet" href="style.css">
 <style>
+/* Container */
 .container {
   max-width:900px;
   margin:0 auto 20px auto;
   background:#fff;
   border-radius:20px;
   box-shadow:0 6px 15px rgba(0,0,0,0.1);
-  overflow:hidden; /* zodat de header over de hoeken kan lopen */
+  overflow:hidden;
 }
 
+/* Header */
 #appHeader {
   background:#c62828;
   color:white;
   padding:15px 20px;
-  text-align:center;
+  display:flex;
+  align-items:center;
+  gap:20px;
 }
 
+/* Logo */
 .header-logo {
   height:60px;
-  margin-bottom:10px;
+  flex-shrink:0;
+}
+
+/* Header tekst rechts van logo */
+.header-text {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  line-height:1.4;
 }
 
 .header-greeting,
@@ -34,6 +47,7 @@
   font-weight:600;
 }
 
+/* Backlink en zoekbalk */
 .backlink {
   display:inline-block;
   margin:20px 0 10px 0;
@@ -54,6 +68,7 @@
   margin-bottom:20px;
 }
 
+/* Chauffeur cards */
 .chauffeur-card {
   background:#f9f9f9;
   padding:15px;
@@ -105,9 +120,11 @@
   <!-- HEADER -->
   <header id="appHeader">
     <img src="/brandweerherentals/icons/logo.png" class="header-logo" alt="Brandweer Herentals">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
+    <div class="header-text">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
   </header>
 
   <main>
@@ -119,13 +136,12 @@
 </div>
 
 <script src="header.js"></script>
-
 <script>
 /* Gebruiker */
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 
-/* Datum & Tijd - gescheiden date & time voor minder flitsen */
+/* Datum & Tijd - gescheiden date & time */
 function updateDateTime(){
   const now = new Date();
   const date = now.toLocaleDateString('nl-BE');
