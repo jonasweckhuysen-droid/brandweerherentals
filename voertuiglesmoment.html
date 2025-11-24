@@ -5,56 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
 <link rel="stylesheet" href="style.css">
+<script src="header.js" defer></script> <!-- laad header uit aparte JS -->
+<style>
+/* Extra stijlen voor nettere layout */
+.chauffeur-card {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 6px solid #c62828;
+}
+
+.veh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.exercise-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.select-all-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
-
-  <!-- HEADER -->
-  <header id="appHeader">
-    <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-    </div>
-    <div class="header-right">
-      <div id="greeting" class="header-greeting"></div>
-      <div id="datetime" class="header-datetime"></div>
-      <div id="ploegOfWeek" class="header-ploeg"></div>
-    </div>
-  </header>
+  <!-- HEADER wordt geladen via header.js -->
+  <header id="appHeader"></header>
 
   <main>
     <a href="index.html" class="backlink">← Terug naar menu</a>
     <input type="text" id="searchInput" placeholder="Zoek op naam...">
     <div id="chauffeurContainer"></div>
   </main>
-
 </div>
 
 <script>
-/* =================== GEBRUIKER =================== */
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
-document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
-
-/* =================== DATUM & TIJD =================== */
-function updateDateTime(){
-  const now = new Date();
-  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE");
-}
-setInterval(updateDateTime, 1000);
-updateDateTime();
-
-/* =================== PLOEG VAN DE WEEK =================== */
-const ploegen = ["Ploeg A", "Ploeg B", "Ploeg C", "Ploeg D"];
-// voorbeeld: weeknummer modulo aantal ploegen
-const weekNum = Math.ceil((new Date() - new Date(new Date().getFullYear(),0,1))/604800000);
-document.getElementById("ploegOfWeek").textContent = `Ploeg van de week: ${ploegen[weekNum % ploegen.length]}`;
-
-/* =================== ADMINS =================== */
 const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
 const isAdmin = admins.includes(huidigeGebruiker);
 
-/* =================== CHAUFFEURS =================== */
 const chauffeurs = [
   "Dries Boven", "Robin Buyens", "Bart Cools", "Kurt Cools", "Gianni Cornelis",
   "Roel Dekort", "Rik Goris", "Kris Hoeylaerts", "Philippe Hoeylaerts", "Vincent Leemans",
@@ -63,41 +66,27 @@ const chauffeurs = [
   "Cristoph Verhaegen", "Robbe Vervecken", "Steven Vervloet"
 ];
 
-/* =================== OEFENMOMENTEN =================== */
 const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],
-  "L544":[1,2,3,4],
-  "L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3],
-  "M545":[1,2,3,4],
-  "T545":[1,2,3,4,5,6],
-  "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6],
+  "B541":[1,2,3,4,5,6], "L544":[1,2,3,4], "L549":[1,2,3,4,5], 
+  "A545":[1,2,3,4,5,6], "D541":[1,2,3], "M545":[1,2,3,4],
+  "T545":[1,2,3,4,5,6], "H541":[1,2,3,4,5,6], "A541":[1,2,3,4,5,6],
   "Containers":[1]
 };
 
-/* =================== GROEPEN & SETS =================== */
 const mid = Math.ceil(chauffeurs.length / 2);
 const groep1 = chauffeurs.slice(0, mid);
 const groep2 = chauffeurs.slice(mid);
 
-// **SETS OMGEWISSELD VOOR SEIZOEN**
 const setA = ["T545","H541","A541","Containers"];
 const setB = ["B541","L544","L549","A545","D541","M545"];
 
 const maand = new Date().getMonth() + 1;
 const isVoorjaar = maand <= 6;
-
 function getVoertuigenVoorChauffeur(chauffeur){
-  if (groep1.includes(chauffeur)) {
-    return isVoorjaar ? setB : setA;
-  } else {
-    return isVoorjaar ? setA : setB;
-  }
+  if (groep1.includes(chauffeur)) return isVoorjaar ? setB : setA;
+  else return isVoorjaar ? setA : setB;
 }
 
-/* =================== RENDER MET TELLER =================== */
 const containerDiv = document.getElementById("chauffeurContainer");
 
 function renderChauffeurs(filter=""){
@@ -116,7 +105,6 @@ function renderChauffeurs(filter=""){
     h3.textContent = chauffeur + " ";
     const counter = document.createElement("span");
     counter.className = "counter";
-    counter.textContent = "0 / 0 oefenmomenten voltooid";
     h3.appendChild(counter);
     card.appendChild(h3);
 
@@ -128,21 +116,19 @@ function renderChauffeurs(filter=""){
       totaleOefenmomenten += oefenmomenten[voertuig].length;
 
       const vehicleDiv = document.createElement("div");
-      vehicleDiv.className = "vehicle";
+      vehicleDiv.className="vehicle";
 
       const vehHeader = document.createElement("div");
-      vehHeader.className = "veh-header";
+      vehHeader.className="veh-header";
 
       const vehLeft = document.createElement("div");
-      vehLeft.className = "veh-left";
+      vehLeft.className="veh-left";
       vehLeft.textContent = "🚒 " + voertuig;
 
       const selectAllLabel = document.createElement("label");
-      selectAllLabel.className = "select-all-label";
-
+      selectAllLabel.className="select-all-label";
       const selectAllCheckbox = document.createElement("input");
-      selectAllCheckbox.type = "checkbox";
-
+      selectAllCheckbox.type="checkbox";
       selectAllLabel.appendChild(selectAllCheckbox);
       selectAllLabel.appendChild(document.createTextNode(" Alles aanduiden"));
 
@@ -152,7 +138,6 @@ function renderChauffeurs(filter=""){
 
       const exerciseDiv = document.createElement("div");
       exerciseDiv.className = "exercise-list";
-
       const checkboxes = [];
 
       oefenmomenten[voertuig].forEach(num=>{
@@ -160,7 +145,6 @@ function renderChauffeurs(filter=""){
         const input = document.createElement("input");
         input.type="checkbox";
         checkboxes.push(input);
-
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
@@ -194,6 +178,5 @@ renderChauffeurs();
 document.getElementById("searchInput").addEventListener("input", e => renderChauffeurs(e.target.value));
 
 </script>
-
 </body>
 </html>
