@@ -146,7 +146,7 @@ document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 function updateDateTime(){
   const now = new Date();
   const date = now.toLocaleDateString('nl-BE');
-  const time = now.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const time = now.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
   document.getElementById("datetime").textContent = `${date} ${time}`;
 }
 setInterval(updateDateTime,1000);
@@ -195,7 +195,7 @@ const containerDiv = document.getElementById("chauffeurContainer");
 function renderChauffeurs(filter=""){
   containerDiv.innerHTML="";
   filter=filter.toLowerCase();
-  
+
   chauffeurs.forEach(chauffeur=>{
     if(!isAdmin && chauffeur!==huidigeGebruiker) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
@@ -252,13 +252,14 @@ function renderChauffeurs(filter=""){
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
 
-        input.addEventListener("change",updateCounter);
+        input.addEventListener("change", updateCounter);
       });
 
       selectAllCheckbox.addEventListener("change",()=>{
-        oefenmomenten[voertuig].forEach((_,i)=>{
-          allCheckboxes.slice(allCheckboxes.length-oefenmomenten[voertuig].length)[i].checked = selectAllCheckbox.checked;
-        });
+        const startIndex = allCheckboxes.length - oefenmomenten[voertuig].length;
+        for(let i=0;i<oefenmomenten[voertuig].length;i++){
+          allCheckboxes[startIndex+i].checked = selectAllCheckbox.checked;
+        }
         updateCounter();
       });
 
@@ -281,7 +282,7 @@ function renderChauffeurs(filter=""){
 }
 
 renderChauffeurs();
-document.getElementById("searchInput").addEventListener("input",e=>renderChauffeurs(e.target.value));
+document.getElementById("searchInput").addEventListener("input", e=>renderChauffeurs(e.target.value));
 </script>
 
 </body>
