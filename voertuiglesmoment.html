@@ -6,21 +6,97 @@
 <title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
 
 <style>
-body { margin:0; font-family: Arial, sans-serif; background:#f2f4f7; }
-.container { max-width:900px; margin:0 auto 20px auto; background:#fff; border-radius:15px; box-shadow:0 6px 15px rgba(0,0,0,0.1); padding:0 20px 20px 20px; }
-header#appHeader { display:flex; justify-content:space-between; align-items:center; background:#c62828; color:white; margin:-20px -20px 0 -20px; padding:15px 20px; border-radius:15px 15px 0 0; }
-.header-left, .header-right { display:flex; align-items:center; }
-.header-logo { height:50px; }
-.header-greeting, .header-datetime, .header-ploeg { margin-left:10px; font-weight:bold; color:white; }
-.backlink { text-decoration:none; font-weight:600; display:inline-block; margin:25px 0 20px 0; color:white; background:#c62828; padding:6px 12px; border-radius:8px; }
-#searchInput { padding:10px 12px; border-radius:10px; border:1px solid #ccc; font-size:1rem; margin-bottom:20px; width:100%; }
-.chauffeur-card { background:#f9f9f9; padding:15px; border-radius:12px; margin-bottom:20px; border-left:6px solid #c62828; }
-.chauffeur-card h3 { display:flex; justify-content:space-between; align-items:center; }
-.counter { font-size:0.9rem; color:#555; }
-.vehicle { margin-top:10px; padding:10px; border:1px solid #eee; border-radius:12px; background:#fff; }
-.veh-header { font-weight:bold; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
-.veh-left { display:flex; align-items:center; }
-.exercise-list label { display:block; margin-bottom:4px; }
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f2f4f7;
+}
+.container {
+  max-width:900px;
+  margin:0 auto 20px auto;
+  background:#fff;
+  border-radius:15px;
+  box-shadow:0 6px 15px rgba(0,0,0,0.1);
+  padding:0 20px 20px 20px;
+}
+header#appHeader {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#c62828;
+  color:white;
+  margin:-20px -20px 0 -20px;
+  padding:15px 20px;
+  border-radius:15px 15px 0 0;
+}
+.header-left, .header-right {
+  display:flex;
+  align-items:center;
+}
+.header-logo {
+  height:50px;
+}
+.header-greeting, .header-datetime, .header-ploeg {
+  margin-left:10px;
+  font-weight:bold;
+  color:white;
+}
+.backlink {
+  text-decoration:none;
+  font-weight:600;
+  display:inline-block;
+  margin:25px 0 20px 0;
+  color:white;
+  background:#c62828;
+  padding:6px 12px;
+  border-radius:8px;
+}
+#searchInput {
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:1rem;
+  margin-bottom:20px;
+  width:100%;
+}
+.chauffeur-card {
+  background:#f9f9f9;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+  border-left:6px solid #c62828;
+}
+.chauffeur-card h3 {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.counter {
+  font-size:0.9rem;
+  color:#555;
+}
+.vehicle {
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #eee;
+  border-radius:12px;
+  background:#fff;
+}
+.veh-header {
+  font-weight:bold;
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.veh-left {
+  display:flex;
+  align-items:center;
+}
+.exercise-list label {
+  display:block;
+  margin-bottom:4px;
+}
 .select-all-label {
   font-size:0.85rem;
   font-weight:600;
@@ -63,8 +139,8 @@ document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
 const isAdmin = admins.includes(huidigeGebruiker);
 
-/* ========== CHAUFFEURS ========== */
-const chauffeurs = [
+/* ========== CHAUFFEURS (ONAANGEPAST) ========== */
+let chauffeurs = [
   "Dries Boven", "Robin Buyens", "Bart Cools", "Kurt Cools", "Gianni Cornelis",
   "Roel Dekort", "Rik Goris", "Kris Hoeylaerts", "Philippe Hoeylaerts", "Vincent Leemans",
   "Bart Leten", "Steven Maes", "Liese Meyskens", "Rutger Moons", "Sven Van Buren",
@@ -72,31 +148,50 @@ const chauffeurs = [
   "Cristoph Verhaegen", "Robbe Vervecken", "Steven Vervloet"
 ];
 
+/* ========== ALFABETISCH SORTEREN OP ACHTERNAAM ========== */
+chauffeurs.sort((a,b)=>{
+  const lastA = a.split(' ').slice(-1)[0];
+  const lastB = b.split(' ').slice(-1)[0];
+  return lastA.localeCompare(lastB, 'nl', {sensitivity:'base'});
+});
+
 /* ========== OEFENMOMENTEN PER VOERTUIG ========== */
 const oefenmomenten = {
-  "B541":[1,2,3,4,5,6], "L544":[1,2,3,4], "L549":[1,2,3,4,5], "A545":[1,2,3,4,5,6],
-  "D541":[1,2,3], "M545":[1,2,3,4], "T545":[1,2,3,4,5,6], "H541":[1,2,3,4,5,6],
-  "A541":[1,2,3,4,5,6], "Containers":[1]
+  "B541":[1,2,3,4,5,6],
+  "L544":[1,2,3,4],
+  "L549":[1,2,3,4,5],
+  "A545":[1,2,3,4,5,6],
+  "D541":[1,2,3],
+  "M545":[1,2,3,4],   // FIX: M541
+  "T545":[1,2,3,4,5,6],
+  "H541":[1,2,3,4,5,6],
+  "A541":[1,2,3,4,5,6],
+  "Containers":[1]
 };
 
-/* ========== GROEPEN & VOERTUIGEN ========== */
-const mid = Math.ceil(chauffeurs.length/2);
-const groep1 = chauffeurs.slice(0,mid);
+/* ========== GROEPEN ========== */
+const mid = Math.ceil(chauffeurs.length / 2);
+const groep1 = chauffeurs.slice(0, mid);
 const groep2 = chauffeurs.slice(mid);
 
-const voorjaarSetA = ["B541","L544","L549","A545","D541","M545"];
-const najaarSetA = ["T545","H541","A541","Containers"];
-const voorjaarSetB = najaarSetA;
-const najaarSetB = voorjaarSetA;
+/* ========== VOERTUIGSETS ========== */
+const setA = ["B541","L544","L549","A545","D541","M545];
+const setB = ["T545","H541","A541","Containers"];
 
-const maand = new Date().getMonth()+1;
-const isVoorjaar = maand<=6;
-const evenJaar = new Date().getFullYear()%2===0;
+/* ========== SEIZOEN & JAAR ========== */
+const maand = new Date().getMonth() + 1;
+const isVoorjaar = maand <= 6;
 
+/* ========== LOGICA (GROEPEN NU GEWISSELD) ========== */
 function getVoertuigenVoorChauffeur(chauffeur){
-  return groep1.includes(chauffeur)
-    ? (isVoorjaar ? (evenJaar ? voorjaarSetB : najaarSetB) : (evenJaar ? najaarSetB : voorjaarSetB))
-    : (isVoorjaar ? (evenJaar ? voorjaarSetA : najaarSetA) : (evenJaar ? najaarSetA : voorjaarSetA));
+
+  // NU: groep1 = SET B in voorjaar, SET A in najaar (gewisseld!)
+  //     groep2 = SET A in voorjaar, SET B in najaar
+  if (groep1.includes(chauffeur)) {
+    return isVoorjaar ? setB : setA;
+  } else {
+    return isVoorjaar ? setA : setB;
+  }
 }
 
 /* ========== RENDER ========== */
@@ -107,7 +202,8 @@ function renderChauffeurs(filter=""){
   filter = filter.toLowerCase();
 
   chauffeurs.forEach(chauffeur=>{
-    if(!isAdmin && chauffeur!==huidigeGebruiker) return;
+
+    if(!isAdmin && chauffeur !== huidigeGebruiker) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
@@ -118,7 +214,7 @@ function renderChauffeurs(filter=""){
     const h3 = document.createElement("h3");
     h3.textContent = chauffeur + " ";
     const counter = document.createElement("span");
-    counter.className="counter";
+    counter.className = "counter";
     counter.textContent = "0 / 0 oefenmomenten voltooid";
     h3.appendChild(counter);
     card.appendChild(h3);
@@ -166,7 +262,6 @@ function renderChauffeurs(filter=""){
         exerciseDiv.appendChild(label);
       });
 
-      // MASTER CHECKBOX LOGICA
       selectAllCheckbox.addEventListener("change", () => {
         checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
       });
