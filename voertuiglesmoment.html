@@ -11,36 +11,46 @@ body {
   font-family: Arial, sans-serif;
   background:#f2f4f7;
 }
+
 .container {
   max-width:900px;
   margin:0 auto 20px auto;
   background:#fff;
-  border-radius:15px;
+  border-radius:20px;
   box-shadow:0 6px 15px rgba(0,0,0,0.1);
   padding:0 20px 20px 20px;
 }
+
+/* ===== HEADER ZELFDE ALS ANDERE PAGINA ===== */
 header#appHeader {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
   background:#c62828;
   color:white;
-  margin:-20px -20px 0 -20px;
   padding:15px 20px;
-  border-radius:15px 15px 0 0;
-}
-.header-left, .header-right {
+  border-radius:20px 20px 0 0;
   display:flex;
+  flex-direction:column;
   align-items:center;
+  text-align:center;
 }
+
 .header-logo {
-  height:50px;
+  height:60px;
+  margin-bottom:10px;
 }
-.header-greeting, .header-datetime, .header-ploeg {
-  margin-left:10px;
-  font-weight:bold;
-  color:white;
+
+.header-greeting {
+  font-size:1.1rem;
+  font-weight:600;
 }
+
+.header-datetime,
+.header-ploeg {
+  font-size:0.95rem;
+  opacity:0.9;
+}
+
+/* ============================================= */
+
 .backlink {
   text-decoration:none;
   font-weight:600;
@@ -51,6 +61,7 @@ header#appHeader {
   padding:6px 12px;
   border-radius:8px;
 }
+
 #searchInput {
   padding:10px 12px;
   border-radius:10px;
@@ -59,6 +70,7 @@ header#appHeader {
   margin-bottom:20px;
   width:100%;
 }
+
 .chauffeur-card {
   background:#f9f9f9;
   padding:15px;
@@ -66,15 +78,18 @@ header#appHeader {
   margin-bottom:20px;
   border-left:6px solid #c62828;
 }
+
 .chauffeur-card h3 {
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
+
 .counter {
   font-size:0.9rem;
   color:#555;
 }
+
 .vehicle {
   margin-top:10px;
   padding:10px;
@@ -82,6 +97,7 @@ header#appHeader {
   border-radius:12px;
   background:#fff;
 }
+
 .veh-header {
   font-weight:bold;
   margin-bottom:8px;
@@ -89,14 +105,17 @@ header#appHeader {
   align-items:center;
   justify-content:space-between;
 }
+
 .veh-left {
   display:flex;
   align-items:center;
 }
+
 .exercise-list label {
   display:block;
   margin-bottom:4px;
 }
+
 .select-all-label {
   font-size:0.85rem;
   font-weight:600;
@@ -112,14 +131,10 @@ header#appHeader {
 <div class="container">
 
 <header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
+  <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+  <div id="greeting" class="header-greeting"></div>
+  <div id="datetime" class="header-datetime"></div>
+  <div id="ploegOfWeek" class="header-ploeg"></div>
 </header>
 
 <main>
@@ -135,12 +150,20 @@ header#appHeader {
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 
+/* DATUM & TIJD */
+function updateDateTime(){
+  const now = new Date();
+  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE");
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();
+
 /* ========== ADMINS ========== */
 const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
 const isAdmin = admins.includes(huidigeGebruiker);
 
-/* ========== CHAUFFEURS (ONAANGEPAST) ========== */
-let chauffeurs = [
+/* ========== CHAUFFEURS (ORIGINELE VOLGORDE) ========== */
+const chauffeurs = [
   "Dries Boven", "Robin Buyens", "Bart Cools", "Kurt Cools", "Gianni Cornelis",
   "Roel Dekort", "Rik Goris", "Kris Hoeylaerts", "Philippe Hoeylaerts", "Vincent Leemans",
   "Bart Leten", "Steven Maes", "Liese Meyskens", "Rutger Moons", "Sven Van Buren",
@@ -148,21 +171,14 @@ let chauffeurs = [
   "Cristoph Verhaegen", "Robbe Vervecken", "Steven Vervloet"
 ];
 
-/* ========== ALFABETISCH SORTEREN OP ACHTERNAAM ========== */
-chauffeurs.sort((a,b)=>{
-  const lastA = a.split(' ').slice(-1)[0];
-  const lastB = b.split(' ').slice(-1)[0];
-  return lastA.localeCompare(lastB, 'nl', {sensitivity:'base'});
-});
-
-/* ========== OEFENMOMENTEN PER VOERTUIG ========== */
+/* ========== OEFENMOMENTEN ========== */
 const oefenmomenten = {
   "B541":[1,2,3,4,5,6],
   "L544":[1,2,3,4],
   "L549":[1,2,3,4,5],
   "A545":[1,2,3,4,5,6],
   "D541":[1,2,3],
-  "M545":[1,2,3,4],   // FIX: M541
+  "M545":[1,2,3,4],
   "T545":[1,2,3,4,5,6],
   "H541":[1,2,3,4,5,6],
   "A541":[1,2,3,4,5,6],
@@ -174,19 +190,16 @@ const mid = Math.ceil(chauffeurs.length / 2);
 const groep1 = chauffeurs.slice(0, mid);
 const groep2 = chauffeurs.slice(mid);
 
-/* ========== VOERTUIGSETS ========== */
-const setA = ["B541","L544","L549","A545","D541","M545];
+/* ========== SETS ========== */
+const setA = ["B541","L544","L549","A545","D541","M545"];
 const setB = ["T545","H541","A541","Containers"];
 
-/* ========== SEIZOEN & JAAR ========== */
+/* ========== SEIZOEN ========== */
 const maand = new Date().getMonth() + 1;
 const isVoorjaar = maand <= 6;
 
-/* ========== LOGICA (GROEPEN NU GEWISSELD) ========== */
+/* ========== LOGICA ========== */
 function getVoertuigenVoorChauffeur(chauffeur){
-
-  // NU: groep1 = SET B in voorjaar, SET A in najaar (gewisseld!)
-  //     groep2 = SET A in voorjaar, SET B in najaar
   if (groep1.includes(chauffeur)) {
     return isVoorjaar ? setB : setA;
   } else {
@@ -243,7 +256,6 @@ function renderChauffeurs(filter=""){
 
       vehHeader.appendChild(vehLeft);
       vehHeader.appendChild(selectAllLabel);
-
       vehicleDiv.appendChild(vehHeader);
 
       const exerciseDiv = document.createElement("div");
@@ -282,6 +294,5 @@ renderChauffeurs();
 document.getElementById("searchInput").addEventListener("input",e=>renderChauffeurs(e.target.value));
 </script>
 
-<script src="header.js"></script>
 </body>
 </html>
