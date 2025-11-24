@@ -24,6 +24,7 @@
   display:flex;
   align-items:center;
   gap:20px;
+  border-radius:20px 20px 0 0; /* rode achtergrond volledig doorlopend */
 }
 
 /* Logo */
@@ -141,11 +142,11 @@
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 
-/* Datum & Tijd - gescheiden date & time */
+/* Datum & Tijd stabiel met seconden */
 function updateDateTime(){
   const now = new Date();
   const date = now.toLocaleDateString('nl-BE');
-  const time = now.toLocaleTimeString('nl-BE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  const time = now.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById("datetime").textContent = `${date} ${time}`;
 }
 setInterval(updateDateTime,1000);
@@ -186,15 +187,15 @@ const setB = ["B541","L544","L549","A545","D541","M545"];
 const maand = new Date().getMonth()+1;
 const isVoorjaar = maand <=6;
 function getVoertuigenVoorChauffeur(chauffeur){
-  if(groep1.includes(chauffeur)) return isVoorjaar? setB:setA;
-  else return isVoorjaar? setA:setB;
+  return groep1.includes(chauffeur)? (isVoorjaar? setB:setA) : (isVoorjaar? setA:setB);
 }
 
-/* Render */
+/* Render chauffeurs met teller */
 const containerDiv = document.getElementById("chauffeurContainer");
 function renderChauffeurs(filter=""){
   containerDiv.innerHTML="";
   filter=filter.toLowerCase();
+  
   chauffeurs.forEach(chauffeur=>{
     if(!isAdmin && chauffeur!==huidigeGebruiker) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
@@ -204,17 +205,19 @@ function renderChauffeurs(filter=""){
     card.className="chauffeur-card";
 
     const h3 = document.createElement("h3");
-    h3.textContent = chauffeur+" ";
+    h3.textContent=chauffeur+" ";
     const counter = document.createElement("span");
     counter.className="counter";
     counter.textContent="0 / 0 oefenmomenten voltooid";
     h3.appendChild(counter);
     card.appendChild(h3);
 
-    let totale=0, voltooide=0;
+    let totaleOefenmomenten = 0;
+    const allCheckboxes = [];
+
     voertuigen.forEach(voertuig=>{
       if(!oefenmomenten[voertuig]) return;
-      totale += oefenmomenten[voertuig].length;
+      totaleOefenmomenten += oefenmomenten[voertuig].length;
 
       const vehicleDiv = document.createElement("div");
       vehicleDiv.className="vehicle";
@@ -239,32 +242,39 @@ function renderChauffeurs(filter=""){
 
       const exerciseDiv = document.createElement("div");
       exerciseDiv.className="exercise-list";
-      const checkboxes=[];
+
       oefenmomenten[voertuig].forEach(num=>{
-        const label=document.createElement("label");
-        const input=document.createElement("input");
+        const label = document.createElement("label");
+        const input = document.createElement("input");
         input.type="checkbox";
-        checkboxes.push(input);
+        allCheckboxes.push(input);
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
-        input.addEventListener("change",()=>{
-          voltooide=checkboxes.filter(cb=>cb.checked).length;
-          counter.textContent=`${voltooide} / ${totale} oefenmomenten voltooid`;
-        });
+
+        input.addEventListener("change",updateCounter);
       });
+
       selectAllCheckbox.addEventListener("change",()=>{
-        checkboxes.forEach(cb=>cb.checked=selectAllCheckbox.checked);
-        voltooide=checkboxes.filter(cb=>cb.checked).length;
-        counter.textContent=`${voltooide} / ${totale} oefenmomenten voltooid`;
+        oefenmomenten[voertuig].forEach((_,i)=>{
+          allCheckboxes.slice(allCheckboxes.length-oefenmomenten[voertuig].length)[i].checked = selectAllCheckbox.checked;
+        });
+        updateCounter();
       });
 
       vehicleDiv.appendChild(exerciseDiv);
       card.appendChild(vehicleDiv);
     });
-    counter.textContent=`${voltooide} / ${totale} oefenmomenten voltooid`;
+
+    function updateCounter(){
+      const voltooide = allCheckboxes.filter(cb=>cb.checked).length;
+      counter.textContent = `${voltooide} / ${totaleOefenmomenten} oefenmomenten voltooid`;
+    }
+
+    updateCounter();
     containerDiv.appendChild(card);
   });
+
   if(!containerDiv.hasChildNodes()){
     containerDiv.innerHTML="<div style='color:#666;padding:12px;border-radius:8px;background:#fff;border:1px dashed #ddd;'>Geen chauffeurs gevonden of geen rechten.</div>";
   }
