@@ -11,7 +11,7 @@
 
 <div class="container">
 
-  <!-- HEADER zoals op andere pagina's -->
+  <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
       <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
@@ -32,11 +32,11 @@
 </div>
 
 <script>
-/* ========== GEBRUIKER UIT LOCALSTORAGE ========== */
+/* =================== GEBRUIKER =================== */
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("greeting").textContent = `Welkom ${huidigeGebruiker}`;
 
-/* DATUM & TIJD */
+/* =================== DATUM & TIJD =================== */
 function updateDateTime(){
   const now = new Date();
   document.getElementById("datetime").textContent = now.toLocaleString("nl-BE");
@@ -44,11 +44,17 @@ function updateDateTime(){
 setInterval(updateDateTime, 1000);
 updateDateTime();
 
-/* ========== ADMINS ========== */
+/* =================== PLOEG VAN DE WEEK =================== */
+const ploegen = ["Ploeg A", "Ploeg B", "Ploeg C", "Ploeg D"];
+// voorbeeld: weeknummer modulo aantal ploegen
+const weekNum = Math.ceil((new Date() - new Date(new Date().getFullYear(),0,1))/604800000);
+document.getElementById("ploegOfWeek").textContent = `Ploeg van de week: ${ploegen[weekNum % ploegen.length]}`;
+
+/* =================== ADMINS =================== */
 const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
 const isAdmin = admins.includes(huidigeGebruiker);
 
-/* ========== CHAUFFEURS ========== */
+/* =================== CHAUFFEURS =================== */
 const chauffeurs = [
   "Dries Boven", "Robin Buyens", "Bart Cools", "Kurt Cools", "Gianni Cornelis",
   "Roel Dekort", "Rik Goris", "Kris Hoeylaerts", "Philippe Hoeylaerts", "Vincent Leemans",
@@ -57,7 +63,7 @@ const chauffeurs = [
   "Cristoph Verhaegen", "Robbe Vervecken", "Steven Vervloet"
 ];
 
-/* ========== OEFENMOMENTEN ========== */
+/* =================== OEFENMOMENTEN =================== */
 const oefenmomenten = {
   "B541":[1,2,3,4,5,6],
   "L544":[1,2,3,4],
@@ -71,13 +77,14 @@ const oefenmomenten = {
   "Containers":[1]
 };
 
-/* ========== GROEPEN & SETS ========== */
+/* =================== GROEPEN & SETS =================== */
 const mid = Math.ceil(chauffeurs.length / 2);
 const groep1 = chauffeurs.slice(0, mid);
 const groep2 = chauffeurs.slice(mid);
 
-const setA = ["B541","L544","L549","A545","D541","M545"];
-const setB = ["T545","H541","A541","Containers"];
+// **SETS OMGEWISSELD VOOR SEIZOEN**
+const setA = ["T545","H541","A541","Containers"];
+const setB = ["B541","L544","L549","A545","D541","M545"];
 
 const maand = new Date().getMonth() + 1;
 const isVoorjaar = maand <= 6;
@@ -90,7 +97,7 @@ function getVoertuigenVoorChauffeur(chauffeur){
   }
 }
 
-/* ========== RENDER FUNCTIE MET TELLER ========== */
+/* =================== RENDER MET TELLER =================== */
 const containerDiv = document.getElementById("chauffeurContainer");
 
 function renderChauffeurs(filter=""){
@@ -102,7 +109,6 @@ function renderChauffeurs(filter=""){
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
     const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
-
     const card = document.createElement("div");
     card.className="chauffeur-card";
 
@@ -153,7 +159,6 @@ function renderChauffeurs(filter=""){
         const label = document.createElement("label");
         const input = document.createElement("input");
         input.type="checkbox";
-
         checkboxes.push(input);
 
         label.appendChild(input);
@@ -177,7 +182,6 @@ function renderChauffeurs(filter=""){
     });
 
     counter.textContent = `${voltooideOefenmomenten} / ${totaleOefenmomenten} oefenmomenten voltooid`;
-
     containerDiv.appendChild(card);
   });
 
