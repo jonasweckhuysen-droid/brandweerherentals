@@ -8,6 +8,36 @@
 <script src="header.js" defer></script>
 <style>
 /* ===== Chauffeur kaart styling ===== */
+.container {
+  max-width: 900px;
+  margin: 0 auto 20px auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  padding: 0 20px 20px 20px;
+}
+
+.backlink {
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: white;
+  background: #c62828;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+#searchInput {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
 .chauffeur-card {
   background: #f9f9f9;
   padding: 15px;
@@ -46,15 +76,31 @@
   align-items: center;
   gap: 6px;
 }
+
+.counter {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+/* Kleurcode teller */
+.counter.rood { color: #d32f2f; }
+.counter.oranje { color: #f57c00; }
+.counter.groen { color: #388e3c; }
+
+.main-spacer {
+  height: 10px; /* ruimte tussen header en terug-knop */
+}
 </style>
 </head>
 
 <body>
-
 <div class="container">
-  <header id="appHeader"></header> <!-- wordt volledig geladen door header.js -->
+  <!-- HEADER wordt geladen via header.js -->
+  <header id="appHeader"></header>
 
   <main>
+    <div class="main-spacer"></div>
     <a href="index.html" class="backlink">← Terug naar menu</a>
     <input type="text" id="searchInput" placeholder="Zoek op naam...">
     <div id="chauffeurContainer"></div>
@@ -67,25 +113,29 @@ document.addEventListener("DOMContentLoaded", function() {
   const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
   const isAdmin = admins.includes(huidigeGebruiker);
 
-  // Header elementen pas vullen nadat header.js ze heeft aangemaakt
-  const greetingEl = document.getElementById("greeting");
-  const datetimeEl = document.getElementById("datetime");
-  const ploegEl = document.getElementById("ploegOfWeek");
+  // Wacht tot header.js de elementen heeft toegevoegd
+  function initHeader() {
+    const greetingEl = document.getElementById("greeting");
+    const datetimeEl = document.getElementById("datetime");
+    const ploegEl = document.getElementById("ploegOfWeek");
 
-  if (greetingEl) greetingEl.textContent = `Welkom ${huidigeGebruiker}`;
-  if (datetimeEl) {
-    function updateDateTime(){
-      const now = new Date();
-      datetimeEl.textContent = now.toLocaleString("nl-BE");
+    if (greetingEl) greetingEl.textContent = `Welkom ${huidigeGebruiker}`;
+    if (datetimeEl) {
+      function updateDateTime(){
+        const now = new Date();
+        datetimeEl.textContent = now.toLocaleString("nl-BE");
+      }
+      setInterval(updateDateTime,1000);
+      updateDateTime();
     }
-    setInterval(updateDateTime,1000);
-    updateDateTime();
+    if (ploegEl) {
+      const ploegen = ["Ploeg A","Ploeg B","Ploeg C","Ploeg D"];
+      const weekNum = Math.ceil((new Date() - new Date(new Date().getFullYear(),0,1))/604800000);
+      ploegEl.textContent = `Ploeg van de week: ${ploegen[weekNum % ploegen.length]}`;
+    }
   }
-  if (ploegEl) {
-    const ploegen = ["Ploeg A","Ploeg B","Ploeg C","Ploeg D"];
-    const weekNum = Math.ceil((new Date() - new Date(new Date().getFullYear(),0,1))/604800000);
-    ploegEl.textContent = `Ploeg van de week: ${ploegen[weekNum % ploegen.length]}`;
-  }
+
+  initHeader();
 
   // Chauffeurs + oefenmomenten
   const chauffeurs = [
@@ -132,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function() {
       const h3 = document.createElement("h3");
       h3.textContent = chauffeur + " ";
       const counter = document.createElement("span");
-      counter.className="counter";
+      counter.className = "counter";
       h3.appendChild(counter);
       card.appendChild(h3);
 
@@ -177,21 +227,34 @@ document.addEventListener("DOMContentLoaded", function() {
 
           input.addEventListener("change",()=>{
             voltooideOefenmomenten = checkboxes.filter(cb=>cb.checked).length;
-            counter.textContent = `${voltooideOefenmomenten}/${totaleOefenmomenten} oefenmomenten voltooid`;
+            updateCounter();
           });
         });
 
         selectAllCheckbox.addEventListener("change",()=>{
           checkboxes.forEach(cb=>cb.checked=selectAllCheckbox.checked);
           voltooideOefenmomenten = checkboxes.filter(cb=>cb.checked).length;
-          counter.textContent = `${voltooideOefenmomenten}/${totaleOefenmomenten} oefenmomenten voltooid`;
+          updateCounter();
         });
 
         vehDiv.appendChild(exerciseDiv);
         card.appendChild(vehDiv);
       });
 
-      counter.textContent = `${voltooideOefenmomenten}/${totaleOefenmomenten} oefenmomenten voltooid`;
+      function updateCounter(){
+        counter.textContent = `${voltooideOefenmomenten}/${totaleOefenmomenten} oefenmomenten voltooid`;
+        if(totaleOefenmomenten === 0){
+          counter.className = "counter rood";
+        } else if(voltooideOefenmomenten === totaleOefenmomenten){
+          counter.className = "counter groen";
+        } else if(voltooideOefenmomenten > 0){
+          counter.className = "counter oranje";
+        } else {
+          counter.className = "counter rood";
+        }
+      }
+
+      updateCounter();
       containerDiv.appendChild(card);
     });
 
@@ -204,6 +267,5 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("searchInput").addEventListener("input", e => renderChauffeurs(e.target.value));
 });
 </script>
-
 </body>
 </html>
