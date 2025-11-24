@@ -18,9 +18,16 @@ header#appHeader { display:flex; justify-content:space-between; align-items:cent
 .chauffeur-card h3 { display:flex; justify-content:space-between; align-items:center; }
 .counter { font-size:0.9rem; color:#555; }
 .vehicle { margin-top:10px; padding:10px; border:1px solid #eee; border-radius:12px; background:#fff; }
-.veh-header { font-weight:bold; margin-bottom:8px; display:flex; align-items:center; }
-.veh-header label { margin-right:8px; font-weight:bold; }
+.veh-header { font-weight:bold; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+.veh-left { display:flex; align-items:center; }
 .exercise-list label { display:block; margin-bottom:4px; }
+.select-all-label {
+  font-size:0.85rem;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
 </style>
 </head>
 
@@ -124,19 +131,44 @@ function renderChauffeurs(filter=""){
 
       const vehHeader = document.createElement("div");
       vehHeader.className = "veh-header";
-      vehHeader.textContent = "🚒 " + voertuig;
+
+      const vehLeft = document.createElement("div");
+      vehLeft.className = "veh-left";
+      vehLeft.textContent = "🚒 " + voertuig;
+
+      const selectAllLabel = document.createElement("label");
+      selectAllLabel.className = "select-all-label";
+
+      const selectAllCheckbox = document.createElement("input");
+      selectAllCheckbox.type = "checkbox";
+
+      selectAllLabel.appendChild(selectAllCheckbox);
+      selectAllLabel.appendChild(document.createTextNode(" Alles aanduiden"));
+
+      vehHeader.appendChild(vehLeft);
+      vehHeader.appendChild(selectAllLabel);
+
       vehicleDiv.appendChild(vehHeader);
 
       const exerciseDiv = document.createElement("div");
       exerciseDiv.className = "exercise-list";
 
+      const checkboxes = [];
+
       oefenmomenten[voertuig].forEach(num=>{
         const label = document.createElement("label");
         const input = document.createElement("input");
         input.type="checkbox";
+        checkboxes.push(input);
+
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
+      });
+
+      // MASTER CHECKBOX LOGICA
+      selectAllCheckbox.addEventListener("change", () => {
+        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
       });
 
       vehicleDiv.appendChild(exerciseDiv);
@@ -153,8 +185,8 @@ function renderChauffeurs(filter=""){
 
 renderChauffeurs();
 document.getElementById("searchInput").addEventListener("input",e=>renderChauffeurs(e.target.value));
-
 </script>
 
+<script src="header.js"></script>
 </body>
 </html>
