@@ -48,7 +48,6 @@ header#appHeader {
   font-size:0.95rem;
   opacity:0.9;
 }
-
 /* ============================================= */
 
 .backlink {
@@ -207,6 +206,15 @@ function getVoertuigenVoorChauffeur(chauffeur){
   }
 }
 
+/* ========== COUNTER FUNCTIE ========== */
+function updateCounter(card){
+  const allCheckboxes = card.querySelectorAll('.exercise-list input[type="checkbox"]');
+  const checked = card.querySelectorAll('.exercise-list input[type="checkbox"]:checked');
+  const counter = card.querySelector(".counter");
+
+  counter.textContent = `${checked.length} / ${allCheckboxes.length} oefenmomenten voltooid`;
+}
+
 /* ========== RENDER ========== */
 const containerDiv = document.getElementById("chauffeurContainer");
 
@@ -269,6 +277,11 @@ function renderChauffeurs(filter=""){
         input.type="checkbox";
         checkboxes.push(input);
 
+        input.addEventListener("change", () => {
+          updateCounter(card);
+          selectAllCheckbox.checked = checkboxes.every(cb => cb.checked);
+        });
+
         label.appendChild(input);
         label.appendChild(document.createTextNode(` Oefenmoment ${num}`));
         exerciseDiv.appendChild(label);
@@ -276,12 +289,14 @@ function renderChauffeurs(filter=""){
 
       selectAllCheckbox.addEventListener("change", () => {
         checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+        updateCounter(card);
       });
 
       vehicleDiv.appendChild(exerciseDiv);
       card.appendChild(vehicleDiv);
     });
 
+    updateCounter(card);
     containerDiv.appendChild(card);
   });
 
