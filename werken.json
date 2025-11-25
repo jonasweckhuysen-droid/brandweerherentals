@@ -1,32 +1,8 @@
 [
   {
-    "start": "2025-10-27",
-    "end": "2025-11-07",
-    "location": "Lierseweg (tussen St-Jansstraat en Markgravenstraat)",
-    "info": "Snoeiwerken. Niet toegankelijk. Omleidingen per zone: 27/10 St-Jansstraat ↔ Vestingstraat, daarna Markgravenstraat ↔ Ringlaan, 29-31/10 Glasstraat ↔ Ringlaan, daarna Glasstraat ↔ Vossenberg, laatste Vossenberg ↔ Vestingstraat."
-  },
-  {
     "start": "2025-11-03",
-    "end": "2025-11-07",
-    "location": "Ovonde op de Ringlaan",
-    "info": "Asfaltwerken 's nachts (20u-5u). Overdag open. Plaatselijk verkeer mogelijk. Volg omleidingen."
-  },
-  {
-    "start": "2025-10-25",
-    "end": "2025-10-25",
-    "location": "Grote Markt",
-    "info": "Halloweenmarkt. Geen autoverkeer. Verboden te parkeren/stilstaan 12u-23u."
-  },
-  {
-    "start": "2025-10-31",
-    "end": "2025-11-03",
-    "location": "Groenstraat & Bremstraat",
-    "info": "Tijdelijke enkelrichting van 31/10 15u tot 3/11 9u"
-  },
-  {
-    "start": "2025-11-21",
-    "end": "2025-11-23",
-    "location": "Zuidkant Grote Markt",
-    "info": "Roxy Winter Fest. Stilstaan & parkeren verboden. Verkeersvrije zone volgens planning."
+    "end": "2025-12-31",
+    "location": "Toekomstlaan (E313-afrit ↔ kruispunt Wolfstee)",
+    "info": "Volledige afsluiting voor weg- en fietspadherstellingen. Omleiding voor verkeer en fietsers. Daarna werken bij Wolfstee met verkeerslichten/wisselend verkeer. Afhankelijk van weer kan einddatum opschuiven."
   }
 ]
