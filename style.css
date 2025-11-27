@@ -258,9 +258,6 @@
 .status-label.afwezig { color: #f44336; }
 .status-label.leeg { color: #9e9e9e; }
 
-body, h1, h2, h3, p, span, div {
-  color: white;
-}
 
 .duik-card {
   background: #111;
