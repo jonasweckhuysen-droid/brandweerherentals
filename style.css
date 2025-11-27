@@ -223,3 +223,38 @@
 #confirmUserBtn:hover {
   background: var(--red-dark);
 }
+.duik-card {
+  background: #1e1e1e;
+  border-radius: 20px;
+  padding: 15px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.duiker-lijst {
+  margin-top: 10px;
+}
+
+.duiker-rij {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #333;
+  color: white;
+}
+
+.duiker-rij input {
+  transform: scale(1.3);
+}
+
+.status-label {
+  width: 120px;
+  text-align: right;
+  font-size: 0.85em;
+}
+
+.status-label.aanwezig { color: #4caf50; }
+.status-label.afwezig { color: #f44336; }
+.status-label.leeg { color: #9e9e9e; }
+
