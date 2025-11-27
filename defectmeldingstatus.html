@@ -166,10 +166,11 @@ body {
 
 <script>
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
-
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
+const CACHE_KEY = "cachedMeldingen";
 
+// CSV parser
 function parseCSV(text) {
   const rows = [];
   let row = [];
@@ -185,7 +186,7 @@ function parseCSV(text) {
       i++;
     } else if (char === '"') {
       inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
+    } else if ((char === ',' || char === ';') && !inQuotes) {
       row.push(value);
       value = "";
     } else if ((char === '\n' || char === '\r') && !inQuotes) {
@@ -200,132 +201,107 @@ function parseCSV(text) {
     }
   }
 
-  if (value || row.length) {
-    row.push(value);
-    rows.push(row);
-  }
-
+  if (value || row.length) rows.push([...row, value]);
   return rows;
 }
 
-// Datum parser (werkt ook met dd/mm/yyyy)
+// Datum parser dd/mm/yyyy
 function parseDate(str) {
   if (!str) return new Date(0);
-
-  // Probeer ISO eerst
-  let d = new Date(str);
+  const d = new Date(str);
   if (!isNaN(d)) return d;
-
-  // Probeer dd/mm/yyyy
   const parts = str.split("/");
-  if (parts.length === 3) {
-    return new Date(parts[2], parts[1] - 1, parts[0]);
-  }
-
+  if (parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
   return new Date(0);
 }
 
+// Render functie
+function renderMeldingen(data) {
+  data.sort((a,b)=>b.datumObj-a.datumObj);
+  container.innerHTML = "";
+  teller.textContent = `Totaal: ${data.length} meldingen`;
+
+  if (data.length === 0) {
+    container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
+    return;
+  }
+
+  data.forEach(m => {
+    const melding = document.createElement("div");
+    melding.classList.add("melding");
+
+    melding.innerHTML = `
+      <div class="row">
+        <div class="item">
+          <div class="label">👤 Naam</div>
+          <div class="value">${m.naam || "/"}</div>
+        </div>
+        <div class="item">
+          <div class="label">📅 Datum</div>
+          <div class="value">${m.datum || "/"}</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="item" style="flex:2">
+          <div class="label">🛠️ Defect omschrijving</div>
+          <div class="value">${m.omschrijving || "/"}</div>
+        </div>
+        <div class="item">
+          <div class="label">📌 Status</div>
+          <span class="status ${m.statusClass}">${m.status}</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(melding);
+  });
+}
+
+// Fetch + caching
 fetch(SHEET_URL)
-  .then(response => response.text())
-  .then(csvText => {
+  .then(res=>res.text())
+  .then(csvText=>{
     const rows = parseCSV(csvText);
     const headers = rows.shift();
 
-    function getIndex(name) {
-      return headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
-    }
-
+    function getIndex(name){return headers.findIndex(h=>h.trim().toLowerCase()===name.toLowerCase());}
     const naamIndex = getIndex("Naam");
     const datumIndex = getIndex("Datum");
     const omschrijvingIndex = getIndex("Defect omschrijving");
     const statusIndex = getIndex("Status");
 
     const meldingenData = [];
+    rows.forEach(row=>{
+      const naam = (row[naamIndex]||"").trim();
+      const datum = (row[datumIndex]||"").trim();
+      const omschrijving = (row[omschrijvingIndex]||"").trim();
+      const statusRaw = (row[statusIndex]||"").trim();
+      if(!naam&&!datum&&!omschrijving&&!statusRaw) return;
 
-    rows.forEach((row) => {
-      const naam = (row[naamIndex] || "").trim();
-      const datum = (row[datumIndex] || "").trim();
-      const omschrijving = (row[omschrijvingIndex] || "").trim();
-      const statusRaw = (row[statusIndex] || "").trim();
-
-      if (!naam && !datum && !omschrijving && !statusRaw) return;
-
-      let status = statusRaw || "Onbekend";
-      let statusClass = "Onbekend";
-
+      let status="Onbekend", statusClass="Onbekend";
       const lower = statusRaw.toLowerCase();
+      if(lower.includes("gemeld")) {status="Gemeld"; statusClass="Gemeld";}
+      else if(lower.includes("bezig")||lower.includes("behandeling")) {status="In behandeling"; statusClass="Bezig";}
+      else if(lower.includes("afgewerkt")||lower.includes("opgelost")) {status="Afgewerkt"; statusClass="Afgewerkt";}
 
-      if (lower.includes("gemeld")) {
-        status = "Gemeld";
-        statusClass = "Gemeld";
-      } 
-      else if (lower.includes("bezig") || lower.includes("behandeling")) {
-        status = "In behandeling";
-        statusClass = "Bezig";
-      } 
-      else if (lower.includes("afgewerkt") || lower.includes("opgelost")) {
-        status = "Afgewerkt";
-        statusClass = "Afgewerkt";
-      }
-
-      meldingenData.push({
-        naam,
-        datum,
-        datumObj: parseDate(datum),
-        omschrijving,
-        status,
-        statusClass
-      });
+      meldingenData.push({naam, datum, datumObj: parseDate(datum), omschrijving, status, statusClass});
     });
 
-    // Sorteer nieuw → oud
-    meldingenData.sort((a, b) => b.datumObj - a.datumObj);
-
-    container.innerHTML = "";
-    teller.textContent = `Totaal: ${meldingenData.length} meldingen`;
-
-    if (meldingenData.length === 0) {
-      container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
-      return;
+    if(meldingenData.length===0){
+      const cached = localStorage.getItem(CACHE_KEY);
+      if(cached){ console.warn("Geen nieuwe meldingen, toon cache."); renderMeldingen(JSON.parse(cached)); }
+      else { container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>"; teller.textContent="Geen meldingen"; }
+    } else {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(meldingenData));
+      renderMeldingen(meldingenData);
     }
-
-    meldingenData.forEach(m => {
-      const melding = document.createElement("div");
-      melding.classList.add("melding");
-
-      melding.innerHTML = `
-        <div class="row">
-          <div class="item">
-            <div class="label">👤 Naam</div>
-            <div class="value">${m.naam || "/"}</div>
-          </div>
-          <div class="item">
-            <div class="label">📅 Datum</div>
-            <div class="value">${m.datum || "/"}</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="item" style="flex:2">
-            <div class="label">🛠️ Defect omschrijving</div>
-            <div class="value">${m.omschrijving || "/"}</div>
-          </div>
-          <div class="item">
-            <div class="label">📌 Status</div>
-            <span class="status ${m.statusClass}">${m.status}</span>
-          </div>
-        </div>
-      `;
-
-      container.appendChild(melding);
-    });
-
   })
-  .catch(err => {
+  .catch(err=>{
     console.error(err);
-    container.innerHTML = "<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>";
-    teller.textContent = "Fout bij laden";
+    const cached = localStorage.getItem(CACHE_KEY);
+    if(cached){ console.warn("Fout bij fetch, toon cache."); renderMeldingen(JSON.parse(cached)); }
+    else { container.innerHTML="<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>"; teller.textContent="Fout bij laden"; }
   });
+
 </script>
 
 </body>
