@@ -7,57 +7,10 @@
 
 <link rel="stylesheet" href="style.css">
 
-<style>
-  .agenda-wrapper{
-    margin-top: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 15px;
-  }
-
-  .duik-card{
-    background: #ffffff;
-    border-radius: 15px;
-    padding: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,.08);
-    border-left: 6px solid #0b5ed7;
-    transition: .2s ease;
-  }
-
-  .duik-card:hover{
-    transform: translateY(-3px);
-  }
-
-  .duik-title{
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-
-  .duik-date{
-    font-size: .9rem;
-    color: #444;
-    margin-bottom: 10px;
-  }
-
-  .duik-info{
-    font-size: .9rem;
-    color: #555;
-    line-height: 1.5;
-  }
-
-  .duik-icon{
-    font-size: 1.6rem;
-    margin-right: 6px;
-  }
-
-  .empty{
-    text-align: center;
-    padding: 30px;
-    color: #666;
-  }
-</style>
+<!-- Firebase SDK -->
+<script type="module" src="duiker.js"></script>
 </head>
+
 <body>
 
 <div class="container">
@@ -74,10 +27,10 @@
 </header>
 
 <main>
-  <h2>Duiker Module 🤿</h2>
-  <p>Overzicht van alle geplande duikmomenten in 2026.</p>
+  <h2>🤿 Duikagenda & Aanwezigheden</h2>
+  <p>Duid per duikmoment je aanwezigheid aan. Alles wordt live gesynchroniseerd.</p>
 
-  <div id="duikAgenda" class="agenda-wrapper"></div>
+  <div id="duikAgendaContainer"></div>
 
   <a href="index.html" class="backlink">← Terug naar menu</a>
 </main>
@@ -87,76 +40,6 @@
 </footer>
 
 <script src="/brandweerherentals/header.js"></script>
-
-<script>
-/* =============================
-   DUIKAGENDA JSON
-   ============================= */
-
-const duikAgenda = [
-  { "start": "2026-01-25T09:00", "end": "2026-01-25T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-02-08T09:00", "end": "2026-02-08T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-03-15T09:00", "end": "2026-03-15T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-04-12T09:00", "end": "2026-04-12T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-05-31T09:00", "end": "2026-05-31T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-06-28T09:00", "end": "2026-06-28T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-07-19T09:00", "end": "2026-07-19T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-08-23T09:00", "end": "2026-08-23T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-09-13T08:00", "end": "2026-09-13T11:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#084298", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-10-04T09:00", "end": "2026-10-04T12:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#0b5ed7", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-11-08T08:00", "end": "2026-11-08T11:00", "title": "Duiktraining", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🤿", "color": "#084298", "info": "Geplande duiksessie - details volgen" },
-  { "start": "2026-12-11T19:00", "end": "2026-12-11T22:00", "title": "Duiktraining (avond)", "location": "Nog te bepalen", "exercise": "Nog te bepalen", "group": "Duikteam", "icon": "🌙🤿", "color": "#031633", "info": "Avondduik - details volgen" }
-];
-
-
-/* =============================
-   FUNCTIES
-   ============================= */
-
-function formatDate(dateString){
-    const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour:'2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString("nl-BE", options);
-}
-
-function renderAgenda(){
-    const container = document.getElementById("duikAgenda");
-    container.innerHTML = "";
-
-    if(duikAgenda.length === 0){
-        container.innerHTML = `<div class="empty">Geen duikmomenten gepland</div>`;
-        return;
-    }
-
-    duikAgenda
-        .sort((a, b) => new Date(a.start) - new Date(b.start))
-        .forEach(item => {
-            const card = document.createElement("div");
-            card.className = "duik-card";
-            card.style.borderLeftColor = item.color;
-
-            card.innerHTML = `
-                <div class="duik-title">
-                  <span class="duik-icon">${item.icon}</span>
-                  ${item.title}
-                </div>
-
-                <div class="duik-date">
-                  📅 ${formatDate(item.start)}
-                </div>
-
-                <div class="duik-info">
-                  📍 <strong>Locatie:</strong> ${item.location}<br>
-                  📝 <strong>Oefening:</strong> ${item.exercise}<br>
-                  ℹ️ ${item.info}
-                </div>
-            `;
-
-            container.appendChild(card);
-        });
-}
-
-renderAgenda();
-</script>
 
 </div>
 </body>
