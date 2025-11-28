@@ -17,24 +17,61 @@
 }
 
 .chauffeur-card {
-  background:#f9f9f9;
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:20px;
-  border-left:6px solid #c62828;
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 18px;
+  margin-bottom: 25px;
+  border-left: 6px solid #c62828;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.chauffeur-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
 }
 
 .vehicle {
-  margin-top:10px;
-  padding:10px;
-  border-radius:12px;
-  border:1px solid #eee;
-  background:white;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.veh-header {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.exercise-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+  gap: 6px 10px;
 }
 
 .exercise-list label {
-  display:block;
-  margin-bottom:4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.exercise-list input {
+  accent-color: #c62828;
+  transform: scale(1.1);
 }
 
 .select-all-label {
@@ -42,6 +79,10 @@
   display:flex;
   align-items:center;
   gap:5px;
+  background:#fff;
+  padding:4px 10px;
+  border-radius:20px;
+  border:1px solid #ccc;
 }
 </style>
 </head>
@@ -124,12 +165,10 @@ function getVoertuigenVoorChauffeur(c){
 
 const containerDiv = document.getElementById("chauffeurContainer");
 
-/* ✅ firebase opslaan */
 function saveCheckbox(chauffeur, voertuig, nr, value){
  set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
 }
 
-/* ✅ firebase uitlezen (live) */
 function listenCheckbox(chauffeur, voertuig, nr, cb){
  onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot=>{
    const val = snapshot.val();
@@ -150,9 +189,13 @@ function render(filter=""){
    card.className="chauffeur-card";
 
    const h3 = document.createElement("h3");
-   h3.textContent = chauffeur + " ";
+   h3.textContent = chauffeur;
+
    const counter = document.createElement("span");
+   counter.style.fontSize = "0.9rem";
+   counter.style.color = "#555";
    h3.appendChild(counter);
+
    card.appendChild(h3);
 
    const allCB = [];
@@ -166,7 +209,6 @@ function render(filter=""){
 
      const vh = document.createElement("div");
      vh.className="veh-header";
-
      vh.innerHTML = `🚒 ${voertuig}`;
 
      const selectAll = document.createElement("input");
@@ -199,7 +241,7 @@ function render(filter=""){
          update();
        });
 
-       label.append(cb, ` Oefenmoment ${nr}`);
+       label.append(cb, `Moment ${nr}`);
        lijst.appendChild(label);
      });
 
@@ -216,7 +258,7 @@ function render(filter=""){
    });
 
    function update(){
-     counter.textContent = `${allCB.filter(x=>x.checked).length} / ${totaal} voltooid`;
+     counter.textContent = `${allCB.filter(x=>x.checked).length} / ${totaal}`;
    }
 
    setInterval(update, 1000);
