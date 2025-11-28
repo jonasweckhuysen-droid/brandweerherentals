@@ -180,7 +180,6 @@ body {
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
-const CACHE_KEY = "cachedMeldingen";
 const REFRESH_INTERVAL = 60000; // 60 seconden
 
 const STATUS_MAP = {
@@ -220,7 +219,7 @@ function parseDate(str){
 
 // Render functie
 function renderMeldingen(data){
-  data.sort((a,b)=>b.datumObj-a.datumObj);
+  data.sort((a,b)=>b.datumObj-a.datumObj); // nieuwste bovenaan
   container.innerHTML="";
   teller.textContent=`Totaal: ${data.length} meldingen`;
   if(data.length===0){ container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>"; return; }
@@ -286,20 +285,12 @@ function loadMeldingen(){
         meldingenData.push({naam, datum, datumObj:parseDate(datum), omschrijving, status, statusClass});
       });
 
-      if(meldingenData.length>0){
-        localStorage.setItem(CACHE_KEY, JSON.stringify(meldingenData));
-        renderMeldingen(meldingenData);
-      } else {
-        const cached=localStorage.getItem(CACHE_KEY);
-        if(cached){ console.warn("Geen nieuwe meldingen, toon cache."); renderMeldingen(JSON.parse(cached)); }
-        else { container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>"; teller.textContent="Geen meldingen"; }
-      }
+      renderMeldingen(meldingenData);
     })
     .catch(err=>{
       console.error(err);
-      const cached = localStorage.getItem(CACHE_KEY);
-      if(cached){ console.warn("Fout bij fetch, toon cache."); renderMeldingen(JSON.parse(cached)); }
-      else { container.innerHTML="<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>"; teller.textContent="Fout bij laden"; }
+      container.innerHTML="<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>";
+      teller.textContent="Fout bij laden";
     });
 }
 
