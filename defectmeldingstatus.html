@@ -9,131 +9,60 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-body {
-  background: #f2f2f2;
-  font-family: Arial, sans-serif;
-}
+body { background: #f2f2f2; font-family: Arial, sans-serif; margin:0; padding:0; }
+
+/* HEADER */
+header { display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:#c71f1f; color:#fff; }
+.header-logo { height:60px; }
+.header-greeting, .header-datetime, .header-ploeg { margin:2px 0; font-size:0.85rem; }
 
 /* Titel */
-.page-title {
-  color: #111;
-  text-align: center;
-  margin: 10px 0 5px;
-  font-size: 1.6rem;
-  font-weight: 700;
-}
+.page-title { color: #111; text-align: center; margin: 10px 0 5px; font-size: 1.6rem; font-weight: 700; }
 
 /* Teller */
-.teller {
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
-  color: #333;
-}
+.teller { text-align:center; margin-bottom:20px; font-weight:600; color:#333; }
 
 /* Backlink wit */
-.backlink {
-  display:inline-block;
-  margin: 10px 0 20px;
-  text-decoration:none;
-  color:#fff;
-  font-weight:600;
-}
-.backlink .arrow {
-  margin-right:6px;
-}
+.backlink { display:inline-block; margin: 10px 0 20px; text-decoration:none; color:#c71f1f; font-weight:600; }
+.backlink .arrow { margin-right:6px; }
 
 /* Container meldingen */
-#meldingenContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+#meldingenContainer { display:flex; flex-direction:column; gap:16px; padding:0 15px; }
 
 /* Melding kaart */
 .melding {
   background: #fff;
-  padding: 16px;
-  border-radius: 18px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-  border: 1px solid #eee;
-  opacity: 0;
+  padding:16px;
+  border-radius:18px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.12);
+  border:1px solid #eee;
+  opacity:0;
   transform: translateY(10px);
-  animation: fadeInUp 0.5s forwards;
+  animation: fadeIn 0.4s forwards;
 }
 
-/* Animatie keyframes */
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Fade-in animatie */
+@keyframes fadeIn {
+  to { opacity:1; transform: translateY(0); }
 }
 
 /* Rijen */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-  gap: 12px;
-}
-
-.item {
-  flex: 1;
-  min-width: 140px;
-}
-
-.label {
-  font-size: 0.8rem;
-  color: #888;
-  margin-bottom: 3px;
-}
-
-.value {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111;
-  white-space: normal;
-  word-break: break-word;
-}
+.row { display:flex; flex-wrap:wrap; margin-bottom:10px; gap:12px; }
+.item { flex:1; min-width:140px; }
+.label { font-size:0.8rem; color:#888; margin-bottom:3px; }
+.value { font-size:1rem; font-weight:600; color:#111; word-break:break-word; }
 
 /* Status badges */
-.status {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.status.Gemeld {
-  background: #d6e4ff;
-  color: #1c3faa;
-}
-
-.status.Bezig {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status.Afgewerkt {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status.Onbekend {
-  background: #eee;
-  color: #333;
-}
+.status { display:inline-block; padding:6px 12px; border-radius:20px; font-weight:600; font-size:0.9rem; text-align:center; }
+.status.Gemeld { background:#d6e4ff; color:#1c3faa; }
+.status.Bezig { background:#fff3cd; color:#856404; }
+.status.Afgewerkt { background:#d4edda; color:#155724; }
+.status.Onbekend { background:#eee; color:#333; }
 
 /* Loader / info */
-.loader {
-  text-align: center;
-  margin-top: 40px;
-  font-style: italic;
-  color: #777;
-}
+.loader { text-align:center; margin-top:40px; font-style:italic; color:#777; }
+
+footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
 </style>
 </head>
 
@@ -143,10 +72,8 @@ body {
 
   <!-- HEADER -->
   <header id="appHeader">
-    <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-    </div>
-    <div class="header-right">
+    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+    <div>
       <div id="greeting" class="header-greeting"></div>
       <div id="datetime" class="header-datetime"></div>
       <div id="ploegOfWeek" class="header-ploeg"></div>
@@ -180,46 +107,36 @@ body {
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
-const REFRESH_INTERVAL = 60000; // 60 seconden
-
-const STATUS_MAP = {
-  "gemeld": {status:"Gemeld", statusClass:"Gemeld"},
-  "bezig": {status:"In behandeling", statusClass:"Bezig"},
-  "behandeling": {status:"In behandeling", statusClass:"Bezig"},
-  "afgewerkt": {status:"Afgewerkt", statusClass:"Afgewerkt"},
-  "opgelost": {status:"Afgewerkt", statusClass:"Afgewerkt"}
-};
 
 // CSV parser
 function parseCSV(text) {
-  const rows = [];
-  let row = [], inQuotes=false, value="";
-  for (let i=0;i<text.length;i++){
+  const rows=[], row=[], inQuotes=false, val="";
+  let value="", inQ=false;
+  for(let i=0;i<text.length;i++){
     const char=text[i], next=text[i+1];
-    if(char==='"' && inQuotes && next==='"'){ value+='"'; i++; }
-    else if(char==='"'){ inQuotes=!inQuotes; }
-    else if((char===','||char===';') && !inQuotes){ row.push(value); value=""; }
-    else if((char==='\n'||char==='\r') && !inQuotes){
-      if(value || row.length){ row.push(value); rows.push(row); row=[]; value=""; }
-    } else { value+=char; }
+    if(char=='"' && inQ && next=='"'){ value+='"'; i++; }
+    else if(char=='"') inQ=!inQ;
+    else if((char==','||char==';') && !inQ){ row.push(value); value=""; }
+    else if((char=='\n'||char=='\r') && !inQ){
+      if(value||row.length){ row.push(value); rows.push(row.slice()); row=[]; value=""; }
+    } else value+=char;
   }
-  if(value || row.length) rows.push([...row,value]);
+  if(value||row.length) rows.push([...row,value]);
   return rows;
 }
 
 // Datum parser dd/mm/yyyy
 function parseDate(str){
   if(!str) return new Date(0);
-  const d = new Date(str);
-  if(!isNaN(d)) return d;
-  const parts = str.split("/");
+  const parts=str.split("/");
   if(parts.length===3) return new Date(parts[2], parts[1]-1, parts[0]);
-  return new Date(0);
+  const d=new Date(str);
+  return isNaN(d)? new Date(0):d;
 }
 
-// Render functie
+// Render meldingen
 function renderMeldingen(data){
-  data.sort((a,b)=>b.datumObj-a.datumObj); // nieuwste bovenaan
+  data.sort((a,b)=>b.datumObj - a.datumObj); // nieuwste bovenaan
   container.innerHTML="";
   teller.textContent=`Totaal: ${data.length} meldingen`;
   if(data.length===0){ container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>"; return; }
@@ -229,47 +146,29 @@ function renderMeldingen(data){
     melding.classList.add("melding");
     melding.innerHTML=`
       <div class="row">
-        <div class="item">
-          <div class="label">👤 Naam</div>
-          <div class="value">${m.naam||"/"}</div>
-        </div>
-        <div class="item">
-          <div class="label">📅 Datum</div>
-          <div class="value">${m.datum||"/"}</div>
-        </div>
+        <div class="item"><div class="label">👤 Naam</div><div class="value">${m.naam||"/"}</div></div>
+        <div class="item"><div class="label">📅 Datum</div><div class="value">${m.datum||"/"}</div></div>
       </div>
       <div class="row">
-        <div class="item" style="flex:2">
-          <div class="label">🛠️ Defect omschrijving</div>
-          <div class="value">${m.omschrijving||"/"}</div>
-        </div>
-        <div class="item">
-          <div class="label">📌 Status</div>
-          <span class="status ${m.statusClass}">${m.status}</span>
-        </div>
+        <div class="item" style="flex:2"><div class="label">🛠️ Defect omschrijving</div><div class="value">${m.omschrijving||"/"}</div></div>
+        <div class="item"><div class="label">📌 Status</div><span class="status ${m.statusClass}">${m.status}</span></div>
       </div>
     `;
     container.appendChild(melding);
   });
 }
 
-// Load meldingen
-function loadMeldingen(){
-  container.innerHTML="<p class='loader'>Meldingen worden geladen...</p>";
-
+// Fetch meldingen
+function loadMeldingen(retries=5, delay=2000){
   fetch(SHEET_URL)
-    .then(res=>res.text())
+    .then(res=>{ if(!res.ok) throw new Error(`HTTP ${res.status}`); return res.text(); })
     .then(csvText=>{
-      const rows = parseCSV(csvText);
-      if(rows.length<2) throw new Error("Geen data gevonden");
-      const headers = rows.shift();
+      const rows=parseCSV(csvText);
+      const headers=rows.shift();
       const getIndex=name=>headers.findIndex(h=>h.trim().toLowerCase()===name.toLowerCase());
-      const naamIndex = getIndex("Naam");
-      const datumIndex = getIndex("Datum");
-      const omschrijvingIndex = getIndex("Defect omschrijving");
-      const statusIndex = getIndex("Status");
+      const naamIndex=getIndex("Naam"), datumIndex=getIndex("Datum"), omschrijvingIndex=getIndex("Defect omschrijving"), statusIndex=getIndex("Status");
+      const meldingenData=[];
 
-      const meldingenData = [];
       rows.forEach(row=>{
         const naam=(row[naamIndex]||"").trim();
         const datum=(row[datumIndex]||"").trim();
@@ -279,29 +178,31 @@ function loadMeldingen(){
 
         let status="Onbekend", statusClass="Onbekend";
         const lower=statusRaw.toLowerCase();
-        const match = Object.keys(STATUS_MAP).find(k=>lower.includes(k));
-        if(match){ ({status,statusClass}=STATUS_MAP[match]); }
+        if(lower.includes("gemeld")) {status="Gemeld"; statusClass="Gemeld";}
+        else if(lower.includes("bezig")||lower.includes("behandeling")) {status="In behandeling"; statusClass="Bezig";}
+        else if(lower.includes("afgewerkt")||lower.includes("opgelost")) {status="Afgewerkt"; statusClass="Afgewerkt";}
 
-        meldingenData.push({naam, datum, datumObj:parseDate(datum), omschrijving, status, statusClass});
+        meldingenData.push({naam, datum, datumObj: parseDate(datum), omschrijving, status, statusClass});
       });
+
+      if(meldingenData.length===0) throw new Error("Geen data gevonden");
 
       renderMeldingen(meldingenData);
     })
     .catch(err=>{
       console.error(err);
-      container.innerHTML="<p class='loader' style='color:red;'>Fout bij het laden van de gegevens</p>";
-      teller.textContent="Fout bij laden";
+      if(retries>0){
+        teller.textContent=`Fout bij laden. Herprobeer over ${delay/1000}s...`;
+        setTimeout(()=>loadMeldingen(retries-1, delay), delay);
+      } else {
+        container.innerHTML="<p class='loader' style='color:red;'>Kan geen meldingen laden</p>";
+        teller.textContent="Fout bij laden";
+      }
     });
 }
 
-// Eerste load
+// Start laden
 loadMeldingen();
-
-// Auto-refresh
-setInterval(()=>{
-  console.log("Auto-refresh: meldingen opnieuw laden...");
-  loadMeldingen();
-}, REFRESH_INTERVAL);
 </script>
 
 </body>
