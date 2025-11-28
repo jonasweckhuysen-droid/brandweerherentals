@@ -1,3 +1,152 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chauffeur Oefenmomenten — Brandweer Herentals</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+#searchInput {
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-bottom:15px;
+}
+
+/* HEADER */
+#appHeader {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 60px;
+}
+
+.header-text {
+  margin-left: auto;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Kaarten */
+.chauffeur-card {
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 18px;
+  margin-bottom: 25px;
+  border-left: 6px solid #c62828;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.chauffeur-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+}
+
+/* Teller */
+.counter {
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+  min-width: 120px;
+  text-align: center;
+}
+
+.counter.red { background: #e74c3c; }
+.counter.orange { background: #f39c12; }
+.counter.green { background: #28a745; }
+
+/* Voertuigen */
+.vehicle {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.veh-header {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.exercise-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+  gap: 6px 10px;
+}
+
+.exercise-list label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.exercise-list input {
+  accent-color: #c62828;
+  transform: scale(1.1);
+}
+
+.select-all-label {
+  font-size:0.85rem;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  background:#fff;
+  padding:4px 10px;
+  border-radius:20px;
+  border:1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header id="appHeader">
+  <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+
+  <div class="header-text">
+    <div id="greeting"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
+</header>
+
+<main style="padding:15px;">
+
+<a href="chauffeur.html" class="backlink">← Terug naar chauffeur</a>
+
+<input type="text" id="searchInput" placeholder="Zoek op naam...">
+
+<div id="chauffeurContainer"></div>
+
+</main>
+</div>
+
+<script src="header.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -18,194 +167,196 @@ const db = getDatabase(app);
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
-  const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van den Bergh"];
-  const isAdmin = admins.includes(huidigeGebruiker);
+const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 
-  const chauffeurs = [
-    "Dries Boven","Robin Buyens","Bart Cools","Kurt Cools","Gianni Cornelis",
-    "Roel Dekort","Rik Goris","Kris Hoeylaerts","Philippe Hoeylaerts","Vincent Leemans",
-    "Bart Leten","Steven Maes","Liese Meyskens","Rutger Moons","Sven Van Buren",
-    "Jakke Van den Broeck","Kris Van Looveren","Noël Van Roy","Joris Van Vracem",
-    "Cristoph Verhaegen","Robbe Vervecken","Steven Vervloet"
-  ];
+const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van den Bergh"];
+const isAdmin = admins.includes(huidigeGebruiker);
 
-  const oefenmomenten = {
-    "B541":[1,2,3,4,5,6],
-    "L544":[1,2,3,4],
-    "L549":[1,2,3,4,5],
-    "A545":[1,2,3,4,5,6],
-    "D541":[1,2,3],
-    "M545":[1,2,3,4],
-    "T545":[1,2,3,4,5,6],
-    "H541":[1,2,3,4,5,6],
-    "A541":[1,2,3,4,5,6],
-    "Containers":[1]
-  };
+const chauffeurs = [
+"Dries Boven","Robin Buyens","Bart Cools","Kurt Cools","Gianni Cornelis",
+"Roel Dekort","Rik Goris","Kris Hoeylaerts","Philippe Hoeylaerts","Vincent Leemans",
+"Bart Leten","Steven Maes","Liese Meyskens","Rutger Moons","Sven Van Buren",
+"Jakke Van den Broeck","Kris Van Looveren","Noël Van Roy","Joris Van Vracem",
+"Cristoph Verhaegen","Robbe Vervecken","Steven Vervloet"
+];
 
-  const chauffeurUitsluitingen = {
-    "Robin Buyens": ["H541"],
-    "Kurt Cools": ["H541"],
-    "Gianni Cornelis": ["H541"],
-    "Liese Meyskens": ["L549"],
-    "Rutger Moons": ["H541"],
-    "Robbe Vervecken": ["H541"]
-  };
+const oefenmomenten = {
+  "B541":[1,2,3,4,5,6],
+  "L544":[1,2,3,4],
+  "L549":[1,2,3,4,5],
+  "A545":[1,2,3,4,5,6],
+  "D541":[1,2,3],
+  "M545":[1,2,3,4],
+  "T545":[1,2,3,4,5,6],
+  "H541":[1,2,3,4,5,6],
+  "A541":[1,2,3,4,5,6],
+  "Containers":[1]
+};
 
-  const mid = Math.ceil(chauffeurs.length/2);
-  const groep1 = chauffeurs.slice(0, mid);
-  const groep2 = chauffeurs.slice(mid);
+const chauffeurUitsluitingen = {
+  "Robin Buyens": ["H541"],
+  "Kurt Cools": ["H541"],
+  "Gianni Cornelis": ["H541"],
+  "Liese Meyskens": ["L549"],
+  "Rutger Moons": ["H541"],
+  "Robbe Vervecken": ["H541"]
+};
 
-  const setA = ["T545","H541","A541","Containers"];
-  const setB = ["B541","L544","L549","A545","D541","M545"];
+const mid = Math.ceil(chauffeurs.length/2);
+const groep1 = chauffeurs.slice(0, mid);
+const groep2 = chauffeurs.slice(mid);
 
-  const maand = new Date().getMonth()+1;
-  const isVoorjaar = maand <= 6;
+const setA = ["T545","H541","A541","Containers"];
+const setB = ["B541","L544","L549","A545","D541","M545"];
 
-  function getVoertuigenVoorChauffeur(c){
-    let basis = groep1.includes(c)
-      ? (isVoorjaar ? setB : setA)
-      : (isVoorjaar ? setA : setB);
+const maand = new Date().getMonth()+1;
+const isVoorjaar = maand <= 6;
 
-    const uitgesloten = chauffeurUitsluitingen[c] || [];
-    return basis.filter(v => !uitgesloten.includes(v));
-  }
+function getVoertuigenVoorChauffeur(c){
+   let basis = groep1.includes(c) ? (isVoorjaar ? setB : setA) : (isVoorjaar ? setA : setB);
+   const uitgesloten = chauffeurUitsluitingen[c] || [];
+   return basis.filter(v => !uitgesloten.includes(v));
+}
 
-  const containerDiv = document.getElementById("chauffeurContainer");
+const containerDiv = document.getElementById("chauffeurContainer");
 
-  if(!containerDiv){
-    console.error("❌ chauffeurContainer niet gevonden");
-    return;
-  }
+if (!containerDiv) {
+  console.error("❌ chauffeurContainer niet gevonden");
+  return;
+}
 
-  function saveCheckbox(chauffeur, voertuig, nr, value){
-    set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
-  }
+function saveCheckbox(chauffeur, voertuig, nr, value){
+  set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
+}
 
-  function render(filter=""){
-    containerDiv.innerHTML = "";
-    filter = filter.toLowerCase();
+function render(filter="") {
 
-    chauffeurs.forEach(chauffeur => {
+containerDiv.innerHTML = "";
+filter = filter.toLowerCase();
 
-      if(!isAdmin && chauffeur !== huidigeGebruiker) return;
-      if(filter && !chauffeur.toLowerCase().includes(filter)) return;
+chauffeurs.forEach(chauffeur => {
 
-      const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+  if(!isAdmin && chauffeur !== huidigeGebruiker) return;
+  if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
-      const card = document.createElement("div");
-      card.className = "chauffeur-card";
+  const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
 
-      const h3 = document.createElement("h3");
-      const naamSpan = document.createElement("span");
-      naamSpan.textContent = chauffeur;
+  const card = document.createElement("div");
+  card.className = "chauffeur-card";
 
-      const counter = document.createElement("div");
-      counter.className = "counter red";
-      counter.textContent = "0 / 0";
+  const h3 = document.createElement("h3");
 
-      h3.appendChild(naamSpan);
-      h3.appendChild(counter);
-      card.appendChild(h3);
+  const naamSpan = document.createElement("span");
+  naamSpan.textContent = chauffeur;
 
-      const allCB = [];
-      const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
+  const counter = document.createElement("div");
+  counter.className = "counter red";
+  counter.textContent = "0 / 0";
 
-      voertuigen.forEach(voertuig => {
-        if(!oefenmomenten[voertuig]) return;
+  h3.appendChild(naamSpan);
+  h3.appendChild(counter);
+  card.appendChild(h3);
 
-        const vDiv = document.createElement("div");
-        vDiv.className = "vehicle";
+  const allCB = [];
+  const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
 
-        const vh = document.createElement("div");
-        vh.className = "veh-header";
+  voertuigen.forEach(voertuig => {
 
-        const left = document.createElement("div");
-        left.textContent = `🚒 ${voertuig}`;
+    if(!oefenmomenten[voertuig]) return;
 
-        const selectAll = document.createElement("input");
-        selectAll.type = "checkbox";
+    const vDiv = document.createElement("div");
+    vDiv.className = "vehicle";
 
-        const sLabel = document.createElement("label");
-        sLabel.className = "select-all-label";
-        sLabel.append(selectAll, document.createTextNode(" Alles"));
+    const vh = document.createElement("div");
+    vh.className = "veh-header";
 
-        vh.appendChild(left);
-        vh.appendChild(sLabel);
+    const left = document.createElement("div");
+    left.textContent = `🚒 ${voertuig}`;
 
-        vDiv.appendChild(vh);
+    const selectAll = document.createElement("input");
+    selectAll.type = "checkbox";
 
-        const lijst = document.createElement("div");
-        lijst.className = "exercise-list";
+    const sLabel = document.createElement("label");
+    sLabel.className = "select-all-label";
+    sLabel.append(selectAll, document.createTextNode(" Alles"));
 
-        const vCB = [];
+    vh.appendChild(left);
+    vh.appendChild(sLabel);
+    vDiv.appendChild(vh);
 
-        oefenmomenten[voertuig].forEach(nr => {
+    const lijst = document.createElement("div");
+    lijst.className = "exercise-list";
 
-          const label = document.createElement("label");
-          const cb = document.createElement("input");
-          cb.type = "checkbox";
+    const vCB = [];
 
-          vCB.push(cb);
-          allCB.push(cb);
+    oefenmomenten[voertuig].forEach(nr => {
 
-          label.append(cb, ` Moment ${nr}`);
-          lijst.appendChild(label);
+      const label = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
 
-          onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
-            const val = snapshot.val();
-            cb.checked = (val === true);
-            selectAll.checked = vCB.every(x=>x.checked);
-            updateCounter();
-          });
+      vCB.push(cb);
+      allCB.push(cb);
 
-          cb.addEventListener("change", ()=>{
-            saveCheckbox(chauffeur, voertuig, nr, cb.checked);
-            selectAll.checked = vCB.every(x=>x.checked);
-            updateCounter();
-          });
+      label.append(cb, `Moment ${nr}`);
+      lijst.appendChild(label);
 
-        });
-
-        selectAll.addEventListener("change", ()=>{
-          vCB.forEach((cb,i)=>{
-            cb.checked = selectAll.checked;
-            saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
-          });
-          updateCounter();
-        });
-
-        vDiv.appendChild(lijst);
-        card.appendChild(vDiv);
-
+      onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
+        const val = snapshot.val();
+        cb.checked = (val === true);
+        selectAll.checked = vCB.every(x=>x.checked);
+        updateCounter();
       });
 
-      function updateCounter(){
-        const voltooide = allCB.filter(x=>x.checked).length;
-        counter.textContent = `${voltooide} / ${totaal}`;
-
-        counter.classList.remove("red","orange","green");
-
-        if(totaal === 0) counter.classList.add("orange");
-        else if(voltooide === 0) counter.classList.add("red");
-        else if(voltooide >= totaal) counter.classList.add("green");
-        else counter.classList.add("orange");
-      }
-
-      updateCounter();
-      containerDiv.appendChild(card);
-
+      cb.addEventListener("change", () => {
+        saveCheckbox(chauffeur, voertuig, nr, cb.checked);
+        selectAll.checked = vCB.every(x=>x.checked);
+        updateCounter();
+      });
     });
 
-    if(!containerDiv.hasChildNodes()){
-      containerDiv.innerHTML =
-        "<div style='padding:10px;color:#666'>Geen toegang of niets gevonden.</div>";
-    }
+    selectAll.addEventListener("change", () => {
+      vCB.forEach((cb,i)=>{
+        cb.checked = selectAll.checked;
+        saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
+      });
+      updateCounter();
+    });
+
+    vDiv.appendChild(lijst);
+    card.appendChild(vDiv);
+
+  });
+
+  function updateCounter(){
+    const voltooide = allCB.filter(x=>x.checked).length;
+
+    counter.textContent = `${voltooide} / ${totaal}`;
+    counter.classList.remove("red","orange","green");
+
+    if(totaal === 0) counter.classList.add("orange");
+    else if(voltooide === 0) counter.classList.add("red");
+    else if(voltooide >= totaal) counter.classList.add("green");
+    else counter.classList.add("orange");
   }
 
-  render();
+  updateCounter();
+  containerDiv.appendChild(card);
 
-  document.getElementById("searchInput")
-    .addEventListener("input", e=>render(e.target.value));
+});
+
+if(!containerDiv.hasChildNodes()){
+  containerDiv.innerHTML = "<div style='padding:10px;color:#666'>Geen toegang of niets gevonden.</div>";
+}
+
+}
+
+render();
+
+document.getElementById("searchInput")
+  .addEventListener("input", e => render(e.target.value));
+
 });
 </script>
+</body>
+</html>
