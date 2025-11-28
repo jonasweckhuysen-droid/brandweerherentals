@@ -16,6 +16,25 @@
   margin-bottom:15px;
 }
 
+/* ✅ HEADER FIX */
+#appHeader {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 60px;
+}
+
+/* 👇 Deze is NIEUW */
+.header-text {
+  margin-left: auto;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .chauffeur-card {
   background: #ffffff;
   padding: 18px;
@@ -92,6 +111,8 @@
 
 <header id="appHeader">
   <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+
+  <!-- ✅ Tekst staat nu netjes RECHTS -->
   <div class="header-text">
     <div id="greeting"></div>
     <div id="datetime"></div>
@@ -109,7 +130,6 @@
 
 <script src="header.js"></script>
 
-<!-- Firebase (module) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -173,8 +193,6 @@ const chauffeurUitsluitingen = {
   "Liese Meyskens": ["L549"],
   "Rutger Moons": ["H541"],
   "Robbe Vervecken": ["H541"]
-  // Voeg hier later makkelijk extra toe:
-  // "Naam Chauffeur": ["Voertuig1","Voertuig2"]
 };
 
 const mid = Math.ceil(chauffeurs.length/2);
@@ -192,7 +210,6 @@ function getVoertuigenVoorChauffeur(c){
     ? (isVoorjaar ? setB : setA)
     : (isVoorjaar ? setA : setB);
 
-  // ✅ hier filteren we uitgesloten voertuigen
   const uitgesloten = chauffeurUitsluitingen[c] || [];
   return basis.filter(v => !uitgesloten.includes(v));
 }
@@ -276,7 +293,6 @@ function render(filter=""){
 
         cb.addEventListener("change", ()=>{
           saveCheckbox(chauffeur, voertuig, nr, cb.checked);
-          update();
         });
 
         label.append(cb, `Moment ${nr}`);
@@ -289,18 +305,12 @@ function render(filter=""){
           cb.checked = selectAll.checked;
           saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
         });
-        update();
       });
 
       vDiv.appendChild(lijst);
       card.appendChild(vDiv);
     });
 
-    function update(){
-      counter.textContent = `${allCB.filter(x=>x.checked).length} / ${totaal}`;
-    }
-
-    setInterval(update, 1000);
     containerDiv.appendChild(card);
 
   });
