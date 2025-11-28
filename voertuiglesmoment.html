@@ -7,117 +7,22 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-#searchInput {
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin-bottom:15px;
-}
-
-/* HEADER */
-#appHeader {
-  display: flex;
-  align-items: center;
-}
-
-.header-logo {
-  height: 60px;
-}
-
-.header-text {
-  margin-left: auto;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-/* Kaarten */
-.chauffeur-card {
-  background: #ffffff;
-  padding: 18px;
-  border-radius: 18px;
-  margin-bottom: 25px;
-  border-left: 6px solid #c62828;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-}
-
-.chauffeur-card h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-}
-
-/* Teller */
-.counter {
-  padding: 6px 10px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #fff;
-  min-width: 120px;
-  text-align: center;
-}
-
+#searchInput { width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; margin-bottom:15px; }
+#appHeader { display: flex; align-items: center; }
+.header-logo { height: 60px; }
+.header-text { margin-left: auto; text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.chauffeur-card { background: #ffffff; padding: 18px; border-radius: 18px; margin-bottom: 25px; border-left: 6px solid #c62828; box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+.chauffeur-card h3 { margin-top: 0; margin-bottom: 15px; display:flex; justify-content: space-between; align-items:center; }
+.counter { padding: 6px 10px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; color: #fff; min-width: 120px; text-align: center; }
 .counter.red { background: #e74c3c; }
 .counter.orange { background: #f39c12; }
 .counter.green { background: #28a745; }
-
-/* Voertuigen */
-.vehicle {
-  margin-top: 12px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid #eee;
-  background: #fafafa;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.veh-header {
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  font-weight: bold;
-  font-size: 1rem;
-}
-
-.exercise-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
-  gap: 6px 10px;
-}
-
-.exercise-list label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: white;
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid #eee;
-  font-size: 0.9rem;
-}
-
-.exercise-list input {
-  accent-color: #c62828;
-  transform: scale(1.1);
-}
-
-.select-all-label {
-  font-size:0.85rem;
-  display:flex;
-  align-items:center;
-  gap:5px;
-  background:#fff;
-  padding:4px 10px;
-  border-radius:20px;
-  border:1px solid #ccc;
-}
+.vehicle { margin-top: 12px; padding: 14px; border-radius: 16px; border: 1px solid #eee; background: #fafafa; display: flex; flex-direction: column; gap: 12px; }
+.veh-header { display:flex; justify-content: space-between; align-items:center; font-weight: bold; font-size: 1rem; }
+.exercise-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 6px 10px; }
+.exercise-list label { display: flex; align-items: center; gap: 6px; background: white; padding: 6px 10px; border-radius: 10px; border: 1px solid #eee; font-size: 0.9rem; }
+.exercise-list input { accent-color: #c62828; transform: scale(1.1); }
+.select-all-label { font-size:0.85rem; display:flex; align-items:center; gap:5px; background:#fff; padding:4px 10px; border-radius:20px; border:1px solid #ccc; }
 </style>
 </head>
 
@@ -126,7 +31,6 @@
 
 <header id="appHeader">
   <img src="/brandweerherentals/icons/logo.png" class="header-logo">
-
   <div class="header-text">
     <div id="greeting"></div>
     <div id="datetime"></div>
@@ -135,13 +39,9 @@
 </header>
 
 <main style="padding:15px;">
-
 <a href="chauffeur.html" class="backlink">← Terug naar chauffeur</a>
-
 <input type="text" id="searchInput" placeholder="Zoek op naam...">
-
 <div id="chauffeurContainer"></div>
-
 </main>
 </div>
 
@@ -168,7 +68,6 @@ const db = getDatabase(app);
 document.addEventListener("DOMContentLoaded", () => {
 
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
-
 const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van den Bergh"];
 const isAdmin = admins.includes(huidigeGebruiker);
 
@@ -208,7 +107,6 @@ const groep2 = chauffeurs.slice(mid);
 
 const setA = ["T545","H541","A541","Containers"];
 const setB = ["B541","L544","L549","A545","D541","M545"];
-
 const maand = new Date().getMonth()+1;
 const isVoorjaar = maand <= 6;
 
@@ -219,136 +117,118 @@ function getVoertuigenVoorChauffeur(c){
 }
 
 const containerDiv = document.getElementById("chauffeurContainer");
-
-if (!containerDiv) {
-  console.error("❌ chauffeurContainer niet gevonden");
-  return;
-}
+if (!containerDiv) { console.error("❌ chauffeurContainer niet gevonden"); return; }
 
 function saveCheckbox(chauffeur, voertuig, nr, value){
   set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
 }
 
 function render(filter="") {
+  containerDiv.innerHTML = "";
+  filter = filter.toLowerCase();
 
-containerDiv.innerHTML = "";
-filter = filter.toLowerCase();
+  chauffeurs.forEach(chauffeur => {
+    if(!isAdmin && chauffeur !== huidigeGebruiker) return;
+    if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
-chauffeurs.forEach(chauffeur => {
+    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+    const card = document.createElement("div");
+    card.className = "chauffeur-card";
 
-  if(!isAdmin && chauffeur !== huidigeGebruiker) return;
-  if(filter && !chauffeur.toLowerCase().includes(filter)) return;
+    const h3 = document.createElement("h3");
+    const naamSpan = document.createElement("span");
+    naamSpan.textContent = chauffeur;
+    const counter = document.createElement("div");
+    counter.className = "counter red";
+    counter.textContent = "0 / 0";
+    h3.appendChild(naamSpan);
+    h3.appendChild(counter);
+    card.appendChild(h3);
 
-  const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
+    const allCB = [];
+    const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
 
-  const card = document.createElement("div");
-  card.className = "chauffeur-card";
+    voertuigen.forEach(voertuig => {
+      if(!oefenmomenten[voertuig]) return;
 
-  const h3 = document.createElement("h3");
+      const vDiv = document.createElement("div");
+      vDiv.className = "vehicle";
 
-  const naamSpan = document.createElement("span");
-  naamSpan.textContent = chauffeur;
+      const vh = document.createElement("div");
+      vh.className = "veh-header";
 
-  const counter = document.createElement("div");
-  counter.className = "counter red";
-  counter.textContent = "0 / 0";
+      const left = document.createElement("div");
+      left.textContent = `🚒 ${voertuig}`;
 
-  h3.appendChild(naamSpan);
-  h3.appendChild(counter);
-  card.appendChild(h3);
+      const selectAll = document.createElement("input");
+      selectAll.type = "checkbox";
 
-  const allCB = [];
-  const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
+      const sLabel = document.createElement("label");
+      sLabel.className = "select-all-label";
+      sLabel.append(selectAll, document.createTextNode(" Alles"));
 
-  voertuigen.forEach(voertuig => {
+      vh.appendChild(left);
+      vh.appendChild(sLabel);
+      vDiv.appendChild(vh);
 
-    if(!oefenmomenten[voertuig]) return;
+      const lijst = document.createElement("div");
+      lijst.className = "exercise-list";
 
-    const vDiv = document.createElement("div");
-    vDiv.className = "vehicle";
+      const vCB = [];
 
-    const vh = document.createElement("div");
-    vh.className = "veh-header";
+      oefenmomenten[voertuig].forEach(nr => {
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        vCB.push(cb);
+        allCB.push(cb);
+        label.append(cb, `Moment ${nr}`);
+        lijst.appendChild(label);
 
-    const left = document.createElement("div");
-    left.textContent = `🚒 ${voertuig}`;
+        onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
+          const val = snapshot.val();
+          cb.checked = (val === true);
+          selectAll.checked = vCB.every(x=>x.checked);
+          updateCounter();
+        });
 
-    const selectAll = document.createElement("input");
-    selectAll.type = "checkbox";
+        cb.addEventListener("change", () => {
+          saveCheckbox(chauffeur, voertuig, nr, cb.checked);
+          selectAll.checked = vCB.every(x=>x.checked);
+          updateCounter();
+        });
+      });
 
-    const sLabel = document.createElement("label");
-    sLabel.className = "select-all-label";
-    sLabel.append(selectAll, document.createTextNode(" Alles"));
-
-    vh.appendChild(left);
-    vh.appendChild(sLabel);
-    vDiv.appendChild(vh);
-
-    const lijst = document.createElement("div");
-    lijst.className = "exercise-list";
-
-    const vCB = [];
-
-    oefenmomenten[voertuig].forEach(nr => {
-
-      const label = document.createElement("label");
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-
-      vCB.push(cb);
-      allCB.push(cb);
-
-      label.append(cb, `Moment ${nr}`);
-      lijst.appendChild(label);
-
-      onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
-        const val = snapshot.val();
-        cb.checked = (val === true);
-        selectAll.checked = vCB.every(x=>x.checked);
+      // ✅ "Alles"-checkbox event
+      selectAll.addEventListener("change", () => {
+        vCB.forEach((cb,i) => {
+          cb.checked = selectAll.checked;
+          saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
+        });
         updateCounter();
       });
 
-      cb.addEventListener("change", () => {
-        saveCheckbox(chauffeur, voertuig, nr, cb.checked);
-        selectAll.checked = vCB.every(x=>x.checked);
-        updateCounter();
-      });
+      vDiv.appendChild(lijst);
+      card.appendChild(vDiv);
     });
 
-    selectAll.addEventListener("change", () => {
-      vCB.forEach((cb,i)=>{
-        cb.checked = selectAll.checked;
-        saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
-      });
-      updateCounter();
-    });
+    function updateCounter(){
+      const voltooide = allCB.filter(x=>x.checked).length;
+      counter.textContent = `${voltooide} / ${totaal}`;
+      counter.classList.remove("red","orange","green");
+      if(totaal===0) counter.classList.add("orange");
+      else if(voltooide===0) counter.classList.add("red");
+      else if(voltooide>=totaal) counter.classList.add("green");
+      else counter.classList.add("orange");
+    }
 
-    vDiv.appendChild(lijst);
-    card.appendChild(vDiv);
-
+    updateCounter();
+    containerDiv.appendChild(card);
   });
 
-  function updateCounter(){
-    const voltooide = allCB.filter(x=>x.checked).length;
-
-    counter.textContent = `${voltooide} / ${totaal}`;
-    counter.classList.remove("red","orange","green");
-
-    if(totaal === 0) counter.classList.add("orange");
-    else if(voltooide === 0) counter.classList.add("red");
-    else if(voltooide >= totaal) counter.classList.add("green");
-    else counter.classList.add("orange");
+  if(!containerDiv.hasChildNodes()){
+    containerDiv.innerHTML = "<div style='padding:10px;color:#666'>Geen toegang of niets gevonden.</div>";
   }
-
-  updateCounter();
-  containerDiv.appendChild(card);
-
-});
-
-if(!containerDiv.hasChildNodes()){
-  containerDiv.innerHTML = "<div style='padding:10px;color:#666'>Geen toegang of niets gevonden.</div>";
-}
-
 }
 
 render();
