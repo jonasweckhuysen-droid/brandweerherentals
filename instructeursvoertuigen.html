@@ -1,6 +1,6 @@
 <!doctype html>
-<head>
 <html lang="nl">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Instructeurs voertuigen — Brandweer Herentals</title>
@@ -9,12 +9,11 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 
-
 <body>
 
-<!-- HIER KOMT DEZELFDE HEADER ALS OP JE ANDERE PAGINA -->
 <div class="container">
-  
+
+  <!-- ========== HEADER (NIET AANGEPAST) ========== -->
   <header id="appHeader">  
     <div class="header-left">  
       <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">  
@@ -25,29 +24,31 @@
       <div id="ploegOfWeek" class="header-ploeg"></div>  
     </div>  
   </header> 
+  <!-- ============================================ -->
 
   <div class="content">
 
-  <!-- Terug knop -->
-  <a href="chauffeur.html" class="backlink">⬅ Ga terug naar chauffeurs</a>
+    <!-- Terug knop -->
+    <a href="chauffeur.html" class="backlink">⬅ Ga terug naar chauffeurs</a>
 
-  <!-- Teller + zoekfunctie -->
-  <div class="top-bar">
-    <div class="counter" id="counter">Inladen...</div>
-    <input type="text" id="searchInput" placeholder="Zoek op instructeur of voertuig...">
+    <!-- Teller + zoekfunctie -->
+    <div class="top-bar">
+      <div class="counter" id="counter">Inladen...</div>
+      <input type="text" id="searchInput" placeholder="Zoek op instructeur of voertuig...">
+    </div>
+
+    <!-- Grid -->
+    <div id="grid" class="grid">
+      <div class="loading">📡 Excelbestand wordt ingelezen...</div>
+    </div>
+
   </div>
 
-  <!-- Grid -->
-  <div id="grid" class="grid">
-    <div class="loading">📡 Excelbestand wordt ingelezen...</div>
-  </div>
+  <footer>
+    Brandweer Herentals
+  </footer>
 
 </div>
-
-
-<footer>
-  Brandweer Herentals
-</footer>
 
 <!-- JOUW HEADER SCRIPT -->
 <script src="/brandweerherentals/header.js"></script>
@@ -89,6 +90,7 @@ function getVehicleIcon(name="") {
   if(n.includes("ambulance")) return "🚑";
   if(n.includes("tank")) return "🚛";
   if(n.includes("command")) return "🚓";
+  if(n.includes("pomp")) return "🚒";
   return "🚒";
 }
 
@@ -112,10 +114,18 @@ function render(data){
     const icon = getVehicleIcon(row.Voertuig);
 
     card.innerHTML = `
-      <h3>${row.Instructeur}</h3>
-      <div class="veh">${icon} ${row.Voertuig}</div>
-      <div class="tel">📞 ${row.Telefoonnummer}</div>
-      <a class="call-btn" href="tel:${row.Telefoonnummer.replace(/\s+/g,'')}">☎️ Bel nu</a>
+      <div class="card-header">
+        <h3>${row.Instructeur}</h3>
+      </div>
+
+      <div class="card-body">
+        <div class="veh">${icon} ${row.Voertuig}</div>
+        <div class="tel">📞 ${row.Telefoonnummer}</div>
+
+        <a class="call-btn" href="tel:${row.Telefoonnummer.replace(/\s+/g,'')}">
+          ☎️ Bel nu
+        </a>
+      </div>
     `;
 
     grid.appendChild(card);
@@ -134,5 +144,4 @@ document.getElementById("searchInput").addEventListener("input", function(){
 </script>
 
 </body>
-</div>
 </html>
