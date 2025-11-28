@@ -26,7 +26,7 @@
   height: 60px;
 }
 
-/* 👇 Deze is NIEUW */
+/* 👇 Tekst rechts */
 .header-text {
   margin-left: auto;
   text-align: right;
@@ -35,6 +35,7 @@
   align-items: flex-end;
 }
 
+/* Kaarten */
 .chauffeur-card {
   background: #ffffff;
   padding: 18px;
@@ -46,12 +47,27 @@
 
 .chauffeur-card h3 {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   display:flex;
   justify-content: space-between;
   align-items:center;
 }
 
+/* Teller styling en kleurstatus */
+.counter {
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+  min-width: 120px;
+  text-align: center;
+}
+.counter.red { background: #e74c3c; }      /* 0 voltooid */
+.counter.orange { background: #f39c12; }   /* deels voltooid */
+.counter.green { background: #28a745; }    /* alles voltooid */
+
+/* Voertuig & oefeningen */
 .vehicle {
   margin-top: 12px;
   padding: 14px;
@@ -112,7 +128,7 @@
 <header id="appHeader">
   <img src="/brandweerherentals/icons/logo.png" class="header-logo">
 
-  <!-- ✅ Tekst staat nu netjes RECHTS -->
+  <!-- Tekst rechts -->
   <div class="header-text">
     <div id="greeting"></div>
     <div id="datetime"></div>
@@ -134,7 +150,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-/* ✅ JOUW CONFIG */
+/* JOUW CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
   authDomain: "post-herentals.firebaseapp.com",
@@ -162,7 +178,7 @@ const admins = [
 
 const isAdmin = admins.includes(huidigeGebruiker);
 
-/* ✅ CHAUFFEURS */
+/* CHAUFFEURS */
 const chauffeurs = [
  "Dries Boven","Robin Buyens","Bart Cools","Kurt Cools","Gianni Cornelis",
  "Roel Dekort","Rik Goris","Kris Hoeylaerts","Philippe Hoeylaerts","Vincent Leemans",
@@ -171,7 +187,7 @@ const chauffeurs = [
  "Cristoph Verhaegen","Robbe Vervecken","Steven Vervloet"
 ];
 
-/* ✅ OEFENMOMENTEN PER VOERTUIG */
+/* OEFENMOMENTEN PER VOERTUIG */
 const oefenmomenten = {
   "B541":[1,2,3,4,5,6],
   "L544":[1,2,3,4],
@@ -185,7 +201,7 @@ const oefenmomenten = {
   "Containers":[1]
 };
 
-/* ✅ HIER BEPAAL JIJ WIE WAT NIET MOET DOEN */
+/* HIER BEPAAL JIJ WIE WAT NIET MOET DOEN */
 const chauffeurUitsluitingen = {
   "Robin Buyens": ["H541"],
   "Kurt Cools": ["H541"],
@@ -220,13 +236,6 @@ function saveCheckbox(chauffeur, voertuig, nr, value){
   set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
 }
 
-function listenCheckbox(chauffeur, voertuig, nr, cb){
-  onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
-    const val = snapshot.val();
-    if(val !== null) cb.checked = val;
-  });
-}
-
 function render(filter=""){
   containerDiv.innerHTML = "";
   filter = filter.toLowerCase();
@@ -244,14 +253,16 @@ function render(filter=""){
     const h3 = document.createElement("h3");
     h3.textContent = chauffeur;
 
-    const counter = document.createElement("span");
-    counter.style.fontSize = "0.9rem";
-    counter.style.color = "#555";
+    // counter element (we gebruiken classes red|orange|green)
+    const counter = document.createElement("div");
+    counter.className = "counter red";
+    counter.textContent = "0 / 0";
     h3.appendChild(counter);
-
     card.appendChild(h3);
 
+    // lijst met alle checkboxes voor deze chauffeur
     const allCB = [];
+    const voertuigMasters = []; // keep masters to update their states
     const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
 
     voertuigen.forEach(voertuig => {
@@ -263,15 +274,18 @@ function render(filter=""){
 
       const vh = document.createElement("div");
       vh.className = "veh-header";
-      vh.innerHTML = `🚒 ${voertuig}`;
 
+      const left = document.createElement("div");
+      left.textContent = `🚒 ${voertuig}`;
+
+      // master checkbox for this vehicle
       const selectAll = document.createElement("input");
       selectAll.type = "checkbox";
-
       const sLabel = document.createElement("label");
       sLabel.className = "select-all-label";
       sLabel.append(selectAll, document.createTextNode(" Alles"));
 
+      vh.appendChild(left);
       vh.appendChild(sLabel);
       vDiv.appendChild(vh);
 
@@ -280,39 +294,78 @@ function render(filter=""){
 
       const vCB = [];
 
+      // build checkboxes and attach live listeners
       oefenmomenten[voertuig].forEach(nr => {
-
         const label = document.createElement("label");
         const cb = document.createElement("input");
         cb.type = "checkbox";
 
+        // push into arrays for counting and master logic
         vCB.push(cb);
         allCB.push(cb);
-
-        listenCheckbox(chauffeur, voertuig, nr, cb);
-
-        cb.addEventListener("change", ()=>{
-          saveCheckbox(chauffeur, voertuig, nr, cb.checked);
-        });
 
         label.append(cb, `Moment ${nr}`);
         lijst.appendChild(label);
 
+        // live listener from firebase for each checkbox
+        const dbRef = ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`);
+        onValue(dbRef, snapshot => {
+          const val = snapshot.val();
+          cb.checked = (val === true);
+          // after setting, ensure master checkbox state and counter update
+          const allCheckedForVehicle = vCB.length > 0 && vCB.every(x => x.checked);
+          selectAll.checked = allCheckedForVehicle;
+          updateCounter(); // see function defined below
+        });
+
+        // when user toggles, save and update UI
+        cb.addEventListener("change", () => {
+          saveCheckbox(chauffeur, voertuig, nr, cb.checked);
+          // ensure master checkbox reflects manual changes
+          selectAll.checked = vCB.length > 0 && vCB.every(x => x.checked);
+          updateCounter();
+        });
       });
 
-      selectAll.addEventListener("change", ()=>{
-        vCB.forEach((cb, i)=>{
+      // master checkbox behavior
+      selectAll.addEventListener("change", () => {
+        vCB.forEach((cb, i) => {
           cb.checked = selectAll.checked;
           saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
         });
+        updateCounter();
       });
+
+      voertuigMasters.push({ master: selectAll, vCB });
 
       vDiv.appendChild(lijst);
       card.appendChild(vDiv);
     });
 
-    containerDiv.appendChild(card);
+    // updateCounter updates text and color
+    function updateCounter(){
+      const voltooide = allCB.filter(x => x.checked).length;
+      counter.textContent = `${voltooide} / ${totaal}`;
 
+      // color logic
+      counter.classList.remove("red","orange","green");
+      if (totaal === 0) {
+        // no oefenmomenten at all -> neutral orange-ish
+        counter.classList.add("orange");
+      } else if (voltooide === 0) {
+        counter.classList.add("red");
+      } else if (voltooide >= totaal) {
+        counter.classList.add("green");
+      } else {
+        counter.classList.add("orange");
+      }
+    }
+
+    // initial update (will be corrected by onValue callbacks when data arrives)
+    updateCounter();
+
+    card.appendChild(h3);
+    containerDiv.appendChild(card);
   });
 
   if(!containerDiv.hasChildNodes()){
