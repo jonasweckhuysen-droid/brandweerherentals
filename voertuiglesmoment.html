@@ -104,13 +104,13 @@
   <input type="text" id="searchInput" placeholder="Zoek op naam...">
   <div id="chauffeurContainer"></div>
 </main>
+
 </div>
 
 <script src="header.js"></script>
 
 <!-- Firebase (module) -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
@@ -133,9 +133,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const huidigeGebruiker = localStorage.getItem("userName") || "Onbekend";
 
-const admins = ["Patrick Van Hove","Alain Leemans","Jonas Weckhuysen","Danny Van Den Bergh"];
+const admins = [
+  "Patrick Van Hove",
+  "Alain Leemans",
+  "Jonas Weckhuysen",
+  "Danny Van den Bergh"
+];
+
 const isAdmin = admins.includes(huidigeGebruiker);
 
+/* ✅ CHAUFFEURS */
 const chauffeurs = [
  "Dries Boven","Robin Buyens","Bart Cools","Kurt Cools","Gianni Cornelis",
  "Roel Dekort","Rik Goris","Kris Hoeylaerts","Philippe Hoeylaerts","Vincent Leemans",
@@ -144,138 +151,167 @@ const chauffeurs = [
  "Cristoph Verhaegen","Robbe Vervecken","Steven Vervloet"
 ];
 
+/* ✅ OEFENMOMENTEN PER VOERTUIG */
 const oefenmomenten = {
-  "B541":[1,2,3,4,5,6],"L544":[1,2,3,4],"L549":[1,2,3,4,5],
-  "A545":[1,2,3,4,5,6],"D541":[1,2,3],"M545":[1,2,3,4],
-  "T545":[1,2,3,4,5,6],"H541":[1,2,3,4,5,6],"A541":[1,2,3,4,5,6],
+  "B541":[1,2,3,4,5,6],
+  "L544":[1,2,3,4],
+  "L549":[1,2,3,4,5],
+  "A545":[1,2,3,4,5,6],
+  "D541":[1,2,3],
+  "M545":[1,2,3,4],
+  "T545":[1,2,3,4,5,6],
+  "H541":[1,2,3,4,5,6],
+  "A541":[1,2,3,4,5,6],
   "Containers":[1]
+};
+
+/* ✅ HIER BEPAAL JIJ WIE WAT NIET MOET DOEN */
+const chauffeurUitsluitingen = {
+  "Liese Meyskens": ["L549"]
+  // Voeg hier later makkelijk extra toe:
+  // "Naam Chauffeur": ["Voertuig1","Voertuig2"]
 };
 
 const mid = Math.ceil(chauffeurs.length/2);
 const groep1 = chauffeurs.slice(0, mid);
 const groep2 = chauffeurs.slice(mid);
+
 const setA = ["T545","H541","A541","Containers"];
 const setB = ["B541","L544","L549","A545","D541","M545"];
+
 const maand = new Date().getMonth()+1;
 const isVoorjaar = maand <= 6;
 
 function getVoertuigenVoorChauffeur(c){
- return groep1.includes(c) ? (isVoorjaar?setB:setA):(isVoorjaar?setA:setB);
+  let basis = groep1.includes(c)
+    ? (isVoorjaar ? setB : setA)
+    : (isVoorjaar ? setA : setB);
+
+  // ✅ hier filteren we uitgesloten voertuigen
+  const uitgesloten = chauffeurUitsluitingen[c] || [];
+  return basis.filter(v => !uitgesloten.includes(v));
 }
 
 const containerDiv = document.getElementById("chauffeurContainer");
 
 function saveCheckbox(chauffeur, voertuig, nr, value){
- set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
+  set(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), value);
 }
 
 function listenCheckbox(chauffeur, voertuig, nr, cb){
- onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot=>{
-   const val = snapshot.val();
-   if(val !== null) cb.checked = val;
- });
+  onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
+    const val = snapshot.val();
+    if(val !== null) cb.checked = val;
+  });
 }
 
 function render(filter=""){
- containerDiv.innerHTML = "";
- filter = filter.toLowerCase();
+  containerDiv.innerHTML = "";
+  filter = filter.toLowerCase();
 
- chauffeurs.forEach(chauffeur=>{
-   if(!isAdmin && chauffeur!==huidigeGebruiker) return;
-   if(filter && !chauffeur.toLowerCase().includes(filter)) return;
+  chauffeurs.forEach(chauffeur => {
 
-   const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
-   const card = document.createElement("div");
-   card.className="chauffeur-card";
+    if(!isAdmin && chauffeur !== huidigeGebruiker) return;
+    if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
-   const h3 = document.createElement("h3");
-   h3.textContent = chauffeur;
+    const voertuigen = getVoertuigenVoorChauffeur(chauffeur);
 
-   const counter = document.createElement("span");
-   counter.style.fontSize = "0.9rem";
-   counter.style.color = "#555";
-   h3.appendChild(counter);
+    const card = document.createElement("div");
+    card.className = "chauffeur-card";
 
-   card.appendChild(h3);
+    const h3 = document.createElement("h3");
+    h3.textContent = chauffeur;
 
-   const allCB = [];
-   const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
+    const counter = document.createElement("span");
+    counter.style.fontSize = "0.9rem";
+    counter.style.color = "#555";
+    h3.appendChild(counter);
 
-   voertuigen.forEach(voertuig=>{
-     if(!oefenmomenten[voertuig]) return;
+    card.appendChild(h3);
 
-     const vDiv = document.createElement("div");
-     vDiv.className="vehicle";
+    const allCB = [];
+    const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
 
-     const vh = document.createElement("div");
-     vh.className="veh-header";
-     vh.innerHTML = `🚒 ${voertuig}`;
+    voertuigen.forEach(voertuig => {
 
-     const selectAll = document.createElement("input");
-     selectAll.type="checkbox";
+      if(!oefenmomenten[voertuig]) return;
 
-     const sLabel = document.createElement("label");
-     sLabel.className="select-all-label";
-     sLabel.append(selectAll, document.createTextNode(" Alles"));
+      const vDiv = document.createElement("div");
+      vDiv.className = "vehicle";
 
-     vh.appendChild(sLabel);
-     vDiv.appendChild(vh);
+      const vh = document.createElement("div");
+      vh.className = "veh-header";
+      vh.innerHTML = `🚒 ${voertuig}`;
 
-     const lijst = document.createElement("div");
-     lijst.className="exercise-list";
+      const selectAll = document.createElement("input");
+      selectAll.type = "checkbox";
 
-     const vCB = [];
+      const sLabel = document.createElement("label");
+      sLabel.className = "select-all-label";
+      sLabel.append(selectAll, document.createTextNode(" Alles"));
 
-     oefenmomenten[voertuig].forEach(nr=>{
-       const label=document.createElement("label");
-       const cb=document.createElement("input");
-       cb.type="checkbox";
+      vh.appendChild(sLabel);
+      vDiv.appendChild(vh);
 
-       vCB.push(cb);
-       allCB.push(cb);
+      const lijst = document.createElement("div");
+      lijst.className = "exercise-list";
 
-       listenCheckbox(chauffeur, voertuig, nr, cb);
+      const vCB = [];
 
-       cb.addEventListener("change",()=>{
-         saveCheckbox(chauffeur, voertuig, nr, cb.checked);
-         update();
-       });
+      oefenmomenten[voertuig].forEach(nr => {
 
-       label.append(cb, `Moment ${nr}`);
-       lijst.appendChild(label);
-     });
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
 
-     selectAll.addEventListener("change", ()=>{
-       vCB.forEach((cb,i)=>{
-         cb.checked = selectAll.checked;
-         saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
-       });
-       update();
-     });
+        vCB.push(cb);
+        allCB.push(cb);
 
-     vDiv.appendChild(lijst);
-     card.appendChild(vDiv);
-   });
+        listenCheckbox(chauffeur, voertuig, nr, cb);
 
-   function update(){
-     counter.textContent = `${allCB.filter(x=>x.checked).length} / ${totaal}`;
-   }
+        cb.addEventListener("change", ()=>{
+          saveCheckbox(chauffeur, voertuig, nr, cb.checked);
+          update();
+        });
 
-   setInterval(update, 1000);
-   containerDiv.appendChild(card);
- });
+        label.append(cb, `Moment ${nr}`);
+        lijst.appendChild(label);
 
- if(!containerDiv.hasChildNodes()){
-   containerDiv.innerHTML = "<div style='padding:10px;color:#666'>Geen toegang of niets gevonden.</div>";
- }
+      });
+
+      selectAll.addEventListener("change", ()=>{
+        vCB.forEach((cb, i)=>{
+          cb.checked = selectAll.checked;
+          saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
+        });
+        update();
+      });
+
+      vDiv.appendChild(lijst);
+      card.appendChild(vDiv);
+    });
+
+    function update(){
+      counter.textContent = `${allCB.filter(x=>x.checked).length} / ${totaal}`;
+    }
+
+    setInterval(update, 1000);
+    containerDiv.appendChild(card);
+
+  });
+
+  if(!containerDiv.hasChildNodes()){
+    containerDiv.innerHTML = "<div style='padding:10px;color:#666'>Geen toegang of niets gevonden.</div>";
+  }
 }
 
 render();
 
-document.getElementById("searchInput").addEventListener("input", e=>render(e.target.value));
+document
+  .getElementById("searchInput")
+  .addEventListener("input", e => render(e.target.value));
 
 });
-
 </script>
 </body>
 </html>
