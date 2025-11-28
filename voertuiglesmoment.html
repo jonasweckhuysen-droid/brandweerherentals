@@ -16,7 +16,7 @@
   margin-bottom:15px;
 }
 
-/* ✅ HEADER FIX */
+/* HEADER FIX */
 #appHeader {
   display: flex;
   align-items: center;
@@ -26,7 +26,7 @@
   height: 60px;
 }
 
-/* 👇 Tekst rechts */
+/* Tekst rechts */
 .header-text {
   margin-left: auto;
   text-align: right;
@@ -47,7 +47,7 @@
 
 .chauffeur-card h3 {
   margin-top: 0;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   display:flex;
   justify-content: space-between;
   align-items:center;
@@ -127,8 +127,6 @@
 
 <header id="appHeader">
   <img src="/brandweerherentals/icons/logo.png" class="header-logo">
-
-  <!-- Tekst rechts -->
   <div class="header-text">
     <div id="greeting"></div>
     <div id="datetime"></div>
@@ -201,7 +199,7 @@ const oefenmomenten = {
   "Containers":[1]
 };
 
-/* HIER BEPAAL JIJ WIE WAT NIET MOET DOEN */
+/* Uitsluitingen */
 const chauffeurUitsluitingen = {
   "Robin Buyens": ["H541"],
   "Kurt Cools": ["H541"],
@@ -225,7 +223,6 @@ function getVoertuigenVoorChauffeur(c){
   let basis = groep1.includes(c)
     ? (isVoorjaar ? setB : setA)
     : (isVoorjaar ? setA : setB);
-
   const uitgesloten = chauffeurUitsluitingen[c] || [];
   return basis.filter(v => !uitgesloten.includes(v));
 }
@@ -241,7 +238,6 @@ function render(filter=""){
   filter = filter.toLowerCase();
 
   chauffeurs.forEach(chauffeur => {
-
     if(!isAdmin && chauffeur !== huidigeGebruiker) return;
     if(filter && !chauffeur.toLowerCase().includes(filter)) return;
 
@@ -250,23 +246,22 @@ function render(filter=""){
     const card = document.createElement("div");
     card.className = "chauffeur-card";
 
+    // Naam bovenaan
     const h3 = document.createElement("h3");
     h3.textContent = chauffeur;
 
-    // counter element (we gebruiken classes red|orange|green)
+    // Teller
     const counter = document.createElement("div");
     counter.className = "counter red";
     counter.textContent = "0 / 0";
     h3.appendChild(counter);
     card.appendChild(h3);
 
-    // lijst met alle checkboxes voor deze chauffeur
+    // Checkbox arrays
     const allCB = [];
-    const voertuigMasters = []; // keep masters to update their states
     const totaal = voertuigen.reduce((s,v)=>s+(oefenmomenten[v]?.length||0),0);
 
     voertuigen.forEach(voertuig => {
-
       if(!oefenmomenten[voertuig]) return;
 
       const vDiv = document.createElement("div");
@@ -278,7 +273,6 @@ function render(filter=""){
       const left = document.createElement("div");
       left.textContent = `🚒 ${voertuig}`;
 
-      // master checkbox for this vehicle
       const selectAll = document.createElement("input");
       selectAll.type = "checkbox";
       const sLabel = document.createElement("label");
@@ -293,78 +287,53 @@ function render(filter=""){
       lijst.className = "exercise-list";
 
       const vCB = [];
-
-      // build checkboxes and attach live listeners
       oefenmomenten[voertuig].forEach(nr => {
         const label = document.createElement("label");
         const cb = document.createElement("input");
         cb.type = "checkbox";
 
-        // push into arrays for counting and master logic
         vCB.push(cb);
         allCB.push(cb);
-
         label.append(cb, `Moment ${nr}`);
         lijst.appendChild(label);
 
-        // live listener from firebase for each checkbox
-        const dbRef = ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`);
-        onValue(dbRef, snapshot => {
+        onValue(ref(db, `oefenmomenten/${chauffeur}/${voertuig}/${nr}`), snapshot => {
           const val = snapshot.val();
           cb.checked = (val === true);
-          // after setting, ensure master checkbox state and counter update
-          const allCheckedForVehicle = vCB.length > 0 && vCB.every(x => x.checked);
-          selectAll.checked = allCheckedForVehicle;
-          updateCounter(); // see function defined below
+          selectAll.checked = vCB.every(x=>x.checked);
+          updateCounter();
         });
 
-        // when user toggles, save and update UI
         cb.addEventListener("change", () => {
           saveCheckbox(chauffeur, voertuig, nr, cb.checked);
-          // ensure master checkbox reflects manual changes
-          selectAll.checked = vCB.length > 0 && vCB.every(x => x.checked);
+          selectAll.checked = vCB.every(x=>x.checked);
           updateCounter();
         });
       });
 
-      // master checkbox behavior
       selectAll.addEventListener("change", () => {
-        vCB.forEach((cb, i) => {
+        vCB.forEach((cb,i)=>{
           cb.checked = selectAll.checked;
           saveCheckbox(chauffeur, voertuig, oefenmomenten[voertuig][i], cb.checked);
         });
         updateCounter();
       });
 
-      voertuigMasters.push({ master: selectAll, vCB });
-
       vDiv.appendChild(lijst);
       card.appendChild(vDiv);
     });
 
-    // updateCounter updates text and color
     function updateCounter(){
-      const voltooide = allCB.filter(x => x.checked).length;
+      const voltooide = allCB.filter(x=>x.checked).length;
       counter.textContent = `${voltooide} / ${totaal}`;
-
-      // color logic
       counter.classList.remove("red","orange","green");
-      if (totaal === 0) {
-        // no oefenmomenten at all -> neutral orange-ish
-        counter.classList.add("orange");
-      } else if (voltooide === 0) {
-        counter.classList.add("red");
-      } else if (voltooide >= totaal) {
-        counter.classList.add("green");
-      } else {
-        counter.classList.add("orange");
-      }
+      if(totaal===0) counter.classList.add("orange");
+      else if(voltooide===0) counter.classList.add("red");
+      else if(voltooide>=totaal) counter.classList.add("green");
+      else counter.classList.add("orange");
     }
 
-    // initial update (will be corrected by onValue callbacks when data arrives)
-    updateCounter();
-
-    card.appendChild(h3);
+    updateCounter(); // initial
     containerDiv.appendChild(card);
   });
 
@@ -375,11 +344,9 @@ function render(filter=""){
 
 render();
 
-document
-  .getElementById("searchInput")
+document.getElementById("searchInput")
   .addEventListener("input", e => render(e.target.value));
 
-});
 </script>
 </body>
 </html>
