@@ -55,8 +55,8 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
+const REFRESH_INTERVAL = 30000; // 30 seconden
 
-// CSV parser
 function parseCSV(text){
   const rows=[], row=[];
   let inQ=false, value="";
@@ -148,9 +148,16 @@ function loadMeldingen(retries=5, delay=2000){
     });
 }
 
-// Start laden
+// Initial load
 loadMeldingen();
+
+// Automatische refresh elke 30 seconden
+setInterval(() => {
+  loadMeldingen();
+}, REFRESH_INTERVAL);
 </script>
+
+
 
 </body>
 </html>
