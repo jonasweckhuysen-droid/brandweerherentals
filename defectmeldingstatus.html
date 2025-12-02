@@ -4,38 +4,74 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Defectmeldingen status</title>
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
 
 <style>
-/* ... dezelfde CSS als voorheen ... */
+/* ================= HEADER ================= */
+header#appHeader {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 16px;
+  background:#c71f1f;
+  color:#fff;
+}
+.header-left img.header-logo {
+  height:50px;
+}
+.header-right {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+  font-size:0.85rem;
+}
+.header-greeting { font-weight:700; }
+.header-datetime { font-size:0.8rem; color:#fff; }
+.header-ploeg { font-size:0.8rem; font-style:italic; }
+
+/* ================= BODY ================= */
 body { background:#ffffff; font-family:Arial,sans-serif; margin:0; padding:0; }
-header { display:flex; align-items:center; gap:12px; padding:10px 16px; background:#c71f1f; color:#fff; }
-.header-logo { height:50px; }
-.header-title { font-size:1.2rem; font-weight:700; }
+
 .page-title { color:#111; text-align:center; margin:15px 0 5px; font-size:1.4rem; font-weight:700; }
 .teller { text-align:center; margin-bottom:15px; font-weight:600; color:#333; }
 .backlink { display:inline-block; margin:10px 15px; text-decoration:none; color:#c71f1f; font-weight:600; }
 .backlink .arrow { margin-right:6px; }
+
 #meldingenContainer { display:flex; flex-direction:column; gap:16px; padding:0 15px 20px; }
+
 .melding { background:#fff; padding:16px; border-radius:16px; box-shadow:0 6px 14px rgba(0,0,0,0.08); border:1px solid #eee; opacity:0; transform:translateY(10px); animation:fadeIn 0.4s forwards; }
 @keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
+
 .row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
 .item { flex:1; min-width:130px; }
 .label { font-size:0.8rem; color:#777; margin-bottom:3px; }
 .value { font-size:1rem; font-weight:600; color:#111; word-break:break-word; }
+
 .status { display:inline-block; padding:6px 14px; border-radius:20px; font-weight:600; font-size:0.85rem; }
 .status.Gemeld { background:#e3ecff; color:#1c3faa; }
 .status.Bezig { background:#fff3cd; color:#856404; }
 .status.Afgewerkt { background:#d4edda; color:#155724; }
 .status.Onbekend { background:#eee; color:#333; }
+
 .loader { text-align:center; margin-top:40px; font-style:italic; color:#777; }
 footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
 </style>
 </head>
 
 <body>
-<header>
-  <img src="/brandweerherentals/icons/logo.png" class="header-logo" alt="Logo">
-  <div class="header-title">Defectmeldingen</div>
+
+<!-- ================= HEADER ================= -->
+<header id="appHeader">
+  <div class="header-left">
+    <img src="/brandweerherentals/icons/logo.png" class="header-logo" alt="Brandweer Herentals">
+  </div>
+  <div class="header-right">
+    <div id="greeting" class="header-greeting">Goedemorgen</div>
+    <div id="datetime" class="header-datetime">02/12/2025 10:00</div>
+    <div id="ploegOfWeek" class="header-ploeg">Ploeg A</div>
+  </div>
 </header>
 
 <main>
@@ -64,7 +100,6 @@ const REFRESH_INTERVAL = 30000; // 30 sec
 function parseCSV(text) {
   const rows = [];
   let row = [], value = "", inQuotes = false;
-
   for (let i=0;i<text.length;i++){
     const char = text[i], next=text[i+1];
     if(char=='"' && inQuotes && next=='"'){ value+='"'; i++; }
@@ -79,26 +114,21 @@ function parseCSV(text) {
   return rows;
 }
 
-// ✅ Parse MM/DD/YYYY of DD/MM/YYYY automatisch
+// Parse datum en formatteer altijd als DD/MM/YYYY
 function parseDate(str) {
   if(!str) return new Date(0);
   const parts = str.split("/");
   if(parts.length===3){
-    // detecteer of eerste deel >12 → dag
     let day = parseInt(parts[0],10);
     let month = parseInt(parts[1],10);
     let year = parseInt(parts[2],10);
-    if(day>12){ // DD/MM/YYYY
-      return new Date(year, month-1, day);
-    } else { // MM/DD/YYYY → DD/MM/YYYY
-      return new Date(year, day-1, month);
-    }
+    if(day>12){ return new Date(year, month-1, day); } // DD/MM/YYYY
+    else { return new Date(year, day-1, month); }       // MM/DD/YYYY → DD/MM/YYYY
   }
   const d = new Date(str);
   return isNaN(d)?new Date(0):d;
 }
 
-// ✅ Formatteer datum altijd als DD/MM/YYYY
 function formatDate(dateObj){
   if(!dateObj) return "/";
   const d = ("0"+dateObj.getDate()).slice(-2);
