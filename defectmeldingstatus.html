@@ -73,25 +73,46 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
       <div id="datetime" class="header-datetime"></div>
       <div id="ploegOfWeek" class="header-ploeg"></div>
     </div>
-<main>
-  <a href="defectmelding.html" class="backlink">
-    <span class="arrow">←</span> Terug naar defectmelding
-  </a>
+  </header>
 
-  <h2 class="page-title">📊 Live status</h2>
-  <div id="teller" class="teller">Bezig met laden...</div>
+  <!-- MAIN CONTENT -->
+  <main>
+    <a href="defectmelding.html" class="backlink">
+      <span class="arrow">←</span> Terug naar defectmelding
+    </a>
 
-  <div id="meldingenContainer">
-    <p class="loader">Meldingen worden geladen...</p>
-  </div>
-</main>
+    <h2 class="page-title">📊 Live status</h2>
+    <div id="teller" class="teller">Bezig met laden...</div>
 
-<footer>Versie 1.4</footer>
+    <div id="meldingenContainer">
+      <p class="loader">Meldingen worden geladen...</p>
+    </div>
+  </main>
+
+  <footer>Versie 1.4</footer>
+</div>
 
 <script>
-const SHEET_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
+/* ================= HEADER DYNAMISCH ================= */
+function updateHeader() {
+  const now = new Date();
+  const hours = now.getHours();
+  const greetingEl = document.getElementById("greeting");
+  if(hours < 12) greetingEl.textContent = "Goedemorgen";
+  else if(hours < 18) greetingEl.textContent = "Goedemiddag";
+  else greetingEl.textContent = "Goedeavond";
 
+  const datetimeEl = document.getElementById("datetime");
+  datetimeEl.textContent = now.toLocaleString("nl-BE", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+
+  const ploegEl = document.getElementById("ploegOfWeek");
+  ploegEl.textContent = "Ploeg A"; // Pas eventueel aan dynamisch
+}
+updateHeader();
+setInterval(updateHeader, 60000); // elke minuut bijwerken
+
+/* ================= MELDINGEN ================= */
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
 const REFRESH_INTERVAL = 30000; // 30 sec
@@ -113,7 +134,6 @@ function parseCSV(text) {
   return rows;
 }
 
-// Parse datum en formatteer altijd als DD/MM/YYYY
 function parseDate(str) {
   if(!str) return new Date(0);
   const parts = str.split("/");
@@ -121,8 +141,8 @@ function parseDate(str) {
     let day = parseInt(parts[0],10);
     let month = parseInt(parts[1],10);
     let year = parseInt(parts[2],10);
-    if(day>12){ return new Date(year, month-1, day); } // DD/MM/YYYY
-    else { return new Date(year, day-1, month); }       // MM/DD/YYYY → DD/MM/YYYY
+    if(day>12){ return new Date(year, month-1, day); }
+    else { return new Date(year, day-1, month); }
   }
   const d = new Date(str);
   return isNaN(d)?new Date(0):d;
