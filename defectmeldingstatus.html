@@ -55,8 +55,9 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
-const REFRESH_INTERVAL = 30000; // 30 seconden
+const REFRESH_INTERVAL = 30000;
 
+// VEILIGE CSV PARSER
 function parseCSV(text){
   const rows=[], row=[];
   let inQ=false, value="";
@@ -73,71 +74,135 @@ function parseCSV(text){
   return rows;
 }
 
+// DATUM PARSER
 function parseDate(str){
   if(!str) return new Date(0);
+
   const parts=str.split("/");
   if(parts.length===3) return new Date(parts[2], parts[1]-1, parts[0]);
+
   const d=new Date(str);
   return isNaN(d)? new Date(0):d;
+}
+
+// DYNAMISCHE KOLON ZOEKER (MAAKT HET ROBUUST)
+function findHeaderIndex(headers, possibleNames) {
+  return headers.findIndex(h =>
+    possibleNames.some(name =>
+      h.toLowerCase().includes(name.toLowerCase())
+    )
+  );
 }
 
 function renderMeldingen(data){
   data.sort((a,b)=>b.datumObj - a.datumObj);
   container.innerHTML="";
   teller.textContent=`Totaal: ${data.length} meldingen`;
-  if(data.length===0){ container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>"; return; }
+
+  if(data.length===0){
+    container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>";
+    return;
+  }
 
   data.forEach(m=>{
     const melding=document.createElement("div");
     melding.classList.add("melding");
+
     melding.innerHTML=`
       <div class="row">
-        <div class="item"><div class="label">👤 Naam</div><div class="value">${m.naam||"/"}</div></div>
-        <div class="item"><div class="label">📅 Datum</div><div class="value">${m.datum||"/"}</div></div>
+        <div class="item">
+          <div class="label">👤 Naam</div>
+          <div class="value">${m.naam || "/"}</div>
+        </div>
+        <div class="item">
+          <div class="label">📅 Datum</div>
+          <div class="value">${m.datum || "/"}</div>
+        </div>
       </div>
+
       <div class="row">
-        <div class="item" style="flex:2"><div class="label">🛠️ Defect omschrijving</div><div class="value">${m.omschrijving||"/"}</div></div>
-        <div class="item"><div class="label">📌 Status</div><span class="status ${m.statusClass}">${m.status}</span></div>
+        <div class="item" style="flex:2">
+          <div class="label">🛠️ Defect omschrijving</div>
+          <div class="value">${m.omschrijving || "/"}</div>
+        </div>
+        <div class="item">
+          <div class="label">📌 Status</div>
+          <span class="status ${m.statusClass}">${m.status}</span>
+        </div>
       </div>
     `;
+
     container.appendChild(melding);
   });
 }
 
 function loadMeldingen(retries=5, delay=2000){
+
   fetch(SHEET_URL)
-    .then(res=>{ if(!res.ok) throw new Error(`HTTP ${res.status}`); return res.text(); })
+    .then(res=>{
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    })
+
     .then(csvText=>{
+
       const rows=parseCSV(csvText);
-      const headers=rows.shift();
-      const getIndex=name=>headers.findIndex(h=>h.trim().toLowerCase()===name.toLowerCase());
-      const naamIndex=getIndex("Naam");
-      const datumIndex=getIndex("Datum");
-      const omschrijvingIndex=getIndex("Defect omschrijving");
-      const statusIndex=getIndex("Status");
+
+      if(rows.length < 2){
+        throw new Error("CSV bevat geen data");
+      }
+
+      const headers = rows.shift().map(h => h.trim());
+
+      console.log("Headers in sheet:", headers);
+
+      // FLEXIBELE MATCHES
+      const naamIndex = findHeaderIndex(headers, ["naam"]);
+      const datumIndex = findHeaderIndex(headers, ["datum","tijd"]);
+      const omschrijvingIndex = findHeaderIndex(headers, ["omschrijving","defect","probleem"]);
+      const statusIndex = findHeaderIndex(headers, ["status"]);
+
+      console.log("Indexen gevonden:", {naamIndex, datumIndex, omschrijvingIndex, statusIndex});
+
       const meldingenData=[];
 
-      rows.forEach(row=>{
-        const naam=(row[naamIndex]||"").trim();
-        const datum=(row[datumIndex]||"").trim();
-        const omschrijving=(row[omschrijvingIndex]||"").trim();
-        const statusRaw=(row[statusIndex]||"").trim();
-        if(!naam&&!datum&&!omschrijving&&!statusRaw) return;
+      rows.forEach(row => {
+
+        const naam = (row[naamIndex] || "").trim();
+        const datum = (row[datumIndex] || "").trim();
+        const omschrijving = (row[omschrijvingIndex] || "").trim();
+        const statusRaw = (row[statusIndex] || "").trim();
+
+        if(!naam && !datum && !omschrijving) return;
 
         let status="Onbekend", statusClass="Onbekend";
         const lower=statusRaw.toLowerCase();
+
         if(lower.includes("gemeld")) {status="Gemeld"; statusClass="Gemeld";}
         else if(lower.includes("bezig")||lower.includes("behandeling")) {status="In behandeling"; statusClass="Bezig";}
         else if(lower.includes("afgewerkt")||lower.includes("opgelost")) {status="Afgewerkt"; statusClass="Afgewerkt";}
 
-        meldingenData.push({naam, datum, datumObj: parseDate(datum), omschrijving, status, statusClass});
+        meldingenData.push({
+          naam,
+          datum,
+          datumObj: parseDate(datum),
+          omschrijving,
+          status,
+          statusClass
+        });
       });
 
-      if(meldingenData.length===0) throw new Error("Geen data gevonden");
+      if(meldingenData.length===0){
+        throw new Error("Geen meldingen gevonden in rijen");
+      }
+
       renderMeldingen(meldingenData);
+
     })
+
     .catch(err=>{
-      console.error(err);
+      console.error("Fout:", err);
+
       if(retries>0){
         teller.textContent=`Fout bij laden. Herprobeer over ${delay/1000}s...`;
         setTimeout(()=>loadMeldingen(retries-1, delay), delay);
@@ -148,13 +213,13 @@ function loadMeldingen(retries=5, delay=2000){
     });
 }
 
+
 // Initial load
 loadMeldingen();
 
-// Automatische refresh elke 30 seconden
-setInterval(() => {
-  loadMeldingen();
-}, REFRESH_INTERVAL);
+// Automatische refresh
+setInterval(loadMeldingen, REFRESH_INTERVAL);
+
 </script>
 
 
