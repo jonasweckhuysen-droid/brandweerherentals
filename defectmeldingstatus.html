@@ -8,25 +8,27 @@
 <style>
 body {
   background:#ffffff;
-  font-family:Arial,sans-serif;
+  font-family:Arial, sans-serif;
   margin:0;
+  padding:0;
 }
 
 header {
   display:flex;
   align-items:center;
   gap:12px;
-  padding:10px 15px;
+  padding:10px 16px;
   background:#c71f1f;
   color:#fff;
 }
 
 .header-logo {
-  height:48px;
+  height:50px;
 }
 
-main {
-  padding-bottom:20px;
+.header-title {
+  font-size:1.2rem;
+  font-weight:700;
 }
 
 .page-title {
@@ -52,29 +54,30 @@ main {
   font-weight:600;
 }
 
+.backlink .arrow {
+  margin-right:6px;
+}
+
 #meldingenContainer {
   display:flex;
   flex-direction:column;
   gap:16px;
-  padding:0 15px;
+  padding:0 15px 20px;
 }
 
 .melding {
   background:#fff;
   padding:16px;
   border-radius:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  box-shadow:0 6px 14px rgba(0,0,0,0.08);
   border:1px solid #eee;
   opacity:0;
   transform:translateY(10px);
-  animation:fadeIn .4s forwards;
+  animation:fadeIn 0.4s forwards;
 }
 
 @keyframes fadeIn {
-  to {
-    opacity:1;
-    transform:translateY(0);
-  }
+  to { opacity:1; transform:translateY(0); }
 }
 
 .row {
@@ -86,40 +89,62 @@ main {
 
 .item {
   flex:1;
-  min-width:140px;
+  min-width:130px;
 }
 
 .label {
-  font-size:.78rem;
+  font-size:0.8rem;
   color:#777;
-  margin-bottom:2px;
+  margin-bottom:3px;
 }
 
 .value {
-  font-size:.95rem;
+  font-size:1rem;
   font-weight:600;
   color:#111;
+  word-break:break-word;
 }
 
 .status {
   display:inline-block;
-  padding:5px 14px;
+  padding:6px 14px;
   border-radius:20px;
   font-weight:600;
-  font-size:.8rem;
-  text-align:center;
+  font-size:0.85rem;
 }
 
-.status.Gemeld {background:#d6e4ff;color:#1c3faa;}
-.status.Bezig {background:#fff3cd;color:#856404;}
-.status.Afgewerkt {background:#d4edda;color:#155724;}
-.status.Onbekend {background:#eee;color:#333;}
+.status.Gemeld {
+  background:#e3ecff;
+  color:#1c3faa;
+}
+
+.status.Bezig {
+  background:#fff3cd;
+  color:#856404;
+}
+
+.status.Afgewerkt {
+  background:#d4edda;
+  color:#155724;
+}
+
+.status.Onbekend {
+  background:#eee;
+  color:#333;
+}
+
+.loader {
+  text-align:center;
+  margin-top:40px;
+  font-style:italic;
+  color:#777;
+}
 
 footer {
   text-align:center;
   padding:10px;
-  font-size:0.75rem;
-  color:#666;
+  font-size:0.8rem;
+  color:#555;
 }
 </style>
 </head>
@@ -127,153 +152,232 @@ footer {
 <body>
 
 <header>
-  <img src="/brandweerherentals/icons/logo.png" class="header-logo"/>
-  <strong>Brandweer Herentals</strong>
+  <img src="/brandweerherentals/icons/logo.png" class="header-logo" alt="Logo">
+  <div class="header-title">Defectmeldingen</div>
 </header>
 
-<a href="defectmelding.html" class="backlink">← Terug naar melding</a>
+<main>
 
-<h2 class="page-title">📊 Defectmeldingen - Live status</h2>
-<div id="teller" class="teller">Laden…</div>
+  <a href="defectmelding.html" class="backlink">
+    <span class="arrow">←</span> Terug naar defectmelding
+  </a>
 
-<div id="meldingenContainer"></div>
+  <h2 class="page-title">📊 Live status</h2>
+  <div id="teller" class="teller">Bezig met laden...</div>
 
-<footer>Fire Crew Herentals – Live systeem</footer>
+  <div id="meldingenContainer">
+    <p class="loader">Meldingen worden geladen...</p>
+  </div>
+
+</main>
+
+<footer>Versie 1.4</footer>
 
 <script>
+// ✅ JUISTE CSV LINK (zonder gid)
 const SHEET_URL =
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?gid=0&single=true&output=csv&ts=" + Date.now();
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 
 const container = document.getElementById("meldingenContainer");
 const teller = document.getElementById("teller");
 
-const REFRESH_INTERVAL = 30000;
+const REFRESH_INTERVAL = 30000; // 30 sec
 
-// ======================
-// CSV PARSE
-// ======================
 function parseCSV(text) {
-  const delimiter = text.includes(";") ? ";" : ",";
-  const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
-  return rows.map(line => line.split(delimiter).map(c => c.replace(/^"|"$/g,"").trim()));
+  const rows = [];
+  let row = [];
+  let value = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"' && inQuotes && next === '"') {
+      value += '"';
+      i++;
+    }
+    else if (char === '"') {
+      inQuotes = !inQuotes;
+    }
+    else if ((char === ',' || char === ';') && !inQuotes) {
+      row.push(value);
+      value = "";
+    }
+    else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (value || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+      row = [];
+      value = "";
+    }
+    else {
+      value += char;
+    }
+  }
+
+  if (value || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  return rows;
 }
 
-// ======================
-// DATUM PARSE
-// ======================
 function parseDate(str) {
-  if(!str) return new Date(0);
+  if (!str) return new Date(0);
+
   const parts = str.split("/");
-  if (parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
+  if (parts.length === 3) {
+    return new Date(parts[2], parts[1] - 1, parts[0]);
+  }
+
   const d = new Date(str);
   return isNaN(d) ? new Date(0) : d;
 }
 
-// ======================
-// HEADER FINDER
-// ======================
-function findIndex(headers, keyword) {
-  return headers.findIndex(h => h.toLowerCase().includes(keyword.toLowerCase()));
-}
+function renderMeldingen(data) {
 
-// ======================
-// RENDER
-// ======================
-function renderMeldingen(data){
+  // ✅ Nieuwste bovenaan
+  data.sort((a, b) => b.datumObj - a.datumObj);
 
-  data.sort((a,b)=>b.datumObj - a.datumObj);
   container.innerHTML = "";
   teller.textContent = `Totaal: ${data.length} meldingen`;
 
-  if(data.length === 0){
-    container.innerHTML = "<i>Geen meldingen gevonden</i>";
+  if (data.length === 0) {
+    container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
     return;
   }
 
-  data.forEach(m=>{
-    const div = document.createElement("div");
-    div.className = "melding";
+  data.forEach(m => {
+    const melding = document.createElement("div");
+    melding.classList.add("melding");
 
-    div.innerHTML = `
+    melding.innerHTML = `
       <div class="row">
         <div class="item">
           <div class="label">👤 Naam</div>
-          <div class="value">${m.naam}</div>
+          <div class="value">${m.naam || "/"}</div>
         </div>
+
         <div class="item">
           <div class="label">📅 Datum</div>
-          <div class="value">${m.datum}</div>
+          <div class="value">${m.datum || "/"}</div>
         </div>
       </div>
 
       <div class="row">
         <div class="item" style="flex:2">
-          <div class="label">🛠️ Defect</div>
-          <div class="value">${m.omschrijving}</div>
+          <div class="label">🛠️ Defect omschrijving</div>
+          <div class="value">${m.omschrijving || "/"}</div>
         </div>
+
         <div class="item">
-          <div class="label">Status</div>
+          <div class="label">📌 Status</div>
           <span class="status ${m.statusClass}">${m.status}</span>
         </div>
       </div>
     `;
 
-    container.appendChild(div);
+    container.appendChild(melding);
   });
 }
 
-// ======================
-// LOAD
-// ======================
-function loadMeldingen(){
-  fetch(SHEET_URL, { cache: "no-store" })
-    .then(r=>{
-        if(!r.ok) throw new Error("HTTP "+r.status)
-        return r.text()
-    })
-    .then(text=>{
-        const rows = parseCSV(text);
-        const headers = rows.shift().map(h => h.toLowerCase().trim());
+function loadMeldingen(retries = 5, delay = 2000) {
 
-        const naamIndex = findIndex(headers, "naam");
-        const datumIndex = findIndex(headers, "datum");
-        const omsIndex = findIndex(headers, "omschrijving");
-        const statusIndex = findIndex(headers, "status");
+  // ✅ anti-cache + keep alive
+  fetch(SHEET_URL + "&t=" + Date.now(), {
+    cache: "no-store",
+    headers: {
+      "Pragma": "no-cache",
+      "Cache-Control": "no-cache"
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.text();
+  })
+  .then(csvText => {
 
-        let meldingen = [];
+    const rows = parseCSV(csvText);
+    const headers = rows.shift();
 
-        rows.forEach(r=>{
-          const naam = r[naamIndex] || "/";
-          const datum = r[datumIndex] || "/";
-          const oms = r[omsIndex] || "/";
-          const raw = (r[statusIndex] || "").toLowerCase();
+    if (!headers) throw new Error("Geen headers gevonden");
 
-          let status="Onbekend", statusClass="Onbekend";
-          if(raw.includes("gemeld")) status="Gemeld",statusClass="Gemeld";
-          if(raw.includes("bezig")||raw.includes("behandeling")) status="In behandeling",statusClass="Bezig";
-          if(raw.includes("afgewerkt")||raw.includes("opgelost")) status="Afgewerkt",statusClass="Afgewerkt";
+    const getIndex = name =>
+      headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
 
-          if(!naam && !oms) return;
+    const naamIndex = getIndex("Naam");
+    const datumIndex = getIndex("Datum");
+    const omschrijvingIndex = getIndex("Defect omschrijving");
+    const statusIndex = getIndex("Status");
 
-          meldingen.push({
-            naam,
-            datum,
-            datumObj: parseDate(datum),
-            omschrijving: oms,
-            status,
-            statusClass
-          });
-        });
+    const meldingenData = [];
 
-        renderMeldingen(meldingen);
-    })
-    .catch(err=>{
-      console.error(err);
-      teller.textContent = "Verbinding tijdelijk niet beschikbaar...";
+    rows.forEach(row => {
+
+      const naam = (row[naamIndex] || "").trim();
+      const datum = (row[datumIndex] || "").trim();
+      const omschrijving = (row[omschrijvingIndex] || "").trim();
+      const statusRaw = (row[statusIndex] || "").trim();
+
+      if (!naam && !datum && !omschrijving && !statusRaw) return;
+
+      let status = "Onbekend";
+      let statusClass = "Onbekend";
+
+      const lower = statusRaw.toLowerCase();
+
+      if (lower.includes("gemeld")) {
+        status = "Gemeld";
+        statusClass = "Gemeld";
+      }
+      else if (lower.includes("bezig") || lower.includes("behandeling")) {
+        status = "In behandeling";
+        statusClass = "Bezig";
+      }
+      else if (lower.includes("afgewerkt") || lower.includes("opgelost")) {
+        status = "Afgewerkt";
+        statusClass = "Afgewerkt";
+      }
+
+      meldingenData.push({
+        naam,
+        datum,
+        datumObj: parseDate(datum),
+        omschrijving,
+        status,
+        statusClass
+      });
     });
+
+    if (meldingenData.length === 0) {
+      throw new Error("Geen meldingen gevonden");
+    }
+
+    renderMeldingen(meldingenData);
+
+  })
+  .catch(err => {
+      console.error(err);
+
+      if (retries > 0) {
+        teller.textContent = `Fout bij laden — nieuwe poging over ${delay/1000}s...`;
+        setTimeout(() => loadMeldingen(retries - 1, delay), delay);
+      }
+      else {
+        container.innerHTML =
+          "<p class='loader' style='color:red;'>❌ Kan geen meldingen laden</p>";
+        teller.textContent = "Verbinding tijdelijk niet beschikbaar";
+      }
+  });
 }
 
+// ✅ Eerste keer laden
 loadMeldingen();
+
+// ✅ Automatisch verversen
 setInterval(loadMeldingen, REFRESH_INTERVAL);
 
 </script>
