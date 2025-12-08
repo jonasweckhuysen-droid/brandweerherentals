@@ -1,216 +1,156 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Personeelsfeuille – Brandweer Herentals</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Personeelsfeuille – Digitaal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
 
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      overflow-y: scroll;
-      font-family: Arial;
-    }
+<style>
+body {
+  background:#111;
+  color:white;
+  font-family:Arial;
+}
 
-    .page {
-      position: relative;
-      width: 794px;
-      margin: 30px auto;
-      background: white;
-      box-shadow: 0 0 15px black;
-    }
+#formbox {
+  background:#1a1a1a;
+  max-width:800px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:12px;
+}
 
-    .page canvas {
-      width: 794px;
-    }
+label {display:block;margin-top:12px;}
+input, textarea, select {
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:none;
+  margin-top:4px;
+}
 
-    .field {
-      position: absolute;
-      min-width: 60px;
-      min-height: 20px;
-      border: 1px dashed rgba(0,0,0,0.4);
-      background: rgba(255,255,255,0.6);
-      padding: 2px;
-      font-size: 12px;
-      cursor: move;
-    }
+.radio-group label {
+  display:inline-block;
+  margin-right:15px;
+}
 
-    .field input, .field select, .field textarea {
-      width: 100%;
-      border: none;
-      background: transparent;
-      font-size: 12px;
-      resize: none;
-      outline: none;
-    }
+button {
+  margin-top:20px;
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
 
-    #toolbar {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: black;
-      padding: 10px;
-      border-radius: 10px;
-      z-index: 1000;
-    }
-
-    #toolbar button {
-      padding: 8px 15px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+#pdf-container {
+  margin:30px auto;
+  width:794px;
+  background:white;
+  padding:10px;
+}
+</style>
 </head>
 <body>
 
-<div id="toolbar">
-  <button onclick="saveLayout()">Posities opslaan</button>
-  <button onclick="resetLayout()">Reset</button>
+<div id="formbox">
+  <h2>Personeelsfeuille – digitale invulling</h2>
+
+  <label>Naam</label>
+  <input id="naam" value="Jonas" readonly>
+
+  <label>Datum</label>
+  <input id="datum" type="text" placeholder="dd/mm/jjjj">
+
+  <label>Begin - Einduur</label>
+  <input id="uur" type="text" placeholder="vb. 08:00 - 16:00">
+
+  <label>Omschrijving</label>
+  <textarea id="omschrijving"></textarea>
+
+  <label>Locatie</label>
+  <input id="locatie" type="text">
+
+  <label>Type opdracht (kies 1)</label>
+  <div class="radio-group">
+    <label><input type="radio" name="type" value="interventie"> Interventie</label>
+    <label><input type="radio" name="type" value="ambulance"> Ambulance</label>
+    <label><input type="radio" name="type" value="onderhoud"> Onderhoud / Dienstopdracht</label>
+    <label><input type="radio" name="type" value="wacht"> Wacht / permanentie</label>
+  </div>
+
+  <button onclick="fillPdf()">Invullen in personeelsfeuille</button>
 </div>
 
-<!-- Pagina 1 -->
-<div class="page" id="page1">
-  <canvas id="pdf1"></canvas>
-</div>
-
-<!-- Pagina 2 -->
-<div class="page" id="page2">
-  <canvas id="pdf2"></canvas>
+<div id="pdf-container">
+  <canvas id="pdfCanvas"></canvas>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <script>
 const url = "personeelsfeuille.pdf";
+const canvas = document.getElementById("pdfCanvas");
+const ctx = canvas.getContext("2d");
 
-const fields = [
-  { id:"datum", page:1, x:50, y:100, w:120, h:20, type:"input"},
-  { id:"omschrijving", page:1, x:50, y:140, w:300, h:40, type:"textarea"},
-  { id:"uur", page:1, x:50, y:190, w:140, h:20, type:"input"},
-  { id:"locatie", page:1, x:50, y:230, w:250, h:20, type:"input"},
-  { id:"type", page:1, x:50, y:270, w:200, h:20, type:"select", options:["Interventie","Ambulance","Onderhoud","Wacht / permanentie"]},
-  { id:"xdko", page:1, x:260, y:270, w:60, h:20, type:"select", options:["","X","D","K","O"]},
-  { id:"voertuig", page:1, x:50, y:310, w:120, h:20, type:"input"},
-  { id:"handtekening", page:1, x:50, y:350, w:200, h:40, type:"input"},
-  { id:"afwijkend", page:1, x:50, y:400, w:200, h:20, type:"input"},
-  { id:"opmerking", page:2, x:50, y:100, w:500, h:60, type:"textarea"},
-];
+let pdfPage;
 
-async function loadPDF() {
-  const pdf = await pdfjsLib.getDocument(url).promise;
+const typeCoords = {
+  interventie: {x:560, y:205},
+  ambulance:   {x:600, y:205},
+  onderhoud:   {x:640, y:205},
+  wacht:       {x:680, y:205}
+};
 
-  renderPage(pdf, 1, "pdf1");
-  renderPage(pdf, 2, "pdf2");
-  placeFields();
-}
-
-async function renderPage(pdf, pageNumber, canvasId){
-  const page = await pdf.getPage(pageNumber);
-  const scale = 1.3;
-  const viewport = page.getViewport({ scale: scale });
-
-  const canvas = document.getElementById(canvasId);
-  const ctx = canvas.getContext("2d");
-
-  canvas.height = viewport.height;
+// PDF laden
+pdfjsLib.getDocument(url).promise.then(pdf => {
+  return pdf.getPage(1);
+}).then(page => {
+  pdfPage = page;
+  const viewport = page.getViewport({scale:1.3});
   canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  page.render({canvasContext:ctx, viewport:viewport});
+});
 
-  await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-}
+function fillPdf() {
 
-function placeFields(){
-  fields.forEach(f => {
-    const page = document.getElementById("page"+f.page);
-    const div = document.createElement("div");
-    div.className = "field";
-    div.id = f.id;
+  pdfPage.render({
+    canvasContext: ctx,
+    viewport: pdfPage.getViewport({scale:1.3})
+  }).promise.then(() => {
 
-    let saved = localStorage.getItem("pos_"+f.id);
-    if(saved){
-      const p = JSON.parse(saved);
-      f.x = p.x; f.y = p.y; f.w = p.w; f.h = p.h;
+    const naam = document.getElementById("naam").value;
+    const datum = document.getElementById("datum").value;
+    const uur = document.getElementById("uur").value;
+    const omschrijving = document.getElementById("omschrijving").value;
+    const locatie = document.getElementById("locatie").value;
+
+    const type = document.querySelector('input[name="type"]:checked')?.value;
+
+    if(!type){
+      alert("Kies eerst een type");
+      return;
     }
 
-    div.style.left = f.x + "px";
-    div.style.top = f.y + "px";
-    div.style.width = f.w + "px";
-    div.style.height = f.h + "px";
+    ctx.font = "11px Arial";
+    ctx.fillStyle = "black";
 
-    if(f.type === "input"){
-      div.innerHTML = `<input placeholder="${f.id}">`;
-    }
+    // ↓↓↓ HIER SCHRIJFT HIJ IN JE PDF ↓↓↓
+    ctx.fillText(naam, 90, 150);
+    ctx.fillText(datum, 90, 170);
+    ctx.fillText(uur, 90, 190);
+    ctx.fillText(omschrijving, 90, 215);
+    ctx.fillText(locatie, 90, 245);
 
-    if(f.type === "textarea"){
-      div.innerHTML = `<textarea rows="3" placeholder="${f.id}"></textarea>`;
-    }
+    // X plaatsen in juiste kolom
+    const mark = typeCoords[type];
+    ctx.font = "20px Arial";
+    ctx.fillText("X", mark.x, mark.y);
 
-    if(f.type === "select"){
-      let html = "<select>";
-      f.options.forEach(o => html += `<option>${o}</option>`);
-      html += "</select>";
-      div.innerHTML = html;
-    }
-
-    dragElement(div);
-    page.appendChild(div);
   });
 }
-
-function dragElement(el){
-  let pos1=0,pos2=0,pos3=0,pos4=0;
-
-  el.onmousedown = dragMouseDown;
-
-  function dragMouseDown(e){
-    e.preventDefault();
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-
-    document.onmouseup = closeDragElement;
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e){
-    e.preventDefault();
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-
-    el.style.top = (el.offsetTop - pos2) + "px";
-    el.style.left = (el.offsetLeft - pos1) + "px";
-  }
-
-  function closeDragElement(){
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
-
-function saveLayout(){
-  fields.forEach(f => {
-    const el = document.getElementById(f.id);
-    const data = {
-      x: el.offsetLeft,
-      y: el.offsetTop,
-      w: el.offsetWidth,
-      h: el.offsetHeight
-    };
-    localStorage.setItem("pos_"+f.id, JSON.stringify(data));
-  });
-  alert("Posities opgeslagen ✅");
-}
-
-function resetLayout(){
-  fields.forEach(f => localStorage.removeItem("pos_"+f.id));
-  location.reload();
-}
-
-loadPDF();
 </script>
 
 </body>
