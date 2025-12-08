@@ -1,106 +1,131 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Personeelsfeuille — Brandweer Herentals</title>
+
 <link rel="stylesheet" href="style.css">
+
 <style>
-  /* Container & PDF + overlay styling */
-  #pdfContainer {
-    position: relative;
-    width: 100%;
-    max-width: 1200px;
-    margin: 20px auto;
-    border: 1px solid #ccc;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #fff;
-  }
-  .pdfCanvas {
-    width: 100%;
-    display: block;
-  }
-  .overlay-field, .overlay-select {
-    position: absolute;
-    font-size: 0.9rem;
-    border-radius: 6px;
-    padding: 4px 6px;
-    border: 1px solid #ccc;
-    background: rgba(255,255,255,0.9);
-    color: #000;
-  }
-  #downloadBtn {
-    margin: 20px;
-    padding: 12px 20px;
-    border:none;
-    border-radius:10px;
-    background:#c71f1f;
-    color:#fff;
-    font-weight:700;
-    font-size:1rem;
-    cursor:pointer;
-  }
+#pdfContainer {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  overflow: hidden;
+  background:#fff;
+}
+
+.pdfCanvas {
+  width:100%;
+  display:block;
+}
+
+.overlay-field, .overlay-select {
+  position:absolute;
+  font-size:0.9rem;
+  border-radius:6px;
+  padding:4px 6px;
+  border:1px solid #999;
+  background:rgba(255,255,255,0.9);
+  color:black;
+}
+
+#signaturePad {
+  position:absolute;
+  border:2px dashed #c71f1f;
+  background:white;
+}
+
+#downloadBtn, #clearSign {
+  margin:15px 5px;
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  background:#c71f1f;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+h2 {
+  margin-top:10px;
+}
 </style>
 </head>
+
 <body>
+
 <div class="container">
-  <!-- HEADER zoals in jullie app -->
-  <header id="appHeader">
-    <img src="/brandweerherentals/icons/logo.png" class="header-logo" alt="Brandweer Herentals">
-    <div class="header-text">
-      <div id="greeting" class="header-greeting"></div>
-      <div id="datetime" class="header-datetime"></div>
-      <div id="ploegOfWeek" class="header-ploeg"></div>
-    </div>
-  </header>
 
-  <main style="padding:15px;">
-    <h2>Personeelsfeuille</h2>
-    <div id="pdfContainer">
-      <canvas id="pdfCanvas" class="pdfCanvas"></canvas>
+<header id="appHeader">
+  <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+  <div class="header-text">
+    <div id="greeting" class="header-greeting"></div>
+    <div id="datetime" class="header-datetime"></div>
+    <div id="ploegOfWeek" class="header-ploeg"></div>
+  </div>
+</header>
 
-      <!-- Hier komen invulvelden; pas top/left/width aan volgens PDF -->
-      <input type="date" id="veld_datum" class="overlay-field" style="top:80px; left:50px; width:140px;">
-      <input type="text" id="veld_omschrijving" class="overlay-field" style="top:80px; left:220px; width:350px;">
-      <input type="time" id="veld_begin" class="overlay-field" style="top:130px; left:50px; width:90px;">
-      <input type="time" id="veld_eind" class="overlay-field" style="top:130px; left:160px; width:90px;">
-      <input type="text" id="veld_locatie" class="overlay-field" style="top:130px; left:270px; width:200px;">
+<main style="padding:15px;">
 
-      <select id="veld_kolom" class="overlay-select" style="top:180px; left:50px; width:200px;">
-        <option value="">-- Kies --</option>
-        <option value="Interventie">Interventie</option>
-        <option value="Ambulance">Ambulance</option>
-        <option value="Onderhoud/dienstopdracht">Onderhoud / Dienst</option>
-        <option value="Wacht/permanentie">Wacht / Permanentie</option>
-      </select>
+<h2>Personeelsfeuille</h2>
 
-      <select id="veld_XDKO" class="overlay-select" style="top:180px; left:260px; width:70px;">
-        <option value="">--</option>
-        <option value="X">X</option>
-        <option value="D">D</option>
-        <option value="K">K</option>
-        <option value="O">O</option>
-      </select>
+<div id="pdfContainer">
 
-      <input type="text" id="veld_voertuig" class="overlay-field" style="top:180px; left:350px; width:150px;">
-      <input type="text" id="veld_handtekening" class="overlay-field" style="top:180px; left:520px; width:200px;">
-      <input type="time" id="veld_afwijkendBegin" class="overlay-field" style="top:230px; left:50px; width:90px;">
-      <input type="time" id="veld_afwijkendEind" class="overlay-field" style="top:230px; left:160px; width:90px;">
-      <input type="text" id="veld_opmerking" class="overlay-field" style="top:230px; left:270px; width:350px;">
+  <canvas id="pdfCanvas" class="pdfCanvas"></canvas>
 
-    </div>
+  <!-- FORM VELDEN -->
+  <input type="date" id="veld_datum" class="overlay-field" style="top:80px; left:40px; width:160px;">
+  <input type="text" id="veld_omschrijving" class="overlay-field" style="top:80px; left:220px; width:400px;">
 
-    <button id="downloadBtn">📄 Download ingevulde PDF</button>
-  </main>
+  <input type="time" id="veld_begin" class="overlay-field" style="top:125px; left:40px; width:100px;">
+  <input type="time" id="veld_eind" class="overlay-field" style="top:125px; left:160px; width:100px;">
+  <input type="text" id="veld_locatie" class="overlay-field" style="top:125px; left:290px; width:300px;">
+
+  <select id="veld_kolom" class="overlay-select" style="top:170px; left:40px; width:220px;">
+    <option value="">-- Kies --</option>
+    <option>Interventie</option>
+    <option>Ambulance</option>
+    <option>Onderhoud/dienstopdracht</option>
+    <option>Wacht/permanentie</option>
+  </select>
+
+  <select id="veld_XDKO" class="overlay-select" style="top:170px; left:280px; width:80px;">
+    <option value="">-</option>
+    <option>X</option>
+    <option>D</option>
+    <option>K</option>
+    <option>O</option>
+  </select>
+
+  <input type="text" id="veld_voertuig" class="overlay-field" style="top:170px; left:380px; width:160px;">
+  <input type="time" id="veld_afw_begin" class="overlay-field" style="top:220px; left:40px; width:100px;">
+  <input type="time" id="veld_afw_eind" class="overlay-field" style="top:220px; left:160px; width:100px;">
+  <input type="text" id="veld_opmerking" class="overlay-field" style="top:220px; left:290px; width:350px;">
+
+  <!-- Handtekening canvas -->
+  <canvas id="signaturePad" width="300" height="100" style="top:160px; left:580px;"></canvas>
+
 </div>
 
+<button id="clearSign">🧽 Wis handtekening</button>
+<button id="downloadBtn">📄 Download ingevulde PDF</button>
+
+</main>
+</div>
+
+<!-- LIBRARIES -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script type="module">
-// Firebase import & init
+
+// FIREBASE
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js';
-import { jsPDF } from 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
@@ -115,78 +140,114 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const sheetKey = new Date().toISOString().slice(0,10);
 
-// Render de PDF in canvas
+// PDF tonen
 const pdfUrl = '/brandweerherentals/personeelsfeuille.pdf';
-const canvas = document.getElementById('pdfCanvas');
-const ctx = canvas.getContext('2d');
-  
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js";
+const pdfCanvas = document.getElementById('pdfCanvas');
+const pdfCtx = pdfCanvas.getContext('2d');
 
 pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
   pdf.getPage(1).then(page => {
     const viewport = page.getViewport({ scale: 1.5 });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-      console.log("PDF geladen");
-    });
+    pdfCanvas.width = viewport.width;
+    pdfCanvas.height = viewport.height;
+    page.render({ canvasContext: pdfCtx, viewport });
   });
 });
 
-// Velden identificeren
+// Velden
 const velden = [
-  'veld_datum','veld_omschrijving','veld_begin','veld_eind','veld_locatie',
-  'veld_kolom','veld_XDKO','veld_voertuig','veld_handtekening',
-  'veld_afwijkendBegin','veld_afwijkendEind','veld_opmerking'
+  "veld_datum",
+  "veld_omschrijving",
+  "veld_begin",
+  "veld_eind",
+  "veld_locatie",
+  "veld_kolom",
+  "veld_XDKO",
+  "veld_voertuig",
+  "veld_afw_begin",
+  "veld_afw_eind",
+  "veld_opmerking"
 ];
 
-// Unieke sleutel (bvb datum of auto‑id etc)
-const sheetKey = new Date().toISOString().slice(0,10);
-
-// Hooks voor live data
 velden.forEach(id => {
   const el = document.getElementById(id);
   const dbRef = ref(db, `personeelsfeuille/${sheetKey}/${id}`);
 
   onValue(dbRef, snap => {
-    if(el.tagName === 'SELECT' || el.tagName === 'INPUT') {
-      el.value = snap.val() ?? '';
-    }
+    if (snap.val() !== null) el.value = snap.val();
   });
 
-  el.addEventListener('input', () => {
+  el.addEventListener("input", () => {
     set(dbRef, el.value);
   });
 });
 
-// PDF downoad functie
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const pdfOut = new jsPDF({
-    unit: 'px',
-    format: [canvas.width, canvas.height]
-  });
+// Handtekening functie
+const signCanvas = document.getElementById("signaturePad");
+const signCtx = signCanvas.getContext("2d");
+let tekenen = false;
 
-  const img = canvas.toDataURL('image/jpeg', 1.0);
-  pdfOut.addImage(img, 'JPEG', 0, 0, canvas.width, canvas.height);
+signCanvas.addEventListener("mousedown", () => tekenen = true);
+signCanvas.addEventListener("mouseup", () => tekenen = false);
+signCanvas.addEventListener("mousemove", tekenenFunctie);
 
-  pdfOut.setFontSize(12);
-  pdfOut.setTextColor(0,0,0);
+signCanvas.addEventListener("touchstart", () => tekenen = true);
+signCanvas.addEventListener("touchend", () => tekenen = false);
+signCanvas.addEventListener("touchmove", tekenenFunctie);
 
-  velden.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el.value) return;
-    const rect = el.getBoundingClientRect();
-    const canvasRect = canvas.getBoundingClientRect();
-    const x = rect.left - canvasRect.left;
-    const y = rect.top - canvasRect.top + 4;
-    pdfOut.text(String(el.value), x, y);
-  });
+function tekenenFunctie(e) {
+  if (!tekenen) return;
+  e.preventDefault();
+  const rect = signCanvas.getBoundingClientRect();
+  const x = (e.clientX || e.touches[0].clientX) - rect.left;
+  const y = (e.clientY || e.touches[0].clientY) - rect.top;
 
-  pdfOut.save(`Personeelsfeuille_${sheetKey}.pdf`);
+  signCtx.lineWidth = 2;
+  signCtx.lineTo(x, y);
+  signCtx.stroke();
+  signCtx.beginPath();
+  signCtx.moveTo(x,y);
+}
+
+document.getElementById("clearSign").addEventListener("click", () => {
+  signCtx.clearRect(0,0,signCanvas.width,signCanvas.height);
 });
+
+// PDF DOWNLOAD
+document.getElementById("downloadBtn").addEventListener("click", () => {
+const { jsPDF } = window.jspdf;
+const pdfOut = new jsPDF({
+  unit: 'px',
+  format: [pdfCanvas.width, pdfCanvas.height]
+});
+
+const bg = pdfCanvas.toDataURL('image/jpeg', 1.0);
+pdfOut.addImage(bg, 'JPEG', 0, 0, pdfCanvas.width, pdfCanvas.height);
+
+velden.forEach(id => {
+ const el = document.getElementById(id);
+ if(!el.value) return;
+ const rect = el.getBoundingClientRect();
+ const canvasRect = pdfCanvas.getBoundingClientRect();
+ const x = rect.left - canvasRect.left;
+ const y = rect.top - canvasRect.top + 8;
+ pdfOut.text(String(el.value), x, y);
+});
+
+// Handtekening
+const signData = signCanvas.toDataURL("image/png");
+const sRect = signCanvas.getBoundingClientRect();
+const cRect = pdfCanvas.getBoundingClientRect();
+pdfOut.addImage(signData, "PNG", sRect.left - cRect.left, sRect.top - cRect.top, signCanvas.width, signCanvas.height);
+
+pdfOut.save(`Personeelsfeuille_${sheetKey}.pdf`);
+});
+
 </script>
+
 <script src="/brandweerherentals/header.js"></script>
+
 </body>
 </html>
