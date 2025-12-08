@@ -1,394 +1,245 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Personeelsfeuille — positioneer velden</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personeelsfeuille – Digitaal</title>
 
 <style>
-  :root{ --red:#c71f1f; --bg:#f6f6f6; --card:#111; }
-  body{ font-family: system-ui, Arial; background:#f3f4f6; margin:0; color:#111; }
-  .container{ max-width:1100px; margin:18px auto; padding:18px; }
-  header#appHeader{ display:flex; gap:12px; align-items:center; padding:10px 0; }
-  .tools { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
-  .btn{ background:var(--red); color:#fff; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; }
-  .btn.secondary{ background:#fff; color:var(--red); border:2px solid var(--red); }
-  #canvasWrap{ position:relative; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,0.08); }
-  canvas#pdfCanvas{ display:block; width:100%; height:auto; }
-  /* overlay elements that can be dragged */
-  .overlay {
-    position:absolute;
-    min-width:80px;
-    padding:6px 8px;
-    border-radius:8px;
-    background: rgba(255,255,255,0.9);
-    border:1px solid rgba(0,0,0,0.12);
-    cursor:move;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-    user-select:none;
-    display:flex;
-    gap:6px;
-    align-items:center;
-    font-size:0.9rem;
-  }
-  .overlay .label { font-weight:700; margin-right:6px; color:#333; }
-  .overlay input[type="text"], .overlay input[type="date"], .overlay input[type="time"]{
-    border:none; background:transparent; outline:none; width:140px;
-  }
-  .marker { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; }
-  .marker.interventie{ background:#c62828; }
-  .marker.ambulance{ background:#ff8b00; }
-  .marker.onderhoud{ background:#0b82d1; }
-  .marker.wacht{ background:#2f9b4a; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #fff;
+}
 
-  .controls { margin-left:12px; display:flex; gap:8px; align-items:center; }
-  .hint { font-size:0.9rem; color:#666; margin-top:8px; }
+header {
+    background: #b30000;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: bold;
+}
 
-  /* responsive */
-  @media (max-width:920px){
-    .overlay input[type="text"]{ width:90px; }
-  }
+.controls {
+    padding: 15px;
+    background: #1e1e1e;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.controls label {
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.controls input, .controls select, .controls button {
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+    font-size: 1em;
+}
+
+.controls button {
+    background: #b30000;
+    color: white;
+    cursor: pointer;
+}
+
+.controls button:hover {
+    background: #ff0000;
+}
+
+#pdf-container {
+    position: relative;
+    width: 100%;
+    background: #333;
+    padding-bottom: 50px;
+}
+
+.pdf-page {
+    position: relative;
+    width: 100%;
+}
+
+.pdf-page embed {
+    width: 100%;
+    height: 1200px;
+}
+
+.overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+}
+
+.field {
+    position: absolute;
+    min-width: 120px;
+    padding: 3px 6px;
+    background: rgba(179, 0, 0, 0.85);
+    color: #fff;
+    font-size: 12px;
+    cursor: move;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid white;
+    text-align: center;
+    font-weight: bold;
+    line-height: 16px;
+}
+
+.save-info {
+    padding: 10px;
+    text-align: center;
+    background: #222;
+    font-size: 0.9em;
+    color: #bbb;
+}
 </style>
 </head>
+
 <body>
-<div class="container">
 
-  <header id="appHeader">
-    <img src="/brandweerherentals/icons/logo.png" alt="logo" style="height:72px">
+<header>
+    🧾 Digitale personeelsfeuille – Brandweer Herentals
+</header>
+
+<div class="controls">
     <div>
-      <div style="font-weight:800;font-size:18px">Personeelsfeuille — Plaats velden</div>
-      <div style="font-size:13px;color:#666">Sleep de velden naar de juiste plekken op de PDF. Sla layout op zodat het later automatisch staat.</div>
-    </div>
-  </header>
-
-  <div class="tools">
-    <button id="saveLayout" class="btn">💾 Opslaan layout</button>
-    <button id="resetLayout" class="btn secondary">↺ Reset layout</button>
-    <button id="fillDownload" class="btn">📄 Invullen & downloaden</button>
-
-    <div style="margin-left:8px;">
-      <label style="font-size:13px;color:#444">Naam (automatisch):</label><br>
-      <input id="field_name" type="text" style="padding:6px;border-radius:6px;border:1px solid #ddd;width:240px" />
+        <label>Datum</label>
+        <input type="date" id="datum">
     </div>
 
-    <div style="margin-left:8px;">
-      <label style="font-size:13px;color:#444">Datum</label><br>
-      <input id="field_date" type="date" style="padding:6px;border-radius:6px;border:1px solid #ddd" />
+    <div>
+        <label>Naam</label>
+        <input type="text" id="naam" readonly>
     </div>
 
-    <div style="margin-left:8px;">
-      <label style="font-size:13px;color:#444">Begin - Eind</label><br>
-      <input id="field_begin" type="time" style="padding:6px;border-radius:6px;border:1px solid #ddd" /> – 
-      <input id="field_end" type="time" style="padding:6px;border-radius:6px;border:1px solid #ddd" />
-    </div>
-  </div>
-
-  <div class="hint">Tip: sleep de vier gekleurde markers naar de kolomkoppen waar een “X” moet komen voor respectievelijk Interventie (rood), Ambulance (oranje), Onderhoud (blauw), Wacht (groen). Sleep ook de tekstvelden boven de juiste lijnen.</div>
-
-  <div id="canvasWrap">
-    <canvas id="pdfCanvas"></canvas>
-
-    <!-- overlay fields: default positions (will be adjusted by user) -->
-    <div id="ov_name" class="overlay" data-key="name" style="left:40px; top:40px;">
-      <span class="label">Naam</span>
-      <input type="text" id="ov_name_input" placeholder="Naam">
+    <div>
+        <label>Beginuur</label>
+        <input type="time" id="beginuur">
     </div>
 
-    <div id="ov_date" class="overlay" data-key="date" style="left:40px; top:90px;">
-      <span class="label">Datum</span>
-      <input type="date" id="ov_date_input">
+    <div>
+        <label>Einduur</label>
+        <input type="time" id="einduur">
     </div>
 
-    <div id="ov_time" class="overlay" data-key="time" style="left:40px; top:140px;">
-      <span class="label">Begin / Eind</span>
-      <input type="time" id="ov_begin_input" style="width:80px"> – 
-      <input type="time" id="ov_end_input" style="width:80px">
+    <div>
+        <label>Locatie</label>
+        <input type="text" id="locatie">
     </div>
 
-    <div id="ov_omschrijving" class="overlay" data-key="omschrijving" style="left:40px; top:190px;">
-      <span class="label">Omschrijving</span>
-      <input type="text" id="ov_omschrijving_input" placeholder="Omschrijving">
+    <div>
+        <label>Omschrijving</label>
+        <input type="text" id="omschrijving">
     </div>
 
-    <div id="ov_locatie" class="overlay" data-key="locatie" style="left:40px; top:240px;">
-      <span class="label">Locatie</span>
-      <input type="text" id="ov_locatie_input" placeholder="Locatie">
+    <div>
+        <label>Type opdracht</label>
+        <select id="type">
+            <option value="">-- Kies --</option>
+            <option value="interventie">Interventie</option>
+            <option value="ambulance">Ambulance</option>
+            <option value="onderhoud">Onderhoud / Dienstopdracht</option>
+            <option value="wacht">Wacht / Permanentie</option>
+        </select>
     </div>
 
-    <!-- draggable markers for 4 columns -->
-    <div id="marker_interventie" class="overlay marker interventie" data-key="interventie" style="left:520px; top:80px;">
-      I
+    <div style="display:flex;align-items:end;">
+        <button onclick="updateFields()">Invullen op feuille</button>
     </div>
-    <div id="marker_ambulance" class="overlay marker ambulance" data-key="ambulance" style="left:560px; top:80px;">
-      A
-    </div>
-    <div id="marker_onderhoud" class="overlay marker onderhoud" data-key="onderhoud" style="left:600px; top:80px;">
-      O
-    </div>
-    <div id="marker_wacht" class="overlay marker wacht" data-key="wacht" style="left:640px; top:80px;">
-      W
+</div>
+
+<div id="pdf-container">
+
+    <!-- PAGINA 1 -->
+    <div class="pdf-page" id="page1">
+        <embed src="personeelsfeuille.pdf#page=1" type="application/pdf">
+
+        <div class="overlay" id="overlay1">
+            <div class="field" id="f-datum" style="left:60%; top:23%;">Datum</div>
+            <div class="field" id="f-naam" style="left:15%; top:35%;">Naam</div>
+            <div class="field" id="f-begin" style="left:40%; top:35%;">Begin</div>
+            <div class="field" id="f-eind" style="left:55%; top:35%;">Eind</div>
+            <div class="field" id="f-locatie" style="left:15%; top:42%;">Locatie</div>
+            <div class="field" id="f-omschrijving" style="left:15%; top:49%;">Omschrijving</div>
+
+            <div class="field checkbox" id="c-int" style="left:15%; top:60%;"></div>
+            <div class="field checkbox" id="c-amb" style="left:30%; top:60%;"></div>
+            <div class="field checkbox" id="c-ond" style="left:45%; top:60%;"></div>
+            <div class="field checkbox" id="c-wacht" style="left:60%; top:60%;"></div>
+        </div>
     </div>
 
-  </div>
+    <!-- PAGINA 2 -->
+    <div class="pdf-page" id="page2" style="margin-top:50px;">
+        <embed src="personeelsfeuille.pdf#page=2" type="application/pdf">
+
+        <div class="overlay" id="overlay2">
+            <!-- Later uitbreiden indien nodig -->
+        </div>
+    </div>
 
 </div>
 
-<!-- libs: PDF.js + jsPDF (include jsPDF as UMD non-module so we can use window.jspdf.jsPDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div class="save-info">
+    Je kan alle velden verslepen naar de correcte plaats op de PDF.
+</div>
 
 <script>
-/*
-  Werking:
-  - Laadt personeelsfeuille.pdf in canvas (pagina 1). (Zet file in dezelfde folder)
-  - Overlay items zijn draggable; posities worden opgeslagen t.o.v. canvas bounding rect in localStorage.
-  - Bij "Invullen & downloaden" wordt canvas afbeelding in PDF gezet, en de overlay tekst / X worden op dezelfde posities getekend.
-*/
 
-// --- configuratie ---
-const PDF_URL = 'personeelsfeuille.pdf'; // plaats dit bestand in dezelfde map
-const STORAGE_KEY = 'persFeuilleLayoutV1';
+// Naam automatisch uit geheugen
+const storedName = "Jonas Weckhuysen";
+document.getElementById("naam").value = storedName;
 
-// --- helpers ---
-function $(id){ return document.getElementById(id); }
-function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+// VUL VELDEN
+function updateFields() {
+    document.getElementById("f-datum").innerText = datum.value;
+    document.getElementById("f-naam").innerText = naam.value;
+    document.getElementById("f-begin").innerText = beginuur.value;
+    document.getElementById("f-eind").innerText = einduur.value;
+    document.getElementById("f-locatie").innerText = locatie.value;
+    document.getElementById("f-omschrijving").innerText = omschrijving.value;
 
-// --- canvas & pdf.js render ---
-const canvas = $('pdfCanvas');
-const ctx = canvas.getContext('2d');
-let pdfDoc = null;
-let pageViewport = null; // we houden viewport info
+    document.querySelectorAll(".checkbox").forEach(c => c.innerText = "");
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js';
-
-pdfjsLib.getDocument(PDF_URL).promise.then(doc=>{
-  pdfDoc = doc;
-  return doc.getPage(1);
-}).then(page=>{
-  const scale = 1.3; // redelijk leesbaar, kan aangepast worden
-  pageViewport = page.getViewport({ scale });
-  canvas.width = pageViewport.width;
-  canvas.height = pageViewport.height;
-  const renderCtx = { canvasContext: ctx, viewport: pageViewport };
-  return page.render(renderCtx).promise;
-}).catch(err=>{
-  console.error('PDF laden mislukt:', err);
-  alert('Kan PDF niet laden — controleer dat personeelsfeuille.pdf in dezelfde map staat.');
-});
-
-// --- draggable overlay functionality ---
-const overlays = Array.from(document.querySelectorAll('.overlay'));
-let dragging = null;
-let dragOffset = {x:0,y:0};
-
-function clientToCanvasCoords(clientX, clientY){
-  const wrap = canvas.getBoundingClientRect();
-  return { x: clientX - wrap.left, y: clientY - wrap.top };
+    if(type.value === "interventie") document.getElementById("c-int").innerText = "X";
+    if(type.value === "ambulance") document.getElementById("c-amb").innerText = "X";
+    if(type.value === "onderhoud") document.getElementById("c-ond").innerText = "X";
+    if(type.value === "wacht") document.getElementById("c-wacht").innerText = "X";
 }
 
-// pointer events for desktop + touch
-overlays.forEach(el=>{
-  el.addEventListener('pointerdown', ev=>{
-    // only left button or touch
-    ev.preventDefault();
-    dragging = el;
-    el.setPointerCapture(ev.pointerId);
-    const rect = el.getBoundingClientRect();
-    const wrap = canvas.getBoundingClientRect();
-    dragOffset.x = ev.clientX - rect.left;
-    dragOffset.y = ev.clientY - rect.top;
-    el.style.zIndex = 9999;
-  });
-  el.addEventListener('pointermove', ev=>{
-    if(!dragging || dragging !== el) return;
-    const wrap = canvas.getBoundingClientRect();
-    let newLeft = ev.clientX - wrap.left - dragOffset.x;
-    let newTop  = ev.clientY - wrap.top  - dragOffset.y;
-    // clamp inside canvas
-    newLeft = clamp(newLeft, 0, wrap.width - el.offsetWidth);
-    newTop  = clamp(newTop, 0, wrap.height - el.offsetHeight);
-    el.style.left = newLeft + 'px';
-    el.style.top  = newTop  + 'px';
-  });
-  el.addEventListener('pointerup', ev=>{
-    if(dragging === el){
-      dragging.releasePointerCapture(ev.pointerId);
-      el.style.zIndex = '';
-      dragging = null;
-    }
-  });
-  // also cancel on leave
-  el.addEventListener('pointercancel', ev=>{
-    dragging = null;
-  });
-});
+// DRAG FUNCTIE
+document.querySelectorAll('.field').forEach(field => {
+    let isDragging = false, startX, startY;
 
-// --- load/save layout ---
-function getLayout(){
-  const wrap = canvas.getBoundingClientRect();
-  const items = {};
-  document.querySelectorAll('.overlay').forEach(el=>{
-    const key = el.dataset.key || el.id;
-    // store relative ratios to canvas (0..1) so it scales if canvas size changes
-    const left = parseFloat(el.style.left || 0);
-    const top  = parseFloat(el.style.top || 0);
-    const relX = left / wrap.width;
-    const relY = top / wrap.height;
-    items[key] = { relX, relY, w: el.offsetWidth / wrap.width, h: el.offsetHeight / wrap.height };
-  });
-  return items;
-}
+    field.addEventListener('mousedown', e => {
+        isDragging = true;
+        startX = e.clientX - field.offsetLeft;
+        startY = e.clientY - field.offsetTop;
+    });
 
-function applyLayout(layout){
-  if(!layout) return;
-  const wrap = canvas.getBoundingClientRect();
-  Object.keys(layout).forEach(k=>{
-    const el = document.querySelector(`[data-key="${k}"]`);
-    if(!el) return;
-    const d = layout[k];
-    el.style.left = (d.relX * wrap.width) + 'px';
-    el.style.top  = (d.relY * wrap.height) + 'px';
-  });
-}
+    document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        field.style.left = (e.clientX - startX) + 'px';
+        field.style.top = (e.clientY - startY) + 'px';
+    });
 
-function saveLayoutToStorage(){
-  const layout = getLayout();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
-  alert('Layout opgeslagen.');
-}
-
-function loadLayoutFromStorage(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw) return null;
-  try{ return JSON.parse(raw); }catch(e){ return null; }
-}
-
-$('saveLayout').addEventListener('click', saveLayoutToStorage);
-$('resetLayout').addEventListener('click', ()=>{
-  if(confirm('Reset opgeslagen layout?')) {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  }
-});
-
-// when window resizes (canvas will maintain CSS width; but we compute using bounding rect)
-window.addEventListener('resize', ()=> {
-  const stored = loadLayoutFromStorage();
-  if(stored) applyLayout(stored);
-});
-
-// apply layout on initial load once canvas is rendered
-const layoutApplyInterval = setInterval(()=>{
-  if(canvas.width && canvas.height){
-    const stored = loadLayoutFromStorage();
-    if(stored) applyLayout(stored);
-    clearInterval(layoutApplyInterval);
-  }
-}, 200);
-
-// --- prefill field values (name from localStorage if available) ---
-const nameFromStorage = localStorage.getItem('userName') || '';
-$('field_name').value = nameFromStorage;
-$('ov_name_input').value = nameFromStorage;
-
-// sync top form fields with overlay inputs
-function syncInputsToForm(){
-  $('ov_name_input').value = $('field_name').value;
-}
-$('field_name').addEventListener('input', syncInputsToForm);
-$('ov_name_input').addEventListener('input', ()=> $('field_name').value = $('ov_name_input').value);
-
-// sync date/time fields
-$('ov_date_input').addEventListener('input', ()=> $('field_date').value = $('ov_date_input').value);
-$('field_date').addEventListener('input', ()=> $('ov_date_input').value = $('field_date').value);
-$('ov_begin_input').addEventListener('input', ()=> $('field_begin').value = $('ov_begin_input').value);
-$('ov_end_input').addEventListener('input', ()=> $('field_end').value = $('ov_end_input').value);
-$('field_begin').addEventListener('input', ()=> $('ov_begin_input').value = $('field_begin').value);
-$('field_end').addEventListener('input', ()=> $('ov_end_input').value = $('field_end').value);
-$('ov_omschrijving_input').addEventListener('input', ()=> {/* mirror if you add form field */});
-$('ov_locatie_input').addEventListener('input', ()=> {/* mirror if you add form field */});
-
-// --- generate PDF with jsPDF ---
-$('fillDownload').addEventListener('click', async ()=>{
-  if(!pdfDoc){
-    alert('PDF nog niet geladen.');
-    return;
-  }
-  // confirm
-  // render canvas content into image
-  const dataURL = canvas.toDataURL('image/jpeg', 1.0);
-
-  // make doc same size as canvas px
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({
-    unit: 'px',
-    format: [canvas.width, canvas.height]
-  });
-
-  // draw background (the original PDF page as image)
-  pdf.addImage(dataURL, 'JPEG', 0, 0, canvas.width, canvas.height);
-
-  // now draw overlay text/X at positions relative to canvas
-  const wrap = canvas.getBoundingClientRect();
-  // function to get absolute canvas-coordinates for an overlay
-  function overlayPos(el){
-    const left = parseFloat(el.style.left || 0);
-    const top  = parseFloat(el.style.top || 0);
-    // scale to PDF internal coords (canvas.width corresponds to wrap.width)
-    const scaleX = canvas.width / wrap.width;
-    const scaleY = canvas.height / wrap.height;
-    return { x: left * scaleX, y: top * scaleY, w: el.offsetWidth * scaleX, h: el.offsetHeight * scaleY };
-  }
-
-  // pick data from overlays
-  const name = $('ov_name_input').value || $('field_name').value || '';
-  const date = $('ov_date_input').value || $('field_date').value || '';
-  const begin = $('ov_begin_input').value || $('field_begin').value || '';
-  const end = $('ov_end_input').value || $('field_end').value || '';
-  const oms = $('ov_omschrijving_input').value || '';
-  const loc = $('ov_locatie_input').value || '';
-
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(12);
-  pdf.setTextColor(0,0,0);
-
-  // write text into PDF at overlay positions (adjust small offset)
-  const pName = overlayPos($('ov_name'));
-  pdf.text(String(name), pName.x + 4, pName.y + 14, {baseline:'top'});
-
-  const pDate = overlayPos($('ov_date'));
-  pdf.text(String(date), pDate.x + 4, pDate.y + 14, {baseline:'top'});
-
-  const pTime = overlayPos($('ov_time'));
-  pdf.text(`${begin} – ${end}`, pTime.x + 4, pTime.y + 14, {baseline:'top'});
-
-  const pOms = overlayPos($('ov_omschrijving'));
-  pdf.text(String(oms), pOms.x + 4, pOms.y + 14, {baseline:'top'});
-
-  const pLoc = overlayPos($('ov_locatie'));
-  pdf.text(String(loc), pLoc.x + 4, pLoc.y + 14, {baseline:'top'});
-
-  // handle column X markers: user selects desired column via prompt/select on top form
-  // We'll ask user to choose which column to mark (quick fallback)
-  const colChoice = prompt('Welke kolom wil je met een kruis aanduiden? Typ: interventie / ambulance / onderhoud / wacht\n(Laat leeg om geen kruis te plaatsen)', 'interventie');
-  if(colChoice){
-    const markerEl = document.querySelector(`[data-key="${colChoice}"]`);
-    if(markerEl){
-      const pMarker = overlayPos(markerEl);
-      pdf.setFontSize(20);
-      pdf.text('X', pMarker.x + (pMarker.w/2) - 6, pMarker.y + (pMarker.h/2) + 8, {baseline:'middle'});
-    } else {
-      alert('Geen marker gevonden voor die key. Zet eerst de marker en sla layout.');
-    }
-  }
-
-  // save / download
-  const outName = `Personeelsfeuille_filled_${(new Date()).toISOString().slice(0,10)}.pdf`;
-  pdf.save(outName);
-
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
 });
 
 </script>
+
 </body>
 </html>
