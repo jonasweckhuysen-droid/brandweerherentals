@@ -117,9 +117,12 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // Render de PDF in canvas
-const pdfUrl = '/personeelsfeuille.pdf';
+const pdfUrl = '/brandweerherentals/personeelsfeuille.pdf';
 const canvas = document.getElementById('pdfCanvas');
 const ctx = canvas.getContext('2d');
+  
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js";
 
 pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
   pdf.getPage(1).then(page => {
