@@ -1,245 +1,436 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personeelsfeuille – Digitaal</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Personeelsfeuille — Brandweer Herentals (Live)</title>
 
+<!-- Zorg dat style.css dezelfde header-styling bevat zoals op de andere pagina's -->
+<link rel="stylesheet" href="style.css">
+
+<!-- kleine page-specifieke styling -->
 <style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #fff;
-}
-
-header {
-    background: #b30000;
-    padding: 15px;
-    text-align: center;
-    font-size: 1.4em;
-    font-weight: bold;
-}
-
-.controls {
-    padding: 15px;
-    background: #1e1e1e;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.controls label {
-    font-size: 0.85em;
-    opacity: 0.8;
-}
-
-.controls input, .controls select, .controls button {
-    padding: 8px;
-    border-radius: 5px;
-    border: none;
-    font-size: 1em;
-}
-
-.controls button {
-    background: #b30000;
-    color: white;
-    cursor: pointer;
-}
-
-.controls button:hover {
-    background: #ff0000;
-}
-
-#pdf-container {
-    position: relative;
-    width: 100%;
-    background: #333;
-    padding-bottom: 50px;
-}
-
-.pdf-page {
-    position: relative;
-    width: 100%;
-}
-
-.pdf-page embed {
-    width: 100%;
-    height: 1200px;
-}
-
-.overlay {
-    position: absolute;
-    left: 0;
-    top: 0;
-    pointer-events: none;
-}
-
-.field {
-    position: absolute;
-    min-width: 120px;
-    padding: 3px 6px;
-    background: rgba(179, 0, 0, 0.85);
-    color: #fff;
-    font-size: 12px;
-    cursor: move;
-    pointer-events: auto;
-    user-select: none;
-}
-
-.checkbox {
-    width: 18px;
-    height: 18px;
-    border: 2px solid white;
-    text-align: center;
-    font-weight: bold;
-    line-height: 16px;
-}
-
-.save-info {
-    padding: 10px;
-    text-align: center;
-    background: #222;
-    font-size: 0.9em;
-    color: #bbb;
-}
+  .page { max-width:1100px; margin:18px auto; padding:18px; background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.06); }
+  .row { display:flex; gap:12px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  label { font-weight:600; min-width:110px; }
+  input[type="text"], input[type="date"], input[type="time"], select, textarea {
+    padding:8px 10px; border-radius:8px; border:1px solid #ddd; min-width:220px; background:#fff;
+  }
+  textarea { min-height:70px; min-width:380px; }
+  .small { min-width:120px; }
+  .controls { display:flex; gap:8px; align-items:center; margin-top:12px; }
+  button { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#c71f1f; color:#fff; font-weight:700; }
+  .muted { color:#666; font-size:0.9rem; }
+  .signature { border:1px dashed #ccc; border-radius:8px; background:#fff; }
+  #signatureCanvas { touch-action: none; }
+  .live-list { margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .entry { padding:12px; border-radius:10px; background:#f8f8f8; border:1px solid #eee; display:flex; gap:12px; align-items:flex-start; }
+  .entry .meta { min-width:220px; font-weight:700; color:#222; }
+  .entry .body { flex:1; }
+  .entry img.sig { max-width:160px; height:auto; border:1px solid #ccc; border-radius:6px; background:#fff; }
+  .export-row { display:flex; gap:10px; align-items:center; margin-top:14px; }
 </style>
 </head>
-
 <body>
 
-<header>
-    🧾 Digitale personeelsfeuille – Brandweer Herentals
-</header>
-
-<div class="controls">
-    <div>
-        <label>Datum</label>
-        <input type="date" id="datum">
+<div class="container">
+  <!-- REUSE your standard header markup (header.js will handle the name prompt etc) -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
     </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+  </header>
 
-    <div>
+  <main class="page">
+    <h2>Personeelsfeuille — live invullen</h2>
+    <p class="muted">De ingevulde gegevens synchroniseren live via Firebase. Je naam wordt automatisch uit het geheugen gehaald.</p>
+
+    <!-- formulier -->
+    <div id="formArea">
+      <div class="row">
         <label>Naam</label>
-        <input type="text" id="naam" readonly>
-    </div>
+        <input type="text" id="field_name" class="small" readonly>
+        <label>Datum</label>
+        <input type="date" id="field_date">
+        <label>Interventie-id</label>
+        <input type="text" id="field_sheetkey" placeholder="bv. 2025-12-31" class="small">
+      </div>
 
-    <div>
-        <label>Beginuur</label>
-        <input type="time" id="beginuur">
-    </div>
-
-    <div>
-        <label>Einduur</label>
-        <input type="time" id="einduur">
-    </div>
-
-    <div>
-        <label>Locatie</label>
-        <input type="text" id="locatie">
-    </div>
-
-    <div>
+      <div class="row">
         <label>Omschrijving</label>
-        <input type="text" id="omschrijving">
-    </div>
+        <input type="text" id="field_description" style="min-width:520px;">
+      </div>
 
-    <div>
-        <label>Type opdracht</label>
-        <select id="type">
-            <option value="">-- Kies --</option>
-            <option value="interventie">Interventie</option>
-            <option value="ambulance">Ambulance</option>
-            <option value="onderhoud">Onderhoud / Dienstopdracht</option>
-            <option value="wacht">Wacht / Permanentie</option>
+      <div class="row">
+        <label>Begin</label>
+        <input type="time" id="field_begin">
+        <label>Eind</label>
+        <input type="time" id="field_end">
+        <label>Afwijkend begin</label>
+        <input type="time" id="field_dev_begin" class="small">
+        <label>Afwijkend eind</label>
+        <input type="time" id="field_dev_end" class="small">
+      </div>
+
+      <div class="row">
+        <label>Locatie</label>
+        <input type="text" id="field_location" class="small">
+        <label>Kolom</label>
+        <select id="field_column" class="small">
+          <option value="">— Kies —</option>
+          <option value="Interventie">Interventie</option>
+          <option value="Ambulance">Ambulance</option>
+          <option value="Onderhoud/dienstopdracht">Onderhoud/dienstopdracht</option>
+          <option value="Wacht/permanentie">Wacht/permanentie</option>
         </select>
-    </div>
+        <label>X D K O</label>
+        <select id="field_xdko" class="small">
+          <option value="">—</option>
+          <option value="X">X</option>
+          <option value="D">D</option>
+          <option value="K">K</option>
+          <option value="O">O</option>
+        </select>
+      </div>
 
-    <div style="display:flex;align-items:end;">
-        <button onclick="updateFields()">Invullen op feuille</button>
-    </div>
-</div>
+      <div class="row">
+        <label>Voertuig</label>
+        <select id="field_vehicle" style="min-width:320px">
+          <option value="">— Kies voertuig —</option>
+        </select>
 
-<div id="pdf-container">
+        <label>Opmerking</label>
+        <input type="text" id="field_note" style="min-width:300px;">
+      </div>
 
-    <!-- PAGINA 1 -->
-    <div class="pdf-page" id="page1">
-        <embed src="personeelsfeuille.pdf#page=1" type="application/pdf">
-
-        <div class="overlay" id="overlay1">
-            <div class="field" id="f-datum" style="left:60%; top:23%;">Datum</div>
-            <div class="field" id="f-naam" style="left:15%; top:35%;">Naam</div>
-            <div class="field" id="f-begin" style="left:40%; top:35%;">Begin</div>
-            <div class="field" id="f-eind" style="left:55%; top:35%;">Eind</div>
-            <div class="field" id="f-locatie" style="left:15%; top:42%;">Locatie</div>
-            <div class="field" id="f-omschrijving" style="left:15%; top:49%;">Omschrijving</div>
-
-            <div class="field checkbox" id="c-int" style="left:15%; top:60%;"></div>
-            <div class="field checkbox" id="c-amb" style="left:30%; top:60%;"></div>
-            <div class="field checkbox" id="c-ond" style="left:45%; top:60%;"></div>
-            <div class="field checkbox" id="c-wacht" style="left:60%; top:60%;"></div>
+      <div class="row">
+        <label>Handtekening</label>
+        <div class="signature">
+          <canvas id="signatureCanvas" width="400" height="140" style="display:block"></canvas>
+          <div style="display:flex; gap:8px; padding:8px;">
+            <button id="sig_clear" type="button">Wissen</button>
+            <button id="sig_save" type="button">Opslaan handtekening</button>
+            <span class="muted">Onderteken met je vinger / muis</span>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- PAGINA 2 -->
-    <div class="pdf-page" id="page2" style="margin-top:50px;">
-        <embed src="personeelsfeuille.pdf#page=2" type="application/pdf">
+      <div class="controls">
+        <button id="saveBtn">Opslaan (live)</button>
+        <button id="clearBtn" style="background:#444">Formulier leegmaken</button>
 
-        <div class="overlay" id="overlay2">
-            <!-- Later uitbreiden indien nodig -->
+        <div class="export-row" style="margin-left:auto">
+          <button id="exportPDFBtn">Exporteer overzicht naar PDF</button>
         </div>
+      </div>
     </div>
 
+    <!-- live overzicht (toont alle ingevulde rijen voor deze sheetKey) -->
+    <section>
+      <h3>Live ingevuld — overzicht</h3>
+      <div id="liveList" class="live-list"></div>
+    </section>
+
+  </main>
 </div>
 
-<div class="save-info">
-    Je kan alle velden verslepen naar de correcte plaats op de PDF.
-</div>
+<!-- header behaviour -->
+<script src="/brandweerherentals/header.js"></script>
 
-<script>
+<!-- Firebase (compat / modular use). We use modular here -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue, push, child, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// Naam automatisch uit geheugen
-const storedName = "Jonas Weckhuysen";
-document.getElementById("naam").value = storedName;
+// PDF libs
+import html2canvas from 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+import jsPDFlib from 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+const { jsPDF } = jsPDFlib;
 
-// VUL VELDEN
-function updateFields() {
-    document.getElementById("f-datum").innerText = datum.value;
-    document.getElementById("f-naam").innerText = naam.value;
-    document.getElementById("f-begin").innerText = beginuur.value;
-    document.getElementById("f-eind").innerText = einduur.value;
-    document.getElementById("f-locatie").innerText = locatie.value;
-    document.getElementById("f-omschrijving").innerText = omschrijving.value;
+// ========== FIREBASE CONFIG - jouw config ==========
+const firebaseConfig = {
+  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+  authDomain: "post-herentals.firebaseapp.com",
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "post-herentals",
+  storageBucket: "post-herentals.firebasestorage.app",
+  messagingSenderId: "762725561089",
+  appId: "1:762725561089:web:38c46cc8cf44d624252100",
+  measurementId: "G-C2FWECFEQX"
+};
 
-    document.querySelectorAll(".checkbox").forEach(c => c.innerText = "");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-    if(type.value === "interventie") document.getElementById("c-int").innerText = "X";
-    if(type.value === "ambulance") document.getElementById("c-amb").innerText = "X";
-    if(type.value === "onderhoud") document.getElementById("c-ond").innerText = "X";
-    if(type.value === "wacht") document.getElementById("c-wacht").innerText = "X";
-}
+// ========== helpers & DOM ==========
+const me = localStorage.getItem("userName") || "";
+document.getElementById('field_name').value = me;
+const greeting = document.getElementById('greeting');
+if(greeting) greeting.textContent = me ? `Welkom, ${me}` : '';
 
-// DRAG FUNCTIE
-document.querySelectorAll('.field').forEach(field => {
-    let isDragging = false, startX, startY;
+const field_date = document.getElementById('field_date');
+const field_sheetkey = document.getElementById('field_sheetkey');
+const field_description = document.getElementById('field_description');
+const field_begin = document.getElementById('field_begin');
+const field_end = document.getElementById('field_end');
+const field_dev_begin = document.getElementById('field_dev_begin');
+const field_dev_end = document.getElementById('field_dev_end');
+const field_location = document.getElementById('field_location');
+const field_column = document.getElementById('field_column');
+const field_xdko = document.getElementById('field_xdko');
+const field_vehicle = document.getElementById('field_vehicle');
+const field_note = document.getElementById('field_note');
+const saveBtn = document.getElementById('saveBtn');
+const clearBtn = document.getElementById('clearBtn');
+const liveList = document.getElementById('liveList');
+const exportPDFBtn = document.getElementById('exportPDFBtn');
 
-    field.addEventListener('mousedown', e => {
-        isDragging = true;
-        startX = e.clientX - field.offsetLeft;
-        startY = e.clientY - field.offsetTop;
-    });
+// default sheetKey = today
+const today = new Date().toISOString().slice(0,10);
+field_sheetkey.value = today;
 
-    document.addEventListener('mousemove', e => {
-        if (!isDragging) return;
-        field.style.left = (e.clientX - startX) + 'px';
-        field.style.top = (e.clientY - startY) + 'px';
-    });
-
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
+// vehicle list you requested
+const vehicleOptions = ["Z541","A541","H541","T541","A545","B541","M541","C541","D541","S541","S542","L542","L543","L545","L549","M545"];
+vehicleOptions.forEach(v=>{
+  const o = document.createElement('option'); o.value = v; o.textContent = v; field_vehicle.appendChild(o);
 });
 
-</script>
+// signature canvas
+const sigCanvas = document.getElementById('signatureCanvas');
+const sigCtx = sigCanvas.getContext('2d');
+sigCtx.fillStyle = "#fff";
+sigCtx.fillRect(0,0,sigCanvas.width,sigCanvas.height);
+sigCtx.strokeStyle = "#000";
+sigCtx.lineWidth = 2;
+let drawing = false;
+let last = {x:0,y:0};
 
+function toLocalPos(e){
+  const r = sigCanvas.getBoundingClientRect();
+  if(e.touches && e.touches[0]) e = e.touches[0];
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+sigCanvas.addEventListener('pointerdown', (e) => { drawing = true; const p = toLocalPos(e); last = p; });
+sigCanvas.addEventListener('pointermove', (e) => {
+  if(!drawing) return;
+  const p = toLocalPos(e);
+  sigCtx.beginPath();
+  sigCtx.moveTo(last.x,last.y);
+  sigCtx.lineTo(p.x,p.y);
+  sigCtx.stroke();
+  last = p;
+});
+window.addEventListener('pointerup', ()=> drawing = false);
+document.getElementById('sig_clear').addEventListener('click', ()=>{
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  sigCtx.fillStyle="#fff"; sigCtx.fillRect(0,0,sigCanvas.width,sigCanvas.height);
+});
+document.getElementById('sig_save').addEventListener('click', ()=>{
+  // save signature to DB current sheet & user
+  const sheetKey = field_sheetkey.value || today;
+  const path = `feuille/${sheetKey}/${me}/signature`;
+  const dataURL = sigCanvas.toDataURL('image/png');
+  set(ref(db, path), dataURL);
+  alert('Handtekening opgeslagen (live).');
+});
+
+// Save form live to Firebase under feuille/{sheetKey}/{userName}
+function saveFormToDb(){
+  const sheetKey = field_sheetkey.value || today;
+  const baseRef = `feuille/${sheetKey}/${me}`;
+  const payload = {
+    name: me,
+    date: field_date.value || '',
+    description: field_description.value || '',
+    begin: field_begin.value || '',
+    end: field_end.value || '',
+    dev_begin: field_dev_begin.value || '',
+    dev_end: field_dev_end.value || '',
+    location: field_location.value || '',
+    column: field_column.value || '',
+    xdko: field_xdko.value || '',
+    vehicle: field_vehicle.value || '',
+    note: field_note.value || '',
+    updatedAt: new Date().toISOString()
+  };
+  set(ref(db, baseRef), payload);
+}
+
+// clear form (local)
+clearBtn.addEventListener('click', ()=>{
+  field_description.value = '';
+  field_begin.value = '';
+  field_end.value = '';
+  field_dev_begin.value = '';
+  field_dev_end.value = '';
+  field_location.value = '';
+  field_column.value = '';
+  field_xdko.value = '';
+  field_vehicle.value = '';
+  field_note.value = '';
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  sigCtx.fillStyle="#fff"; sigCtx.fillRect(0,0,sigCanvas.width,sigCanvas.height);
+});
+
+// save button
+saveBtn.addEventListener('click', () => {
+  if(!me) { alert('Naam niet gevonden in geheugen. Vul je naam eerst in.'); return; }
+  saveFormToDb();
+  alert('Opgeslagen (live).');
+});
+
+// live list rendering: listen on feuille/{sheetKey}
+let currentUnsub = null;
+function startListening(sheetKey){
+  // remove old listeners? since using onValue below we don't store unsub functions; but it's OK to simply rebuild
+  const listRef = ref(db, `feuille/${sheetKey}`);
+  // whenever data changes, redraw list
+  onValue(listRef, snapshot => {
+    const data = snapshot.val() || {};
+    renderLiveList(data);
+    // if current user has entry—preload into form so they can continue editing
+    if(data[me]){
+      const d = data[me];
+      field_date.value = d.date || field_date.value;
+      field_description.value = d.description || '';
+      field_begin.value = d.begin || '';
+      field_end.value = d.end || '';
+      field_dev_begin.value = d.dev_begin || '';
+      field_dev_end.value = d.dev_end || '';
+      field_location.value = d.location || '';
+      field_column.value = d.column || '';
+      field_xdko.value = d.xdko || '';
+      field_vehicle.value = d.vehicle || '';
+      field_note.value = d.note || '';
+      // signature (if exists) -> draw
+      if(d.signature){
+        const img = new Image();
+        img.onload = () => {
+          sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+          sigCtx.drawImage(img,0,0, sigCanvas.width, sigCanvas.height);
+        };
+        img.src = d.signature;
+      }
+    }
+  });
+}
+
+function renderLiveList(data){
+  liveList.innerHTML = '';
+  const rows = Object.entries(data).sort((a,b)=> (a[1].name||'').localeCompare(b[1].name||''));
+  rows.forEach(([user, val])=>{
+    const e = document.createElement('div'); e.className='entry';
+    const meta = document.createElement('div'); meta.className='meta'; meta.textContent = `${val.name || user}`;
+    const body = document.createElement('div'); body.className='body';
+    body.innerHTML = `
+      <div><strong>${val.date || ''}</strong> ${val.description || ''}</div>
+      <div class="muted">Begin: ${val.begin||'-'} • Eind: ${val.end||'-'} • Locatie: ${val.location||'-'}</div>
+      <div class="muted">Kolom: ${val.column||'-'} • X/D/K/O: ${val.xdko||'-'} • Voertuig: ${val.vehicle||'-'}</div>
+      <div>Opmerking: ${val.note||''}</div>
+    `;
+    e.appendChild(meta);
+    e.appendChild(body);
+    if(val.signature){
+      const img = document.createElement('img'); img.className='sig'; img.src = val.signature; img.alt='handtekening';
+      e.appendChild(img);
+    }
+    liveList.appendChild(e);
+  });
+}
+
+// start listening to the sheetKey input (update when changed)
+function restartListening(){
+  const sheetKey = field_sheetkey.value || today;
+  startListening(sheetKey);
+}
+field_sheetkey.addEventListener('change', restartListening);
+restartListening(); // initial
+
+// also save signature changes to DB automatically when saved via button; we already set signature with set() above.
+// Additionally auto-save some fields live on input (optional)
+[
+  field_date, field_description, field_begin, field_end, field_dev_begin,
+  field_dev_end, field_location, field_column, field_xdko, field_vehicle, field_note
+].forEach(el=>{
+  el.addEventListener('change', ()=> {
+    const sheetKey = field_sheetkey.value || today;
+    const baseRef = `feuille/${sheetKey}/${me}`;
+    // partial update
+    update(ref(db, baseRef), { [el.id.replace('field_','')]: el.value, updatedAt: new Date().toISOString(), name: me });
+  });
+});
+
+// EXPORT to PDF (compile entries for this sheetKey)
+exportPDFBtn.addEventListener('click', async () => {
+  const sheetKey = field_sheetkey.value || today;
+  const qRef = ref(db, `feuille/${sheetKey}`);
+  const snap = await get(qRef);
+  const data = snap.val() || {};
+  const entries = Object.values(data);
+
+  if(entries.length === 0){ alert('Geen ingevulde rijen om te exporteren.'); return; }
+
+  const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 40;
+  let y = margin;
+
+  // simple layout: loop entries
+  for(let i=0;i<entries.length;i++){
+    const e = entries[i];
+    // header
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica','bold');
+    pdf.text(`${e.name || ''} — ${e.date || ''}`, margin, y);
+    y += 18;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica','normal');
+    pdf.text(`Omschrijving: ${e.description || ''}`, margin, y);
+    y += 16;
+    pdf.text(`Begin: ${e.begin || '-'}  Eind: ${e.end || '-'}  Afw begin: ${e.dev_begin||'-'}  Afw eind: ${e.dev_end||'-'}`, margin, y);
+    y += 14;
+    pdf.text(`Locatie: ${e.location || '-'}`, margin, y);
+    y += 14;
+    pdf.text(`Kolom: ${e.column || '-'}  XDKO: ${e.xdko || '-'}  Voertuig: ${e.vehicle || '-'}`, margin, y);
+    y += 16;
+    pdf.text(`Opmerking: ${e.note || ''}`, margin, y);
+    y += 12;
+
+    // signature if present: add small image
+    if(e.signature){
+      // convert dataURL to image and add
+      const imgProps = pdf.getImageProperties(e.signature);
+      const imgW = 120;
+      const imgH = (imgProps.height / imgProps.width) * imgW;
+      if(y + imgH > pageH - margin){ pdf.addPage(); y = margin; }
+      pdf.addImage(e.signature, 'PNG', pageW - margin - imgW, y - 6, imgW, imgH);
+      y += imgH + 6;
+    }
+
+    y += 12;
+    pdf.setDrawColor(220);
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, y, pageW - margin, y);
+    y += 18;
+
+    if(y > pageH - margin - 120){ pdf.addPage(); y = margin; }
+  }
+
+  pdf.save(`Personeelsfeuille_${sheetKey}.pdf`);
+});
+
+// small helper so admins can clear someone's entry (optional) - omitted in UI for now
+
+// set initial date to today when empty
+if(!field_date.value) field_date.value = today;
+
+</script>
 </body>
 </html>
