@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Permanentie December 2025</title>
+<title>Brandweer Herentals — Permanenties</title>
 
 <link rel="stylesheet" href="/brandweerherentals/style.css">
 <script src="/brandweerherentals/header.js" defer></script>
@@ -19,163 +19,153 @@
     projectId: "post-herentals",
     storageBucket: "post-herentals.appspot.com",
     messagingSenderId: "762725561089",
-    appId: "1:762725561089:web:38c46cc8cf44d624252100",
-    measurementId: "G-C2FWECFEQX"
+    appId: "1:762725561089:web:38c46cc8cf44d624252100"
   };
 
-  window.firebaseApp = initializeApp(firebaseConfig);
-  window.db = getFirestore(window.firebaseApp);
+  const app = initializeApp(firebaseConfig);
+  window.db = getFirestore(app); // Globaal beschikbaar
 </script>
 
 <style>
-/* ---------------------------------------
-   Layout permanentie
---------------------------------------- */
-.backlink {
-    display: inline-block;
-    margin-bottom: 20px;
-    text-decoration: none;
-    color: #fff; /* wit zoals gevraagd */
-    font-weight: bold;
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.backlink .arrow {
-    margin-right: 5px;
+.backlink {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
 }
+.backlink .arrow { margin-right: 5px; }
 
 .permanentie-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-}
-
-.permanentie-card:hover {
-    transform: translateY(-2px);
+  background: #f7f7f7;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .permanentie-card h3 {
-    margin: 0 0 12px 0;
-    font-size: 1.4em;
-    color: #c71f1f;
+  margin-top: 0;
+  font-size: 1.3rem;
+  color: #c71f1f;
 }
 
 .permanentie-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
 }
 
 .permanentie-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 1.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  border-radius: 5px;
 }
 
-.permanentie-list li:last-child {
-    border-bottom: none;
+.permanentie-list li:nth-child(odd) {
+  background: #fff;
 }
 
-.permanentie-list span.functie {
-    font-weight: bold;
-    width: 120px;
+.functie {
+  font-weight: 600;
+  margin-right: 10px;
 }
 
 .checkbox-person {
-    transform: scale(1.3);
+  transform: scale(1.3);
+  margin-left: 10px;
 }
 </style>
 </head>
-
 <body>
 <div class="container">
-
-<!-- HEADER -->
-<header id="appHeader">
+  <header id="appHeader">
     <div class="header-left">
-        <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
     </div>
     <div class="header-right">
-        <div id="greeting" class="header-greeting"></div>
-        <div id="datetime" class="header-datetime"></div>
-        <div id="ploegOfWeek" class="header-ploeg"></div>
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
     </div>
-</header>
+  </header>
 
-<main class="content">
-    <a href="/brandweerherentals/" class="backlink">
-      <span class="arrow">←</span> Terug naar start
-    </a>
+  <a href="/brandweerherentals/" class="backlink">
+    <span class="arrow">←</span> Terug naar start
+  </a>
 
-    <h1>Permanenties December 2025</h1>
-
-    <div id="permanentieContainer"></div>
-</main>
+  <div id="permanentieContainer"></div>
 </div>
 
 <script type="module">
-// Gebruiker (je kan dit later dynamisch maken)
-const gebruikersNaam = "Jonas"; 
-
 const container = document.getElementById('permanentieContainer');
+const gebruikersNaam = "Jonas"; // eventueel dynamisch invullen
 
-// JSON ophalen
 fetch('/brandweerherentals/permanentie.json')
   .then(res => res.json())
   .then(permanenties => {
+    const today = new Date();
+    today.setHours(0,0,0,0); // Alleen datum vergelijken
+
     permanenties.dagen.forEach(dag => {
-      const card = document.createElement('div');
-      card.className = 'permanentie-card';
+      const dagDatum = new Date(dag.datum);
+      dagDatum.setHours(0,0,0,0);
 
-      const date = new Date(dag.datum);
-      const dateStr = date.toLocaleDateString('nl-BE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+      // Alleen vandaag en toekomstige dagen
+      if(dagDatum >= today){
+        const card = document.createElement('div');
+        card.className = 'permanentie-card';
 
-      let listHTML = '<ul class="permanentie-list">';
-      dag.diensten.forEach(d => {
-        const id = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
-        listHTML += `
-          <li>
-            <span class="functie">${d.functie}:</span>
-            <span>${d.naam}</span>
-            <input type="checkbox" class="checkbox-person" id="${id}">
-          </li>`;
-      });
-      listHTML += '</ul>';
-
-      card.innerHTML = `<h3>${dateStr}</h3>${listHTML}`;
-      container.appendChild(card);
-
-      // Firebase realtime bind
-      dag.diensten.forEach(d => {
-        const docId = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
-        const checkbox = document.getElementById(docId);
-        const presenceDoc = doc(db, "permanentieAanwezigheden", `${docId}_${gebruikersNaam}`);
-
-        // realtime ophalen
-        onSnapshot(presenceDoc, (snap) => {
-          if (snap.exists()) {
-            checkbox.checked = snap.data().aanwezig;
-          }
+        const dateStr = dagDatum.toLocaleDateString('nl-BE', { 
+          weekday:'long', day:'2-digit', month:'long', year:'numeric' 
         });
 
-        // opslaan bij wijziging
-        checkbox.addEventListener('change', () => {
-          setDoc(presenceDoc, {
-            naam: gebruikersNaam,
-            aanwezig: checkbox.checked,
-            timestamp: Date.now()
+        let listHTML = '<ul class="permanentie-list">';
+        dag.diensten.forEach(d => {
+          const id = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
+          listHTML += `
+            <li>
+              <span class="functie">${d.functie}:</span>
+              <span>${d.naam}</span>
+              <input type="checkbox" class="checkbox-person" id="${id}">
+            </li>`;
+        });
+        listHTML += '</ul>';
+
+        card.innerHTML = `<h3>${dateStr}</h3>${listHTML}`;
+        container.appendChild(card);
+
+        // Firebase realtime bind
+        dag.diensten.forEach(d => {
+          const docId = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
+          const checkbox = document.getElementById(docId);
+          const presenceDoc = doc(db, "permanentieAanwezigheden", `${docId}_${gebruikersNaam}`);
+
+          onSnapshot(presenceDoc, (snap) => {
+            if (snap.exists()) checkbox.checked = snap.data().aanwezig;
+          });
+
+          checkbox.addEventListener('change', () => {
+            setDoc(presenceDoc, {
+              naam: gebruikersNaam,
+              aanwezig: checkbox.checked,
+              timestamp: Date.now()
+            });
           });
         });
-      });
+      }
     });
   })
   .catch(err => console.error('Fout bij laden permanentie.json:', err));
 </script>
-
 </body>
 </html>
