@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Brandweer Herentals — Permanentie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js" type="module"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js" type="module"></script>
+</head>
+
+<body>
+
+<header class="app-header">
+    <button class="back-button" onclick="history.back()">
+        <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <h1>Permanenties</h1>
+</header>
+
+<div class="app-body">
+
+    <div class="card">
+        <h2><i class="fa-solid fa-calendar-days"></i> Komende permanenties</h2>
+        <p>Hier kan je aanduiden of je aanwezig was.</p>
+    </div>
+
+    <div id="permanentieList"></div>
+</div>
+
+<script type="module">
+/* -------------------------------
+      FIREBASE CONFIG
+-------------------------------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+    getFirestore, collection, getDocs, doc, setDoc, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    /* 🔥 VUL HIER JE FIREBASE CONFIG IN 🔥 */
+const firebaseConfig = {
+  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+  authDomain: "post-herentals.firebaseapp.com",
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "post-herentals",
+  storageBucket: "post-herentals.firebasestorage.app",
+  messagingSenderId: "762725561089",
+  appId: "1:762725561089:web:38c46cc8cf44d624252100",
+  measurementId: "G-C2FWECFEQX"
+};
+  
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ----------------------------------------
+   NAAM VAN GEDOOGDE GEBRUIKER (VANUIT AI)
+------------------------------------------ */
+const gebruikersNaam = "Jonas"; // → jij wilde dat ik dit automatisch invul
+
+/* ----------------------------------------
+   LAAD KOMENDE PERMANENTIES
+------------------------------------------ */
+const listEl = document.getElementById("permanentieList");
+
+function formatDate(d) {
+    return new Date(d).toLocaleDateString("nl-BE", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+    });
+}
+
+function renderPermanentie(docId, data) {
+    const dateObj = new Date(data.datum);
+    if (dateObj < new Date()) return; // toon enkel komende dagen
+
+    const card = document.createElement("div");
+    card.classList.add("card");
+
+    card.innerHTML = `
+        <div class="permanentie-item">
+            <h3><i class="fa-solid fa-bell"></i> ${formatDate(data.datum)}</h3>
+            <p><i class="fa-solid fa-user-group"></i> ${data.team}</p>
+
+            <label class="checkbox-row">
+                <input type="checkbox" id="chk_${docId}">
+                <span>Ik was aanwezig</span>
+            </label>
+        </div>
+    `;
+
+    listEl.appendChild(card);
+
+    // realtime sync
+    const chk = card.querySelector(`#chk_${docId}`);
+
+    const presenceDoc = doc(db, "permanentieAanwezigheden", `${docId}_${gebruikersNaam}`);
+
+    // realtime ophalen
+    onSnapshot(presenceDoc, (snap) => {
+        if (snap.exists()) chk.checked = snap.data().aanwezig;
+    });
+
+    // opslaan
+    chk.addEventListener("change", () => {
+        setDoc(presenceDoc, {
+            naam: gebruikersNaam,
+            aanwezig: chk.checked,
+            timestamp: Date.now()
+        });
+    });
+}
+
+/* ----------------------------------------
+   OPHALEN UIT FIRESTORE
+------------------------------------------ */
+async function loadPermanenties() {
+    const snap = await getDocs(collection(db, "permanenties"));
+    snap.forEach((docItem) => {
+        renderPermanentie(docItem.id, docItem.data());
+    });
+}
+
+loadPermanenties();
+</script>
+
+<style>
+/* Extra pimping */
+.permanentie-item h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 1.1em;
+}
+
+.checkbox-row input {
+    transform: scale(1.4);
+    margin-right: 10px;
+}
+</style>
+
+</body>
+</html>
