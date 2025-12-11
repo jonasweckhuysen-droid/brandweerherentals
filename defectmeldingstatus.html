@@ -165,6 +165,11 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
           <div class="item" style="flex:2"><div class="label">🛠️ Defect omschrijving</div><div class="value">${m.omschrijving||"/"}</div></div>
           <div class="item"><div class="label">📌 Status</div><span class="status ${m.statusClass}">${m.status}</span></div>
         </div>`;
+       <div class="row">
+  <div class="item" style="flex:1">
+    <div class="label">📍 Locatie</div>
+    <div class="value">${m.locatie || "/"}</div>
+  </div>
       container.appendChild(melding);
     });
   }
@@ -180,15 +185,19 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
       const getIndex=name=>headers.findIndex(h=>h.trim().toLowerCase()===name.toLowerCase());
       const naamIndex=getIndex("Naam");
       const datumIndex=getIndex("Datum");
-      const omschrijvingIndex=getIndex("Defect omschrijving");
-      const statusIndex=getIndex("Status");
+     const omschrijvingIndex = getIndex("Defect omschrijving");
+     const statusIndex = getIndex("Status");
+     const locatieIndex = getIndex("Locatie"); // <-- nieuw
+
 
       const meldingenData=[];
       rows.forEach(row=>{
         const naam=(row[naamIndex]||"").trim();
         const datum=(row[datumIndex]||"").trim();
-        const omschrijving=(row[omschrijvingIndex]||"").trim();
-        const statusRaw=(row[statusIndex]||"").trim();
+        const omschrijving = (row[omschrijvingIndex] || "").trim();
+       const statusRaw = (row[statusIndex] || "").trim();
+       const locatie = (row[locatieIndex] || "").trim();  // <-- nieuw
+
         if(!naam&&!datum&&!omschrijving&&!statusRaw) return;
 
         let status="Onbekend", statusClass="Onbekend";
@@ -197,7 +206,16 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
         else if(lower.includes("bezig")||lower.includes("behandeling")){ status="In behandeling"; statusClass="Bezig"; }
         else if(lower.includes("afgewerkt")||lower.includes("opgelost")){ status="Afgewerkt"; statusClass="Afgewerkt"; }
 
-        meldingenData.push({ naam, datum, datumObj: parseDate(datum), omschrijving, status, statusClass });
+       meldingenData.push({
+  naam,
+  datum,
+  datumObj: parseDate(datum),
+  omschrijving,
+  locatie,        // <-- nieuw
+  status,
+  statusClass
+});
+
       });
 
       if(meldingenData.length===0) throw new Error("Geen meldingen gevonden");
