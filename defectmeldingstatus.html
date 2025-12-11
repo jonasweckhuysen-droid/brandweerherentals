@@ -14,39 +14,108 @@
 
 <style>
 /* ==============================
-   DEFECTMELDING STATUS SPECIFIEK
+   DEFECTMELDING STATUS
 ============================== */
-.page-title { color:#111; text-align:center; margin:15px 0 5px; font-size:1.4rem; font-weight:700; }
-.teller { text-align:center; margin-bottom:15px; font-weight:600; color:#333; }
-.backlink { display:inline-block; margin:10px 15px; text-decoration:none; color:#c71f1f; font-weight:600; }
-.backlink .arrow { margin-right:6px; }
+.page-title {
+  color:#111;
+  text-align:center;
+  margin:15px 0 5px;
+  font-size:1.4rem;
+  font-weight:700;
+}
 
-#meldingenContainer { display:flex; flex-direction:column; gap:16px; padding:0 15px 20px; }
+.teller {
+  text-align:center;
+  margin-bottom:15px;
+  font-weight:600;
+  color:#333;
+}
 
-.melding { background:#fff; padding:16px; border-radius:16px; box-shadow:0 6px 14px rgba(0,0,0,0.08); border:1px solid #eee; opacity:0; transform:translateY(10px); animation:fadeIn 0.4s forwards; }
-@keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
+.backlink {
+  display:inline-block;
+  margin:10px 15px;
+  text-decoration:none;
+  color:#ffffff !important;
+  font-weight:600;
+}
 
-.row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
-.item { flex:1; min-width:130px; }
-.label { font-size:0.8rem; color:#777; margin-bottom:3px; }
-.value { font-size:1rem; font-weight:600; color:#111; word-break:break-word; }
+.backlink .arrow {
+  margin-right:6px;
+  color:#ffffff;
+}
 
-.status { display:inline-block; padding:6px 14px; border-radius:20px; font-weight:600; font-size:0.85rem; }
+#meldingenContainer {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  padding:0 15px 20px;
+}
+
+.melding {
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 6px 14px rgba(0,0,0,0.08);
+  border:1px solid #eee;
+  opacity:0;
+  transform:translateY(10px);
+  animation:fadeIn 0.4s forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity:1; transform:translateY(0); }
+}
+
+.row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.item {
+  flex:1;
+  min-width:130px;
+}
+
+.label {
+  font-size:0.8rem;
+  color:#777;
+  margin-bottom:3px;
+}
+
+.value {
+  font-size:1rem;
+  font-weight:600;
+  color:#111;
+  word-break:break-word;
+}
+
+.status {
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:20px;
+  font-weight:600;
+  font-size:0.85rem;
+}
+
 .status.Gemeld { background:#e3ecff; color:#1c3faa; }
 .status.Bezig { background:#fff3cd; color:#856404; }
 .status.Afgewerkt { background:#d4edda; color:#155724; }
 .status.Onbekend { background:#eee; color:#333; }
 
-.loader { text-align:center; margin-top:40px; font-style:italic; color:#777; }
-footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
-   .backlink {
-  color: #ffffff; /* maakt de tekst wit */
-  font-weight: 600;
+.loader {
+  text-align:center;
+  margin-top:40px;
+  font-style:italic;
+  color:#777;
 }
 
-.backlink .arrow {
-  margin-right: 6px;
-  color: #ffffff; /* pijltje wit maken, optioneel */
+footer {
+  text-align:center;
+  padding:10px;
+  font-size:0.8rem;
+  color:#555;
 }
 </style>
 </head>
@@ -54,9 +123,7 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
 <body>
 <div class="container" role="application" aria-label="Fire Crew Herentals portal">
 
-  <!-- -----------------------------------
-       HEADER
-  ------------------------------------ -->
+  <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
       <img src="/brandweerherentals/icons/logo.png"
@@ -71,10 +138,9 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
     </div>
   </header>
 
-  <!-- -----------------------------------
-       CONTENT
-  ------------------------------------ -->
+  <!-- CONTENT -->
   <main class="content">
+
     <a href="defectmelding.html" class="backlink">
       <span class="arrow">←</span> Terug naar defectmelding
     </a>
@@ -87,157 +153,237 @@ footer { text-align:center; padding:10px; font-size:0.8rem; color:#555; }
     </div>
   </main>
 
-  <!-- -----------------------------------
-       FOOTER
-  ------------------------------------ -->
+  <!-- FOOTER -->
   <footer>
     <div class="small">Versie 1.4</div>
     <div class="small">Laatste update: <span id="today"></span></div>
   </footer>
+
 </div>
 
 <script>
-  // Toon huidige datum in footer
-  document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", {
-    weekday:"long", year:"numeric", month:"long", day:"numeric"
+/* =============================
+      DATUM IN FOOTER
+============================= */
+document.getElementById("today").textContent =
+  new Date().toLocaleDateString("nl-BE", {
+    weekday:"long",
+    year:"numeric",
+    month:"long",
+    day:"numeric"
   });
 
-  /* ================= MELDINGEN ================= */
-  const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
-  const container = document.getElementById("meldingenContainer");
-  const teller = document.getElementById("teller");
-  const REFRESH_INTERVAL = 30000; // 30 sec
+/* =============================
+      CONSTANTEN
+============================= */
+const SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPU8cIbYtxm6jjiDUPJxufcOkCbHrKR1RJGYcjIVzfPxXvUMm-jiRpq0XMcFbiyg/pub?output=csv";
 
-  function parseCSV(text) {
-    const rows = [];
-    let row = [], value = "", inQuotes = false;
-    for (let i=0;i<text.length;i++){
-      const char = text[i], next=text[i+1];
-      if(char=='"' && inQuotes && next=='"'){ value+='"'; i++; }
-      else if(char=='"'){ inQuotes=!inQuotes; }
-      else if((char==','||char==';') && !inQuotes){ row.push(value); value=""; }
-      else if((char=='\n'||char=='\r') && !inQuotes){
-        if(value || row.length){ row.push(value); rows.push(row); }
-        row=[]; value="";
-      } else { value+=char; }
-    }
-    if(value||row.length){ row.push(value); rows.push(row); }
-    return rows;
-  }
+const container = document.getElementById("meldingenContainer");
+const teller = document.getElementById("teller");
+const REFRESH_INTERVAL = 30000; // 30 sec
 
-  function parseDate(str) {
-    if(!str) return new Date(0);
-    const parts = str.split("/");
-    if(parts.length===3){
-      let day = parseInt(parts[0],10);
-      let month = parseInt(parts[1],10);
-      let year = parseInt(parts[2],10);
-      if(day>12){ return new Date(year, month-1, day); }
-      else { return new Date(year, day-1, month); }
-    }
-    const d = new Date(str);
-    return isNaN(d)?new Date(0):d;
-  }
+/* =============================
+        CSV PARSER
+============================= */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], value = "", inQuotes = false;
 
-  function formatDate(dateObj){
-    if(!dateObj) return "/";
-    const d = ("0"+dateObj.getDate()).slice(-2);
-    const m = ("0"+(dateObj.getMonth()+1)).slice(-2);
-    const y = dateObj.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i], next = text[i + 1];
 
-  function renderMeldingen(data){
-    data.sort((a,b)=>b.datumObj - a.datumObj);
-    container.innerHTML="";
-    teller.textContent=`Totaal: ${data.length} meldingen`;
-    if(data.length===0){ container.innerHTML="<p class='loader'>Geen meldingen gevonden</p>"; return; }
-
-    data.forEach(m=>{
-      const melding=document.createElement("div");
-      melding.classList.add("melding");
-      melding.innerHTML=`
-        <div class="row">
-          <div class="item"><div class="label">👤 Naam</div><div class="value">${m.naam||"/"}</div></div>
-          <div class="item"><div class="label">📅 Datum</div><div class="value">${formatDate(m.datumObj)}</div></div>
-        </div>
-        <div class="row">
-          <div class="item" style="flex:2"><div class="label">🛠️ Defect omschrijving</div><div class="value">${m.omschrijving||"/"}</div></div>
-          <div class="item"><div class="label">📌 Status</div><span class="status ${m.statusClass}">${m.status}</span></div>
-        </div>`;
-       <div class="row">
-  <div class="item" style="flex:1">
-    <div class="label">📍 Locatie</div>
-    <div class="value">${m.locatie || "/"}</div>
-  </div>
-      container.appendChild(melding);
-    });
-  }
-
-  function loadMeldingen(retries=5, delay=2000){
-    fetch(SHEET_URL + "&t="+Date.now(), { cache:"no-store", headers:{"Pragma":"no-cache","Cache-Control":"no-cache"} })
-    .then(res=>{ if(!res.ok) throw new Error(`HTTP ${res.status}`); return res.text(); })
-    .then(csvText=>{
-      const rows=parseCSV(csvText);
-      const headers=rows.shift();
-      if(!headers) throw new Error("Geen headers gevonden");
-
-      const getIndex=name=>headers.findIndex(h=>h.trim().toLowerCase()===name.toLowerCase());
-      const naamIndex=getIndex("Naam");
-      const datumIndex=getIndex("Datum");
-     const omschrijvingIndex = getIndex("Defect omschrijving");
-     const statusIndex = getIndex("Status");
-     const locatieIndex = getIndex("Locatie"); // <-- nieuw
-
-
-      const meldingenData=[];
-      rows.forEach(row=>{
-        const naam=(row[naamIndex]||"").trim();
-        const datum=(row[datumIndex]||"").trim();
-        const omschrijving = (row[omschrijvingIndex] || "").trim();
-       const statusRaw = (row[statusIndex] || "").trim();
-       const locatie = (row[locatieIndex] || "").trim();  // <-- nieuw
-
-        if(!naam&&!datum&&!omschrijving&&!statusRaw) return;
-
-        let status="Onbekend", statusClass="Onbekend";
-        const lower=statusRaw.toLowerCase();
-        if(lower.includes("gemeld")){ status="Gemeld"; statusClass="Gemeld"; }
-        else if(lower.includes("bezig")||lower.includes("behandeling")){ status="In behandeling"; statusClass="Bezig"; }
-        else if(lower.includes("afgewerkt")||lower.includes("opgelost")){ status="Afgewerkt"; statusClass="Afgewerkt"; }
-
-       meldingenData.push({
-  naam,
-  datum,
-  datumObj: parseDate(datum),
-  omschrijving,
-  locatie,        // <-- nieuw
-  status,
-  statusClass
-});
-
-      });
-
-      if(meldingenData.length===0) throw new Error("Geen meldingen gevonden");
-      renderMeldingen(meldingenData);
-    })
-    .catch(err=>{
-      console.error(err);
-      if(retries>0){
-        teller.textContent=`Fout bij laden — nieuwe poging over ${delay/1000}s...`;
-        setTimeout(()=>loadMeldingen(retries-1, delay), delay);
-      } else {
-        container.innerHTML="<p class='loader' style='color:red;'>❌ Kan geen meldingen laden</p>";
-        teller.textContent="Verbinding tijdelijk niet beschikbaar";
+    if (char === '"' && inQuotes && next === '"') {
+      value += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if ((char === ',' || char === ';') && !inQuotes) {
+      row.push(value);
+      value = "";
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (value || row.length) {
+        row.push(value);
+        rows.push(row);
       }
-    });
+      row = [];
+      value = "";
+    } else {
+      value += char;
+    }
   }
 
-  loadMeldingen();
-  setInterval(loadMeldingen, REFRESH_INTERVAL);
+  if (value || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+/* =============================
+        DATUMFUNCTIES
+============================= */
+function parseDate(str) {
+  if (!str) return new Date(0);
+  const parts = str.split("/");
+
+  if (parts.length === 3) {
+    let day = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10);
+    let year = parseInt(parts[2], 10);
+    return new Date(year, month - 1, day);
+  }
+
+  const d = new Date(str);
+  return isNaN(d) ? new Date(0) : d;
+}
+
+function formatDate(d) {
+  if (!d) return "/";
+  const dd = ("0" + d.getDate()).slice(-2);
+  const mm = ("0" + (d.getMonth() + 1)).slice(-2);
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+/* =============================
+      RENDER MELDINGEN
+============================= */
+function renderMeldingen(data) {
+  data.sort((a, b) => b.datumObj - a.datumObj);
+
+  container.innerHTML = "";
+  teller.textContent = `Totaal: ${data.length} meldingen`;
+
+  if (data.length === 0) {
+    container.innerHTML = "<p class='loader'>Geen meldingen gevonden</p>";
+    return;
+  }
+
+  data.forEach(m => {
+    const el = document.createElement("div");
+    el.classList.add("melding");
+
+    el.innerHTML = `
+      <div class="row">
+        <div class="item">
+          <div class="label">👤 Naam</div>
+          <div class="value">${m.naam || "/"}</div>
+        </div>
+        <div class="item">
+          <div class="label">📅 Datum</div>
+          <div class="value">${formatDate(m.datumObj)}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="item" style="flex:2;">
+          <div class="label">🛠️ Defect omschrijving</div>
+          <div class="value">${m.omschrijving || "/"}</div>
+        </div>
+        <div class="item">
+          <div class="label">📌 Status</div>
+          <span class="status ${m.statusClass}">${m.status}</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="item">
+          <div class="label">📍 Locatie</div>
+          <div class="value">${m.locatie || "/"}</div>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(el);
+  });
+}
+
+/* =============================
+        LADEN VAN CSV
+============================= */
+function loadMeldingen(retries = 5, delay = 2000) {
+  fetch(SHEET_URL + "&t=" + Date.now(), {
+    cache: "no-store",
+    headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.text();
+  })
+  .then(csv => {
+    const rows = parseCSV(csv);
+    const headers = rows.shift();
+    if (!headers) throw new Error("Geen headers gevonden");
+
+    const getIndex = name =>
+      headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
+
+    const naamIndex = getIndex("naam");
+    const datumIndex = getIndex("datum");
+    const omschrijvingIndex = getIndex("defect omschrijving");
+    const statusIndex = getIndex("status");
+    const locatieIndex = getIndex("locatie");
+
+    const data = [];
+
+    rows.forEach(row => {
+      const naam = (row[naamIndex] || "").trim();
+      const datum = (row[datumIndex] || "").trim();
+      const omschrijving = (row[omschrijvingIndex] || "").trim();
+      const statusRaw = (row[statusIndex] || "").trim();
+      const locatie = (row[locatieIndex] || "").trim();
+
+      if (!naam && !datum && !omschrijving && !statusRaw) return;
+
+      let status = "Onbekend";
+      let statusClass = "Onbekend";
+
+      const lower = statusRaw.toLowerCase();
+
+      if (lower.includes("gemeld")) {
+        status = "Gemeld";
+        statusClass = "Gemeld";
+      } else if (lower.includes("bezig") || lower.includes("behandeling")) {
+        status = "In behandeling";
+        statusClass = "Bezig";
+      } else if (lower.includes("afgewerkt") || lower.includes("opgelost")) {
+        status = "Afgewerkt";
+        statusClass = "Afgewerkt";
+      }
+
+      data.push({
+        naam,
+        datum,
+        datumObj: parseDate(datum),
+        omschrijving,
+        locatie,
+        status,
+        statusClass
+      });
+    });
+
+    if (data.length === 0) throw new Error("Geen meldingen gevonden");
+
+    renderMeldingen(data);
+  })
+  .catch(err => {
+    console.error(err);
+
+    if (retries > 0) {
+      teller.textContent = `Fout bij laden — nieuwe poging over ${delay / 1000}s...`;
+      setTimeout(() => loadMeldingen(retries - 1, delay), delay);
+    } else {
+      container.innerHTML = "<p class='loader' style='color:red;'>❌ Kan geen meldingen laden</p>";
+      teller.textContent = "Verbinding tijdelijk niet beschikbaar";
+    }
+  });
+}
+
+loadMeldingen();
+setInterval(loadMeldingen, REFRESH_INTERVAL);
 </script>
 
-<!-- Header.js voor greeting, datetime & ploeg -->
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
