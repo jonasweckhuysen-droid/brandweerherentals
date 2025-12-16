@@ -8,13 +8,13 @@
 <link rel="stylesheet" href="/brandweerherentals/style.css">
 <script src="/brandweerherentals/header.js" defer></script>
 
-<!-- Font Awesome voor iconen -->
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
@@ -30,15 +30,38 @@
 </script>
 
 <style>
+/* ===============================
+   LAYOUT & HEADER
+================================ */
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
 }
 
-/* extra ruimte onder header */
 #appHeader {
-  margin-bottom: 25px;
+  background: #c71f1f;
+  color: #fff;
+  padding: 15px 20px;
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo {
+  height: 48px;
+}
+
+.header-right {
+  text-align: right;
+}
+
+/* ===============================
+   PAGINA CONTENT
+================================ */
+.page-content {
+  padding: 22px;
 }
 
 .backlink {
@@ -50,17 +73,19 @@
 }
 .backlink .arrow { margin-right: 6px; }
 
+/* ===============================
+   PERMANENTIES
+================================ */
 .permanentie-card {
   background: #f7f7f7;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 18px 22px;
   margin-bottom: 22px;
   box-shadow: 0 3px 6px rgba(0,0,0,0.12);
 }
 
 .permanentie-card h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
+  margin: 0 0 12px;
   font-size: 1.35rem;
   color: #c71f1f;
 }
@@ -73,7 +98,7 @@
 
 .permanentie-list li {
   display: grid;
-  grid-template-columns: 180px 1fr 40px;
+  grid-template-columns: 190px 1fr 40px;
   align-items: center;
   padding: 6px 10px;
   border-radius: 6px;
@@ -99,10 +124,12 @@
   gap: 8px;
 }
 
-/* stagiair+ styling */
+/* ===============================
+   STAGIAIR+
+================================ */
 .stagiair-plus {
   background: #fff2cc !important;
-  border-left: 4px solid #f0b400;
+  border-left: 5px solid #f0b400;
 }
 
 .stagiair-plus .naam {
@@ -111,7 +138,7 @@
 }
 
 .stagiair-badge {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   background: #f0b400;
   color: #fff;
   padding: 2px 6px;
@@ -125,24 +152,33 @@
 </head>
 
 <body>
+
 <div class="container">
 
-<header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
-</header>
+  <!-- HEADER -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="/brandweerherentals/icons/logo.png"
+           alt="Brandweer Herentals"
+           class="header-logo">
+    </div>
+    <div class="header-right">
+      <div id="greeting" class="header-greeting"></div>
+      <div id="datetime" class="header-datetime"></div>
+      <div id="ploegOfWeek" class="header-ploeg"></div>
+    </div>
+  </header>
 
-<a href="/brandweerherentals/" class="backlink">
-  <span class="arrow">←</span> Terug naar start
-</a>
+  <!-- CONTENT -->
+  <div class="page-content">
 
-<div id="permanentieContainer"></div>
+    <a href="/brandweerherentals/" class="backlink">
+      <span class="arrow">←</span> Terug naar start
+    </a>
+
+    <div id="permanentieContainer"></div>
+
+  </div>
 </div>
 
 <script type="module">
@@ -229,5 +265,6 @@ fetch('/brandweerherentals/permanentie.json')
     });
   });
 </script>
+
 </body>
 </html>
