@@ -1,100 +1,100 @@
 {
-  "maand": "december",
-  "jaar": 2025,
-  "rol": "ambulancier",
+  "maand": "januari",
+  "jaar": 2026,
+  "rol": "stagiair +",
   "dagen": [
     {
-      "datum": "2025-12-01",
+      "datum": "2026-01-05",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Mil Luyten"},
         {"functie": "chauffeur", "naam": "Joris Van Vracem"},
         {"functie": "brandweerman", "naam": "Kristof Geens"},
-        {"functie": "brandweerman", "naam": "Vincent Leemans"},
         {"functie": "brandweerman", "naam": "Lander Mondelaers"},
-        {"functie": "brandweerman", "naam": "Maarten Geerinckx"},
+        {"functie": "brandweerman", "naam": "Bart Govaerts"},
+        {"functie": "brandweerman", "naam": "Lies Van Peer"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-02",
+      "datum": "2026-01-06",
       "diensten": [
-        {"functie": "Bevelvoerder", "naam": ""},
+        {"functie": "Bevelvoerder", "naam": "Pedro Wallyn"},
         {"functie": "chauffeur", "naam": "Sven Van Buren"},
-        {"functie": "brandweerman", "naam": "Christoph Verhaegen"},
-        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
+        {"functie": "brandweerman", "naam": "Maarten Geerinckx"},
+        {"functie": "brandweerman", "naam": "Noël Van Roy"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
-        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Dries Van der Linden"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-03",
+      "datum": "2025-01-07",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Dries Boven"},
-        {"functie": "chauffeur", "naam": "Roel Dekort"},
-        {"functie": "brandweerman", "naam": "Rudi Van den Bergh"},
-        {"functie": "brandweerman", "naam": "Pedro Wallyn"},
-        {"functie": "brandweerman", "naam": "Maarten Geerinckx"},
-        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "chauffeur", "naam": "Christoph Verhaegen"},
+        {"functie": "brandweerman", "naam": "Roel Dekort"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
+        {"functie": "brandweerman", "naam": "Sven Van Buren"},
+        {"functie": "brandweerman", "naam": "Lies Van Peer"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-04",
+      "datum": "2025-01-08",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
-        {"functie": "chauffeur", "naam": ""},
-        {"functie": "brandweerman", "naam": "Rudi Van den Bergh"},
-        {"functie": "brandweerman", "naam": "Pedro Wallyn"},
-        {"functie": "brandweerman", "naam": "Maarten Geerinckx"},
-        {"functie": "brandweerman", "naam": ""},
+        {"functie": "chauffeur", "naam": "Phillipe Hoeylaerts"},
+        {"functie": "brandweerman", "naam": "Lander Mondelaers"},
+        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
+        {"functie": "brandweerman", "naam": "Kristof Geens"},
+        {"functie": "brandweerman", "naam": "Dries Van der Linden"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-05",
+      "datum": "2025-01-09",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Rutger Moons"},
-        {"functie": "brandweerman", "naam": "Maarten Geerinckx"},
-        {"functie": "brandweerman", "naam": "Mike Dillen"},
-        {"functie": "brandweerman", "naam": "Jef Luyten"},
         {"functie": "brandweerman", "naam": "Patrick Veris"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
+        {"functie": "brandweerman", "naam": "Bart Leten"},
+        {"functie": "brandweerman", "naam": "Dries Van der Linden"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-08",
+      "datum": "2025-01-12",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Mil Luyten"},
         {"functie": "chauffeur", "naam": "Noël Van Roy"},
-        {"functie": "brandweerman", "naam": "Kristof Geens"},
+        {"functie": "brandweerman", "naam": "Bart Boons"},
         {"functie": "brandweerman", "naam": "Joris Van Vracem"},
-        {"functie": "brandweerman", "naam": "Lander Mondelaers"},
-        {"functie": "brandweerman", "naam": "Steven Maes"},
+        {"functie": "brandweerman", "naam": "Bart Govaerts"},
+        {"functie": "brandweerman", "naam": "Jochen Smolders"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-09",
+      "datum": "2025-01-13",
       "diensten": [
-        {"functie": "Bevelvoerder", "naam": "Pedro Wallyn"},
-        {"functie": "chauffeur", "naam": "Bart Leten"},
-        {"functie": "brandweerman", "naam": "Jef Luyten"},
-        {"functie": "brandweerman", "naam": "Steven Maes"},
+        {"functie": "Bevelvoerder", "naam": "Jef Luyten"},
+        {"functie": "chauffeur", "naam": "Noël Van Roy"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Lander Mondelaers"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
-        {"functie": "brandweerman", "naam": ""},
+        {"functie": "brandweerman", "naam": "Jochen Smolders"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-10",
+      "datum": "2025-01-14",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Dries Boven"},
         {"functie": "chauffeur", "naam": "Sven Van Buren"},
-        {"functie": "brandweerman", "naam": "Rudi Van den Bergh"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
         {"functie": "brandweerman", "naam": "Noël Van Roy"},
-        {"functie": "brandweerman", "naam": "Bart Leten"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
         {"functie": "warme stagiair", "naam": ""}
       ]
