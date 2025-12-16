@@ -28,7 +28,7 @@
       ]
     },
     {
-      "datum": "2025-01-07",
+      "datum": "2026-01-07",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Dries Boven"},
         {"functie": "chauffeur", "naam": "Christoph Verhaegen"},
@@ -40,7 +40,7 @@
       ]
     },
     {
-      "datum": "2025-01-08",
+      "datum": "2026-01-08",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Phillipe Hoeylaerts"},
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "datum": "2025-01-09",
+      "datum": "2026-01-09",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Rutger Moons"},
@@ -64,7 +64,7 @@
       ]
     },
     {
-      "datum": "2025-01-12",
+      "datum": "2026-01-12",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Mil Luyten"},
         {"functie": "chauffeur", "naam": "Noël Van Roy"},
@@ -76,7 +76,7 @@
       ]
     },
     {
-      "datum": "2025-01-13",
+      "datum": "2026-01-13",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jef Luyten"},
         {"functie": "chauffeur", "naam": "Noël Van Roy"},
@@ -88,7 +88,7 @@
       ]
     },
     {
-      "datum": "2025-01-14",
+      "datum": "2026-01-14",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Dries Boven"},
         {"functie": "chauffeur", "naam": "Sven Van Buren"},
@@ -100,88 +100,148 @@
       ]
     },
     {
-      "datum": "2025-12-11",
+      "datum": "2026-01-15",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
-        {"functie": "chauffeur", "naam": "Christoph Verhaegen"},
-        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
-        {"functie": "brandweerman", "naam": "Jef Luyten"},
-        {"functie": "brandweerman", "naam": ""},
-        {"functie": "brandweerman", "naam": ""},
+        {"functie": "chauffeur", "naam": "Liese Meyskens"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Pedro Wallyn"},
+        {"functie": "brandweerman", "naam": "Kristof Geens"},
+        {"functie": "brandweerman", "naam": "Jochen Smolders"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-12",
+      "datum": "2026-01-16",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Rutger Moons"},
-        {"functie": "brandweerman", "naam": ""},
-        {"functie": "brandweerman", "naam": ""},
-        {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
+        {"functie": "brandweerman", "naam": "Roel Dekort"},
+        {"functie": "brandweerman", "naam": "Bart Leten"},
+        {"functie": "brandweerman", "naam": "Sven Van Buren"},
         {"functie": "brandweerman", "naam": "Patrick Veris"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
     {
-      "datum": "2025-12-15",
+      "datum": "2026-01-19",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Mil Luyten"},
+        {"functie": "chauffeur", "naam": "Noël Van Roy"},
+        {"functie": "brandweerman", "naam": "Kristof Geens"},
+        {"functie": "brandweerman", "naam": "Roel Dekort"},
+        {"functie": "brandweerman", "naam": "Bart Govaerts"},
+        {"functie": "brandweerman", "naam": "Dries Van der Linden"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+    {
+      "datum": "2026-01-20",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Jef Luyten"},
+        {"functie": "chauffeur", "naam": "Bart Leten"},
+        {"functie": "brandweerman", "naam": "Maarten Geerinckx"},
+        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
+        {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
+        {"functie": "brandweerman", "naam": "Dries Van der Linden"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+    {
+      "datum": "2026-01-21",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Dries Boven"},
+        {"functie": "chauffeur", "naam": "Bart Leten"},
+        {"functie": "brandweerman", "naam": "Pedro Wallyn"},
+        {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
+        {"functie": "brandweerman", "naam": "Lies Van Peer"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+    {
+      "datum": "2026-01-22",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
+        {"functie": "chauffeur", "naam": "Noël Van Roy"},
+        {"functie": "brandweerman", "naam": "Lander Monderlaers"},
+        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
+        {"functie": "brandweerman", "naam": "Phillipe Hoeylaerts"},
+        {"functie": "brandweerman", "naam": "Lies Van Peer"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+    {
+      "datum": "2026-01-23",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
+        {"functie": "chauffeur", "naam": "Rutger Moons"},
+        {"functie": "brandweerman", "naam": "Cristoph Verhaegen"},
+        {"functie": "brandweerman", "naam": "Bart Leten"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
+        {"functie": "brandweerman", "naam": "Patrick Veris"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+     {
+      "datum": "2026-01-26,
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Mil Luyten"},
         {"functie": "chauffeur", "naam": "Joris Van Vracem"},
-        {"functie": "brandweerman", "naam": "Kristof Geens"},
         {"functie": "brandweerman", "naam": "Bart Boons"},
-        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
-        {"functie": "brandweerman", "naam": "Roel Dekort"},
+        {"functie": "brandweerman", "naam": "Kristof Geens"},
+        {"functie": "brandweerman", "naam": "Bart Govaerts"},
+        {"functie": "brandweerman", "naam": "Jochen Smolders"},
         {"functie": "warme stagiair", "naam": ""}
       ]
     },
-    {
-      "datum": "2025-12-16",
-      "diensten": [
-        {"functie": "Bevelvoerder", "naam": ""},
-        {"functie": "chauffeur", "naam": "Bart Leten"},
-        {"functie": "brandweerman", "naam": "Vincent Leemans"},
-        {"functie": "brandweerman", "naam": "Steven Maes"},
-        {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
-        {"functie": "brandweerman", "naam": ""},
-        {"functie": "warme stagiair", "naam": ""}
-      ]
-    },
-    {
-      "datum": "2025-12-17",
-      "diensten": [
-        {"functie": "Bevelvoerder", "naam": "Dries Boven"},
-        {"functie": "chauffeur", "naam": "Sven Van Buren"},
-        {"functie": "brandweerman", "naam": "Steven Maes"},
-        {"functie": "brandweerman", "naam": "Roel Dekort"},
-        {"functie": "brandweerman", "naam": "Bart Leten"},
-        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
-        {"functie": "warme stagiair", "naam": ""}
-      ]
-    },
-    {
-      "datum": "2025-12-18",
-      "diensten": [
-        {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
-        {"functie": "chauffeur", "naam": ""},
-        {"functie": "brandweerman", "naam": "Jef Luyten"},
-        {"functie": "brandweerman", "naam": "Rudi Van den Bergh"},
-        {"functie": "brandweerman", "naam": "Pedro Wallyn"},
-        {"functie": "brandweerman", "naam": "Robbe Vervecken"},
-        {"functie": "warme stagiair", "naam": ""}
-      ]
-    },
-    {
-      "datum": "2025-12-19",
+     {
+      "datum": "2026-01-27",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Pedro Wallyn"},
         {"functie": "chauffeur", "naam": "Rutger Moons"},
-        {"functie": "brandweerman", "naam": "Hans Van Thielen"},
-        {"functie": "brandweerman", "naam": "Roel Dekort"},
         {"functie": "brandweerman", "naam": "Lander Mondelaers"},
-        {"functie": "brandweerman", "naam": "Veris Patrick"},
+        {"functie": "brandweerman", "naam": "Simon Baeyens"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Lies Van Peer"},
         {"functie": "warme stagiair", "naam": ""}
       ]
-    }
+    },
+     {
+      "datum": "2026-01-28",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Dries Boven"},
+        {"functie": "chauffeur", "naam": "Roel Dekort"},
+        {"functie": "brandweerman", "naam": "Lander Mondelaers"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
+        {"functie": "brandweerman", "naam": "Lies Van Peer"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+     {
+      "datum": "2026-01-29",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
+        {"functie": "chauffeur", "naam": "Noël Van Roy"},
+        {"functie": "brandweerman", "naam": "Lander Mondelaers"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Kristof Geens"},
+        {"functie": "brandweerman", "naam": "Jochen Smolders"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
+     {
+      "datum": "2026-01-23",
+      "diensten": [
+        {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
+        {"functie": "chauffeur", "naam": "Rutger Moons"},
+        {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
+        {"functie": "brandweerman", "naam": "Mike Dillen"},
+        {"functie": "brandweerman", "naam": "Joris Nyssen"},
+        {"functie": "brandweerman", "naam": "Patrick Veris"},
+        {"functie": "warme stagiair", "naam": ""}
+      ]
+    },
   ]
 }
