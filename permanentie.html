@@ -31,7 +31,7 @@
 
 <style>
 /* ===============================
-   LAYOUT & HEADER
+   LAYOUT
 ================================ */
 .container {
   max-width: 900px;
@@ -39,6 +39,9 @@
   padding: 0;
 }
 
+/* ===============================
+   HEADER
+================================ */
 #appHeader {
   background: #c71f1f;
   color: #fff;
@@ -49,16 +52,11 @@
   align-items: center;
 }
 
-.header-logo {
-  height: 48px;
-}
-
-.header-right {
-  text-align: right;
-}
+.header-logo { height: 48px; }
+.header-right { text-align: right; }
 
 /* ===============================
-   PAGINA CONTENT
+   CONTENT
 ================================ */
 .page-content {
   padding: 22px;
@@ -74,7 +72,7 @@
 .backlink .arrow { margin-right: 6px; }
 
 /* ===============================
-   PERMANENTIES
+   PERMANENTIE KAARTEN
 ================================ */
 .permanentie-card {
   background: #f7f7f7;
@@ -85,11 +83,14 @@
 }
 
 .permanentie-card h3 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 1.35rem;
   color: #c71f1f;
 }
 
+/* ===============================
+   LIJST
+================================ */
 .permanentie-list {
   list-style: none;
   padding: 0;
@@ -98,11 +99,10 @@
 
 .permanentie-list li {
   display: grid;
-  grid-template-columns: 190px 1fr 40px;
+  grid-template-columns: 200px 1fr 50px;
   align-items: center;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
-  margin-bottom: 4px;
   font-size: 0.95rem;
 }
 
@@ -115,7 +115,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #333;
 }
 
 .naam {
@@ -145,8 +144,13 @@
   border-radius: 6px;
 }
 
+/* ===============================
+   CHECKBOX
+================================ */
 .checkbox-person {
-  transform: scale(1.3);
+  justify-self: center;
+  transform: scale(1.4);
+  cursor: pointer;
 }
 </style>
 </head>
@@ -158,14 +162,12 @@
   <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png"
-           alt="Brandweer Herentals"
-           class="header-logo">
+      <img src="/brandweerherentals/icons/logo.png" class="header-logo">
     </div>
     <div class="header-right">
-      <div id="greeting" class="header-greeting"></div>
-      <div id="datetime" class="header-datetime"></div>
-      <div id="ploegOfWeek" class="header-ploeg"></div>
+      <div id="greeting"></div>
+      <div id="datetime"></div>
+      <div id="ploegOfWeek"></div>
     </div>
   </header>
 
@@ -205,63 +207,67 @@ const functieIconen = {
 fetch('/brandweerherentals/permanentie.json')
   .then(res => res.json())
   .then(permanenties => {
+
     const today = new Date();
     today.setHours(0,0,0,0);
 
     permanenties.dagen.forEach(dag => {
+
       const dagDatum = new Date(dag.datum);
       dagDatum.setHours(0,0,0,0);
 
-      if (dagDatum >= today) {
-        const card = document.createElement('div');
-        card.className = 'permanentie-card';
+      // ❗ Verwijder automatisch gepasseerde dagen
+      if (dagDatum < today) return;
 
-        const dateStr = dagDatum.toLocaleDateString('nl-BE', {
-          weekday:'long', day:'2-digit', month:'long', year:'numeric'
+      const card = document.createElement('div');
+      card.className = 'permanentie-card';
+
+      const dateStr = dagDatum.toLocaleDateString('nl-BE', {
+        weekday:'long', day:'2-digit', month:'long', year:'numeric'
+      });
+
+      let listHTML = '<ul class="permanentie-list">';
+
+      dag.diensten.forEach(d => {
+        const id = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
+        const isStagiairPlus = stagiairPlusNamen.includes(d.naam);
+        const icon = functieIconen[d.functie] || "fa-user";
+
+        listHTML += `
+        <li class="${isStagiairPlus ? 'stagiair-plus' : ''}">
+          <span class="functie">
+            <i class="fa-solid ${icon}"></i> ${d.functie}
+          </span>
+          <span class="naam">
+            ${d.naam}
+            ${isStagiairPlus ? '<span class="stagiair-badge">Stagiair+</span>' : ''}
+          </span>
+          <input type="checkbox" class="checkbox-person" id="${id}">
+        </li>`;
+      });
+
+      listHTML += '</ul>';
+      card.innerHTML = `<h3>${dateStr}</h3>${listHTML}`;
+      container.appendChild(card);
+
+      dag.diensten.forEach(d => {
+        const docId = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
+        const checkbox = document.getElementById(docId);
+        const presenceDoc = doc(db, "permanentieAanwezigheden", `${docId}_${gebruikersNaam}`);
+
+        onSnapshot(presenceDoc, snap => {
+          if (snap.exists()) checkbox.checked = snap.data().aanwezig;
         });
 
-        let listHTML = '<ul class="permanentie-list">';
-        dag.diensten.forEach(d => {
-          const id = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
-          const isStagiairPlus = stagiairPlusNamen.includes(d.naam);
-          const icon = functieIconen[d.functie] || "fa-user";
-
-          listHTML += `
-          <li class="${isStagiairPlus ? 'stagiair-plus' : ''}">
-            <span class="functie">
-              <i class="fa-solid ${icon}"></i> ${d.functie}
-            </span>
-            <span class="naam">
-              ${isStagiairPlus ? '<i class="fa-solid fa-graduation-cap"></i>' : ''}
-              ${d.naam}
-              ${isStagiairPlus ? '<span class="stagiair-badge">Stagiair+</span>' : ''}
-            </span>
-            <input type="checkbox" class="checkbox-person" id="${id}">
-          </li>`;
-        });
-        listHTML += '</ul>';
-
-        card.innerHTML = `<h3>${dateStr}</h3>${listHTML}`;
-        container.appendChild(card);
-
-        dag.diensten.forEach(d => {
-          const docId = `${dag.datum}_${d.functie}_${d.naam.replaceAll(' ','_')}`;
-          const checkbox = document.getElementById(docId);
-          const presenceDoc = doc(db, "permanentieAanwezigheden", `${docId}_${gebruikersNaam}`);
-
-          onSnapshot(presenceDoc, snap => {
-            if (snap.exists()) checkbox.checked = snap.data().aanwezig;
+        checkbox.addEventListener('change', () => {
+          setDoc(presenceDoc, {
+            naam: gebruikersNaam,
+            aanwezig: checkbox.checked,
+            timestamp: Date.now()
           });
-
-          checkbox.addEventListener('change', () => {
-            setDoc(presenceDoc, {
-              naam: gebruikersNaam,
-              aanwezig: checkbox.checked,
-              timestamp: Date.now()
-            });
-          });
         });
-      }
+      });
+
     });
   });
 </script>
