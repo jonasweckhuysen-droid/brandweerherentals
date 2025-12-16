@@ -72,7 +72,7 @@
 .backlink .arrow { margin-right: 6px; }
 
 /* ===============================
-   PERMANENTIE KAARTEN
+   PERMANENTIE
 ================================ */
 .permanentie-card {
   background: #f7f7f7;
@@ -99,7 +99,7 @@
 
 .permanentie-list li {
   display: grid;
-  grid-template-columns: 200px 1fr 50px;
+  grid-template-columns: 240px 1fr;
   align-items: center;
   padding: 8px 12px;
   border-radius: 6px;
@@ -110,17 +110,28 @@
   background: #ffffff;
 }
 
+/* linker kolom: checkbox + functie */
 .functie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 600;
+  color: #333;
+}
+
+/* rechter kolom: naam */
+.naam {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.naam {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* ===============================
+   CHECKBOX
+================================ */
+.checkbox-person {
+  transform: scale(1.4);
+  cursor: pointer;
 }
 
 /* ===============================
@@ -142,15 +153,6 @@
   color: #fff;
   padding: 2px 6px;
   border-radius: 6px;
-}
-
-/* ===============================
-   CHECKBOX
-================================ */
-.checkbox-person {
-  justify-self: center;
-  transform: scale(1.4);
-  cursor: pointer;
 }
 </style>
 </head>
@@ -215,8 +217,6 @@ fetch('/brandweerherentals/permanentie.json')
 
       const dagDatum = new Date(dag.datum);
       dagDatum.setHours(0,0,0,0);
-
-      // ❗ Verwijder automatisch gepasseerde dagen
       if (dagDatum < today) return;
 
       const card = document.createElement('div');
@@ -236,13 +236,14 @@ fetch('/brandweerherentals/permanentie.json')
         listHTML += `
         <li class="${isStagiairPlus ? 'stagiair-plus' : ''}">
           <span class="functie">
-            <i class="fa-solid ${icon}"></i> ${d.functie}
+            <input type="checkbox" class="checkbox-person" id="${id}">
+            <i class="fa-solid ${icon}"></i>
+            ${d.functie}
           </span>
           <span class="naam">
             ${d.naam}
             ${isStagiairPlus ? '<span class="stagiair-badge">Stagiair+</span>' : ''}
           </span>
-          <input type="checkbox" class="checkbox-person" id="${id}">
         </li>`;
       });
 
@@ -267,7 +268,6 @@ fetch('/brandweerherentals/permanentie.json')
           });
         });
       });
-
     });
   });
 </script>
