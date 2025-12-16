@@ -1,7 +1,7 @@
 {
   "maand": "januari",
   "jaar": 2026,
-  "rol": "stagiair +",
+  "rol": "permanentie",
   "dagen": [
     {
       "datum": "2026-01-05",
@@ -12,7 +12,7 @@
         {"functie": "brandweerman", "naam": "Lander Mondelaers"},
         {"functie": "brandweerman", "naam": "Bart Govaerts"},
         {"functie": "brandweerman", "naam": "Lies Van Peer"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -24,7 +24,7 @@
         {"functie": "brandweerman", "naam": "Noël Van Roy"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
         {"functie": "brandweerman", "naam": "Dries Van der Linden"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -36,19 +36,19 @@
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Sven Van Buren"},
         {"functie": "brandweerman", "naam": "Lies Van Peer"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
       "datum": "2026-01-08",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
-        {"functie": "chauffeur", "naam": "Phillipe Hoeylaerts"},
+        {"functie": "chauffeur", "naam": "Philippe Hoeylaerts"},
         {"functie": "brandweerman", "naam": "Lander Mondelaers"},
         {"functie": "brandweerman", "naam": "Robbe Vervecken"},
         {"functie": "brandweerman", "naam": "Kristof Geens"},
         {"functie": "brandweerman", "naam": "Dries Van der Linden"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -60,7 +60,7 @@
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Bart Leten"},
         {"functie": "brandweerman", "naam": "Dries Van der Linden"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -72,7 +72,7 @@
         {"functie": "brandweerman", "naam": "Joris Van Vracem"},
         {"functie": "brandweerman", "naam": "Bart Govaerts"},
         {"functie": "brandweerman", "naam": "Jochen Smolders"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -84,7 +84,7 @@
         {"functie": "brandweerman", "naam": "Lander Mondelaers"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
         {"functie": "brandweerman", "naam": "Jochen Smolders"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -96,7 +96,7 @@
         {"functie": "brandweerman", "naam": "Noël Van Roy"},
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -108,7 +108,7 @@
         {"functie": "brandweerman", "naam": "Pedro Wallyn"},
         {"functie": "brandweerman", "naam": "Kristof Geens"},
         {"functie": "brandweerman", "naam": "Jochen Smolders"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -120,7 +120,7 @@
         {"functie": "brandweerman", "naam": "Bart Leten"},
         {"functie": "brandweerman", "naam": "Sven Van Buren"},
         {"functie": "brandweerman", "naam": "Patrick Veris"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -132,7 +132,7 @@
         {"functie": "brandweerman", "naam": "Roel Dekort"},
         {"functie": "brandweerman", "naam": "Bart Govaerts"},
         {"functie": "brandweerman", "naam": "Dries Van der Linden"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -144,7 +144,7 @@
         {"functie": "brandweerman", "naam": "Robbe Vervecken"},
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
         {"functie": "brandweerman", "naam": "Dries Van der Linden"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -156,7 +156,7 @@
         {"functie": "brandweerman", "naam": "Pieter Van Doninck"},
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Lies Van Peer"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -164,11 +164,11 @@
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Noël Van Roy"},
-        {"functie": "brandweerman", "naam": "Lander Monderlaers"},
+        {"functie": "brandweerman", "naam": "Lander Mondelaers"},
         {"functie": "brandweerman", "naam": "Robbe Vervecken"},
-        {"functie": "brandweerman", "naam": "Phillipe Hoeylaerts"},
+        {"functie": "brandweerman", "naam": "Philippe Hoeylaerts"},
         {"functie": "brandweerman", "naam": "Lies Van Peer"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
     {
@@ -176,15 +176,15 @@
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Rutger Moons"},
-        {"functie": "brandweerman", "naam": "Cristoph Verhaegen"},
+        {"functie": "brandweerman", "naam": "Christoph Verhaegen"},
         {"functie": "brandweerman", "naam": "Bart Leten"},
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Patrick Veris"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
      {
-      "datum": "2026-01-26,
+      "datum": "2026-01-26",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Mil Luyten"},
         {"functie": "chauffeur", "naam": "Joris Van Vracem"},
@@ -192,7 +192,7 @@
         {"functie": "brandweerman", "naam": "Kristof Geens"},
         {"functie": "brandweerman", "naam": "Bart Govaerts"},
         {"functie": "brandweerman", "naam": "Jochen Smolders"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
      {
@@ -204,7 +204,7 @@
         {"functie": "brandweerman", "naam": "Simon Baeyens"},
         {"functie": "brandweerman", "naam": "Mike Dillen"},
         {"functie": "brandweerman", "naam": "Lies Van Peer"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
      {
@@ -216,7 +216,7 @@
         {"functie": "brandweerman", "naam": "Mike Dillen"},
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Lies Van Peer"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
      {
@@ -228,11 +228,11 @@
         {"functie": "brandweerman", "naam": "Mike Dillen"},
         {"functie": "brandweerman", "naam": "Kristof Geens"},
         {"functie": "brandweerman", "naam": "Jochen Smolders"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     },
      {
-      "datum": "2026-01-23",
+      "datum": "2026-01-30",
       "diensten": [
         {"functie": "Bevelvoerder", "naam": "Jan Laeremans"},
         {"functie": "chauffeur", "naam": "Rutger Moons"},
@@ -240,7 +240,7 @@
         {"functie": "brandweerman", "naam": "Mike Dillen"},
         {"functie": "brandweerman", "naam": "Joris Nyssen"},
         {"functie": "brandweerman", "naam": "Patrick Veris"},
-        {"functie": "warme stagiair", "naam": ""}
+        {"functie": "warme stagiair", "naam": "-"}
       ]
     }
   ]
