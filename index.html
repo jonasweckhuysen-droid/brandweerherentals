@@ -44,6 +44,23 @@ button{
   font-weight:700;
 }
 
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  background:#c71f1f;
+  color:#fff;
+}
+
+.header-left img{
+  height:50px;
+}
+
+.header-right div{
+  margin:2px 0;
+}
+
 footer{
   display:flex;
   justify-content:space-between;
@@ -83,7 +100,17 @@ footer button{
 
 <div class="container" style="display:none;" id="appContent">
 
-<header id="appHeader"></header>
+<!-- HEADER -->
+<header id="appHeader">
+  <div class="header-left">
+    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals">
+  </div>
+  <div class="header-right">
+    <div id="greeting">Welkom!</div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
+</header>
 
 <main class="content">
   <div class="grid" id="buttonGrid"></div>
