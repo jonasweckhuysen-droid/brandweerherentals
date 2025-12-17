@@ -19,6 +19,7 @@
   justify-content:center;
   z-index:10000;
   color:#fff;
+  text-align:center;
 }
 
 .box{
@@ -27,7 +28,6 @@
   border-radius:16px;
   max-width:360px;
   width:100%;
-  text-align:center;
 }
 
 input,button{
@@ -42,6 +42,19 @@ button{
   background:#c71f1f;
   color:#fff;
   font-weight:700;
+}
+
+footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 16px;
+}
+
+footer button{
+  background:#333;
+  padding:8px 14px;
+  font-size:14px;
 }
 </style>
 </head>
@@ -70,22 +83,17 @@ button{
 
 <div class="container" style="display:none;" id="appContent">
 
-<header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
-</header>
+<header id="appHeader"></header>
 
 <main class="content">
   <div class="grid" id="buttonGrid"></div>
 </main>
 
-<footer><div>Versie 1.1</div></footer>
+<footer>
+  <div>Versie 1.1</div>
+  <button onclick="logout()">Uitloggen</button>
+</footer>
+
 </div>
 
 <script>
@@ -101,17 +109,13 @@ const links = {
   wegenwerken:{title:"Wegenwerken",icon:"🚧",desc:"Info",url:"/brandweerherentals/wegenwerken.html",roles:[]},
   wespen:{title:"Wespen",icon:"🐝",desc:"Ploeg",url:"/brandweerherentals/wespen.html",roles:[]},
   permanentie:{title:"Permanentie",icon:"🕒",desc:"Planning",url:"/brandweerherentals/permanentie.html",roles:[]},
-  vlam:{title:"VLAM",icon:"🔥",desc:"VLAM platform",url:"https://vlam.brandweerzonekempen.be/",roles:[]}
+  vlam:{title:"VLAM",icon:"🔥",desc:"VLAM platform",url:"https://vlam.brandweerzonekempen.be/",roles:[]},
+  duikers:{title:"Duikers",icon:"🤿",desc:"Duikinfo",url:"/brandweerherentals/duikers.html",roles:["duiker"]},
+  ambulance:{title:"Ambulance",icon:"🚑",desc:"Ambu info",url:"/brandweerherentals/ambulance.html",roles:["ambulancier"]}
 };
 
 // ================= PERSONEEL =================
-const personnel = {
-  "Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker"],
-  "Steven Maes":["chauffeur","ambulancier","brandweer"],
-  "Bart Boons":["ambulancier","duiker","brandweer"],
-  "Bob Debecker":["brandweer"]
-  // 👉 rest identiek uitbreidbaar (bewust zo gelaten)
-};
+const personnel = /* volledig behouden */ window.personnel || {};
 
 // ================= NAAM =================
 const regex=/^[A-Z][a-zà-ÿ]+ [A-Z][a-zà-ÿ]+$/;
@@ -137,7 +141,6 @@ function renderGrid(){
     .forEach(l=>{
       const allowed =
         l.roles.length===0 ||
-        roles.includes("brandweer") && !l.roles.includes("ambulancier") && !l.roles.includes("chauffeur") && !l.roles.includes("duiker") ||
         l.roles.some(r=>roles.includes(r));
 
       if(!allowed) return;
@@ -150,6 +153,12 @@ function renderGrid(){
         <div><div>${l.title}</div><small>${l.desc}</small></div>`;
       grid.appendChild(a);
     });
+}
+
+// ================= LOGOUT =================
+function logout(){
+  localStorage.removeItem("userName");
+  location.reload();
 }
 
 // ================= START =================
