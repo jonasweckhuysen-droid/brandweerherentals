@@ -65,8 +65,8 @@ footer button{
 <div id="forceInstall" style="display:none;">
   <div class="box">
     <h2>📲 App installeren</h2>
-    <p>Installeer de app om verder te gaan</p>
-    <button id="forceInstallBtn">Installeer</button>
+    <p>Deze applicatie werkt enkel als geïnstalleerde app.</p>
+    <button id="forceInstallBtn">Installeer app</button>
   </div>
 </div>
 
@@ -97,27 +97,94 @@ footer button{
 </div>
 
 <script>
-// ================= LINKS MET RECHTEN =================
+// ================= LINKS =================
 const links = {
-  abiweb:{title:"Abiweb",icon:"/brandweerherentals/icons/buttons/abiweb.png",desc:"Oefeningen",url:"https://abiweb.brandweerzonekempen.be/",roles:[]},
   agenda:{title:"Agenda",icon:"📅",desc:"Belangrijke data",url:"/brandweerherentals/agenda.html",roles:[]},
+  verdi:{title:"Verdi",icon:"📟",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},
+  abiweb:{title:"Abiweb",icon:"📚",desc:"Oefeningen",url:"https://abiweb.brandweerzonekempen.be/",roles:[]},
   defect:{title:"Defectmelding",icon:"🔧",desc:"Meld defecten",url:"/brandweerherentals/defectmelding.html",roles:[]},
-  logistiek:{title:"Logistiek",icon:"🛒",desc:"Transport",url:"https://form.jotform.com/230682691731055",roles:["chauffeur"]},
   order:{title:"Bestelling",icon:"📦",desc:"Materiaal",url:"https://forms.cloud.microsoft/e/GjHr1Kym0w",roles:[]},
+
+  chauffeur:{title:"Chauffeur",icon:"🚒",desc:"Chauffeur info",url:"/brandweerherentals/chauffeur.html",roles:["chauffeur"]},
+  ambulance:{title:"Ambulance",icon:"🚑",desc:"Ambulancier info",url:"/brandweerherentals/ambulance.html",roles:["ambulancier"]},
+  duiker:{title:"Duikers",icon:"🤿",desc:"Duikteam",url:"/brandweerherentals/duikers.html",roles:["duiker"]},
+
+  logistiek:{title:"Logistiek",icon:"🛒",desc:"Transport",url:"https://form.jotform.com/230682691731055",roles:["chauffeur"]},
   vehicle:{title:"Voertuigreservatie",icon:"🚒",desc:"Reservatie",url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUN0JBTzkySTI0STFZUlk4Q01GOVRTR1UzMy4u",roles:["chauffeur"]},
-  verdi:{title:"Verdi",icon:"/brandweerherentals/icons/buttons/verdi.png",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},
-  wegenwerken:{title:"Wegenwerken",icon:"🚧",desc:"Info",url:"/brandweerherentals/wegenwerken.html",roles:[]},
-  wespen:{title:"Wespen",icon:"🐝",desc:"Ploeg",url:"/brandweerherentals/wespen.html",roles:[]},
-  permanentie:{title:"Permanentie",icon:"🕒",desc:"Planning",url:"/brandweerherentals/permanentie.html",roles:[]},
-  vlam:{title:"VLAM",icon:"🔥",desc:"VLAM platform",url:"https://vlam.brandweerzonekempen.be/",roles:[]},
-  duikers:{title:"Duikers",icon:"🤿",desc:"Duikinfo",url:"/brandweerherentals/duikers.html",roles:["duiker"]},
-  ambulance:{title:"Ambulance",icon:"🚑",desc:"Ambu info",url:"/brandweerherentals/ambulance.html",roles:["ambulancier"]}
+  vlam:{title:"VLAM",icon:"🔥",desc:"VLAM platform",url:"https://vlam.brandweerzonekempen.be/",roles:[]}
 };
 
 // ================= PERSONEEL =================
-const personnel = /* volledig behouden */ window.personnel || {};
+const personnel = {
+"Dirk Geens":["officier","bevelvoerder"],
+"Sus Meulemans":["officier"],
+"Gerry Verschueren":["officier"],
+"Danny Van den Bergh":["officier","bevelvoerder","duiker"],
+"Bart Verbiest":["ambulancier"],
+"Johan Peeters":["ambulancier"],
+"Seffi Vleugels":["ambulancier"],
+"Dries Boven":["bevelvoerder","chauffeur","brandweer"],
+"Pedro Wallyn":["bevelvoerder","chauffeur","brandweer","duiker"],
+"Bart Leten":["chauffeur","brandweer"],
+"Steven Maes":["chauffeur","ambulancier","brandweer"],
+"Bart Cools":["chauffeur","brandweer"],
+"Joris Peeters":["brandweer"],
+"Bram Addiers":["brandweer"],
+"Robin Buyens":["chauffeur","brandweer","ambulancier"],
+"Maarten Geerinckx":["brandweer"],
+"Pieter Van Doninck":["brandweer"],
+"Bart Govaerts":["bevelvoerder","brandweer"],
+"Roel Dekort":["chauffeur","ambulancier","brandweer"],
+"Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker"],
+"Luc Verwimp":["brandweer"],
+"Kris Van Looveren":["brandweer"],
+"Kurt Cools":["chauffeur","duiker","brandweer"],
+"Simon Baeyens":["ambulancier","brandweer"],
+"Mike Dillen":["brandweer"],
+"Lies Van Peer":["brandweer"],
+"Frank Verschueren":["bevelvoerder","chauffeur","brandweer"],
+"Rudi Van den Bergh":["ambulancier","brandweer"],
+"Patrick Van Hove":["ambulancier","brandweer","chauffeur","duiker"],
+"Patrick Veris":["brandweer"],
+"Kris Hoeylaerts":["brandweer","chauffeur"],
+"Noël Van Roy":["brandweer","chauffeur"],
+"Ignas De Keyser":["brandweer"],
+"Joris Nyssen":["brandweer"],
+"Deuis Mulop":["brandweer"],
+"Evy François":["brandweer"],
+"Jan Laeremans":["bevelvoerder","brandweer"],
+"Kristof Geens":["bevelvoerder","brandweer"],
+"Vincent Leemans":["chauffeur","ambulancier","brandweer"],
+"Sven Van Buren":["chauffeur","ambulancier","brandweer"],
+"Jef Leysen":["brandweer","duiker"],
+"Steven Vervloet":["chauffeur","brandweer"],
+"Liese Meyskens":["chauffeur","brandweer"],
+"Jens Van den Bruel":["brandweer"],
+"Dries Van der Linden":["brandweer"],
+"Thibo Van Doninck":["brandweer","ambulancier"],
+"Emiel Luyten":["bevelvoerder","brandweer"],
+"Jef Luyten":["bevelvoerder","ambulancier","brandweer"],
+"Rutger Moons":["bevelvoerder","chauffeur","brandweer"],
+"Philippe Hoeylaerts":["ambulancier","chauffeur","brandweer"],
+"Gianni Cornelis":["ambulancier","chauffeur","brandweer"],
+"Danny Van den Broeck":["chauffeur","brandweer"],
+"Bart Boons":["ambulancier","duiker","brandweer"],
+"Jochen Smolders":["brandweer"],
+"Vincent Fassaert":["brandweer"],
+"Alain Leemans":["brandweer","bevelvoerder","chauffeur","duiker"],
+"Hans Van Thielen":["bevelvoerder","brandweer"],
+"Joris Van Vracem":["ambulancier","brandweer","chauffeur"],
+"Rik Goris":["ambulancier","chauffeur","brandweer"],
+"Toon Vervoort":["brandweer"],
+"Wannes Verhegge":["brandweer","duiker"],
+"Christoph Verhaegen":["brandweer","chauffeur","ambulancier"],
+"Robbe Vervecken":["ambulancier","brandweer","chauffeur"],
+"Lander Mondelaers":["brandweer"],
+"Evans Ocran":["brandweer"],
+"Bob Debecker":["brandweer"]
+};
 
-// ================= NAAM =================
+// ================= NAAM VALIDATIE =================
 const regex=/^[A-Z][a-zà-ÿ]+ [A-Z][a-zà-ÿ]+$/;
 
 saveName.onclick=()=>{
@@ -139,17 +206,14 @@ function renderGrid(){
   Object.values(links)
     .sort((a,b)=>a.title.localeCompare(b.title,"nl"))
     .forEach(l=>{
-      const allowed =
-        l.roles.length===0 ||
-        l.roles.some(r=>roles.includes(r));
-
+      const allowed = l.roles.length===0 || l.roles.some(r=>roles.includes(r));
       if(!allowed) return;
 
       const a=document.createElement("a");
       a.className="btn";
       a.href=l.url;
       a.innerHTML=`
-        <div class="icon">${l.icon.endsWith(".png")?`<img src="${l.icon}">`:l.icon}</div>
+        <div class="icon">${l.icon}</div>
         <div><div>${l.title}</div><small>${l.desc}</small></div>`;
       grid.appendChild(a);
     });
