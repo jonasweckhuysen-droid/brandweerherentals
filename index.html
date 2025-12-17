@@ -54,7 +54,7 @@ header{
 }
 
 .header-left img{
-  height:50px;
+  height:60px;
 }
 
 .header-right div{
@@ -101,16 +101,17 @@ footer button{
 <div class="container" style="display:none;" id="appContent">
 
 <!-- HEADER -->
-<header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals">
-  </div>
-  <div class="header-right">
-    <div id="greeting">Welkom!</div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
-</header>
+    <header id="appHeader">
+      <div class="header-left">
+        <img src="logo.png" class="header-logo">
+      </div>
+
+      <div class="header-right">
+        <div id="greeting" class="header-greeting"></div>
+        <div id="datetime" class="header-datetime"></div>
+        <div id="ploegOfWeek" class="header-ploeg"></div>
+      </div>
+    </header>
 
 <main class="content">
   <div class="grid" id="buttonGrid"></div>
@@ -269,4 +270,5 @@ window.addEventListener("DOMContentLoaded",()=>{
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
+
 
