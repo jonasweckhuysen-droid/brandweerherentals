@@ -10,40 +10,43 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+
 <style>
 /* --- Kalenderstijl --- */
 #reservations {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
-.card {
-  border-radius: 10px;
+.day-card {
   background: #f4f4f4;
+  border-radius: 12px;
   padding: 15px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.card-header {
-  font-size: 1.3em;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
-}
-
-.card-date {
+.day-card h2 {
   font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: #0077cc;
 }
 
-.card-body div {
-  margin-bottom: 4px;
+.event-card {
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.card-body div span {
+.event-card div {
+  margin-bottom: 3px;
+}
+
+.event-card div span {
   font-weight: bold;
 }
 </style>
@@ -67,7 +70,7 @@
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
-    <h2>📅 Goedgekeurde Voertuigenreservaties</h2>
+    <h2>📅 Weekoverzicht Voertuigenreservaties</h2>
     <div id="reservations"></div>
   </div>
 </div>
@@ -90,44 +93,118 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 console.log("✅ Firebase klaar voor agenda");
 
-/* -------------------- LIVE RENDER VAN GOEDGEKEURDE RESERVATIES -------------------- */
+/* -------------------- GOOGLE API INIT -------------------- */
+function initGapi() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE', // <--- vervang met jouw API key
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
+    });
+    console.log("✅ Google API klaar");
+    loadGoogleEvents();
+  });
+}
+
+/* -------------------- LAAD GOOGLE AGENDA EVENTS -------------------- */
+async function loadGoogleEvents() {
+  try {
+    const calendarId = 'df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com';
+    const now = new Date().toISOString();
+    const resp = await gapi.client.calendar.events.list({
+      calendarId,
+      timeMin: now,
+      showDeleted: false,
+      singleEvents: true,
+      orderBy: 'startTime',
+      maxResults: 50
+    });
+    const events = resp.result.items || [];
+    renderAll(reservationsFirebase, events); // combine Firebase + Google
+  } catch(err) {
+    console.error("⚠️ Fout bij Google Calendar laden:", err);
+  }
+}
+
+/* -------------------- FIREBASE LIVE DATA -------------------- */
+let reservationsFirebase = [];
 db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
-  const reservations = Object.keys(data)
+  reservationsFirebase = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
       .filter(r => r.status === "Goedgekeurd" && new Date(r.to) >= new Date());
-
-  // Sorteer op startdatum
-  reservations.sort((a, b) => new Date(a.from) - new Date(b.from));
-
-  renderFirebase(reservations);
+  if(typeof gapi !== 'undefined' && gapi.client) loadGoogleEvents();
 });
 
 /* -------------------- RENDER FUNCTIE -------------------- */
-function renderFirebase(reservations) {
+function renderAll(firebaseRes, googleEvents) {
   const wrap = document.getElementById("reservations");
   wrap.innerHTML = "";
 
-  reservations.forEach(r => {
-    const fromDate = new Date(r.from);
-    const toDate = new Date(r.to);
+  // Combineer en groepeer per datum
+  const combined = [];
 
-    const card = document.createElement("div");
-    card.className = "card";
+  // Firebase events
+  firebaseRes.forEach(r => {
+    combined.push({
+      type: 'firebase',
+      date: new Date(r.from),
+      title: r.vehicle,
+      from: new Date(r.from),
+      to: new Date(r.to),
+      purpose: r.purpose,
+      persons: r.persons,
+      user: r.user
+    });
+  });
 
-    card.innerHTML = `
-      <div class="card-date">${fromDate.toLocaleDateString("nl-BE", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
-      <div class="card-header">${r.vehicle}</div>
-      <div class="card-body">
-        <div><span>Tijd:</span> ${fromDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${toDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-        <div><span>Doel:</span> ${r.purpose}</div>
-        <div><span>Personen:</span> ${r.persons}</div>
-        <div><span>Door:</span> ${r.user}</div>
-      </div>
-    `;
-    wrap.appendChild(card);
+  // Google Calendar events
+  googleEvents.forEach(e => {
+    combined.push({
+      type: 'google',
+      date: new Date(e.start.dateTime || e.start.date),
+      title: e.summary || 'Geen titel',
+      from: new Date(e.start.dateTime || e.start.date),
+      to: new Date(e.end.dateTime || e.end.date),
+      purpose: e.description || '',
+      persons: '-',
+      user: e.organizer?.displayName || 'Extern'
+    });
+  });
+
+  // Sorteer alles op starttijd
+  combined.sort((a,b) => a.from - b.from);
+
+  // Groepeer per datum
+  const grouped = {};
+  combined.forEach(ev => {
+    const dayKey = ev.from.toLocaleDateString("nl-BE");
+    if(!grouped[dayKey]) grouped[dayKey] = [];
+    grouped[dayKey].push(ev);
+  });
+
+  // Render per dag
+  Object.keys(grouped).forEach(date => {
+    const dayCard = document.createElement("div");
+    dayCard.className = "day-card";
+    dayCard.innerHTML = `<h2>${date}</h2>`;
+    grouped[date].forEach(ev => {
+      const card = document.createElement("div");
+      card.className = "event-card";
+      card.innerHTML = `
+        <div><span>Voertuig:</span> ${ev.title}</div>
+        <div><span>Tijd:</span> ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+        <div><span>Doel:</span> ${ev.purpose}</div>
+        <div><span>Personen:</span> ${ev.persons}</div>
+        <div><span>Door:</span> ${ev.user}</div>
+      `;
+      dayCard.appendChild(card);
+    });
+    wrap.appendChild(dayCard);
   });
 }
+
+/* -------------------- START GOOGLE API -------------------- */
+initGapi();
 </script>
 
 </body>
