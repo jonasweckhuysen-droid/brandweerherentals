@@ -11,77 +11,72 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
-/* Container */
+/* Basis styling voor mobielvriendelijk overzicht */
 .container {
-  max-width: 500px;
+  max-width: 600px;
   margin: auto;
   padding: 10px;
   font-family: sans-serif;
 }
-
-/* Header */
-.header-logo { height: 50px; }
-.header-right { text-align: right; }
-.header-datetime { font-size: 0.85em; color: #555; }
-
-/* Backlink */
+.header-logo {
+  height: 50px;
+}
+.header-right {
+  float: right;
+  text-align: right;
+}
+.header-datetime {
+  font-size: 0.85em;
+  color: #555;
+}
+.content {
+  margin-top: 20px;
+}
 .backlink {
   display: inline-block;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   text-decoration: none;
   color: #333;
   font-weight: bold;
 }
-
-/* Card styling */
 .card {
-  background: #f8f8f8;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
   margin-bottom: 15px;
+  background: #f8f8f8;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-.card-header { font-weight: bold; margin-bottom: 8px; font-size: 1.1em; }
-.card-body div { margin-bottom: 5px; }
-
-/* Buttons */
-.call-btn {
-  display: inline-block;
-  margin-top: 5px;
-  margin-right: 5px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #c71f1f;
-  color: #fff;
+.card-header {
   font-weight: bold;
-  cursor: pointer;
+  font-size: 1.1em;
+  margin-bottom: 5px;
 }
-.call-btn:hover { opacity: 0.9; }
-
-/* Form vehicle options stacked */
+.card-body div {
+  margin: 3px 0;
+}
 .vehicle-options label {
   display: block;
   margin-bottom: 5px;
-  font-weight: 500;
 }
-.vehicle-options input { margin-right: 8px; }
-
-/* Input styling */
-input[type="text"], input[type="number"], input[type="datetime-local"] {
+input, select, button {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
+  padding: 10px;
+  margin: 5px 0 10px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
-  box-sizing: border-box;
 }
-
-/* Mobile friendly */
-@media (max-width: 480px) {
-  .card { padding: 12px; }
-  .card-header { font-size: 1em; }
-  .call-btn { width: 100%; margin-bottom: 5px; }
+.call-btn {
+  background: #c71f1f;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+.call-btn:hover {
+  opacity: 0.9;
 }
 </style>
 </head>
@@ -104,11 +99,11 @@ input[type="text"], input[type="number"], input[type="datetime-local"] {
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
-    <h2>🚒 Nieuwe voertuigenaanvraag</h2>
+    <h2>🚒 Voertuigenreservatie</h2>
 
     <!-- RESERVATIE FORMULIER -->
     <div class="card">
-      <div class="card-header"><h3>Aanvraagformulier</h3></div>
+      <div class="card-header"><h3>Nieuwe aanvraag</h3></div>
       <div class="card-body">
         <label>Voertuig</label>
         <div class="vehicle-options">
@@ -134,7 +129,7 @@ input[type="text"], input[type="number"], input[type="datetime-local"] {
       </div>
     </div>
 
-    <h2>📅 Huidige reservaties</h2>
+    <h2>📅 Reservaties</h2>
     <div id="reservations"></div>
   </div>
 </div>
@@ -154,9 +149,10 @@ setInterval(() => {
 }, 1000);
 
 /* -------------------- FIREBASE INIT -------------------- */
-firebase.initializeApp({
+const firebaseConfig = {
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-});
+};
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* -------------------- SUBMIT RESERVATIE -------------------- */
@@ -165,10 +161,10 @@ document.getElementById("submitBtn").addEventListener("click", () => {
   const r = {
     user: currentUser,
     vehicle,
-    from: document.getElementById("from").value,
-    to: document.getElementById("to").value,
-    purpose: document.getElementById("purpose").value,
-    persons: document.getElementById("persons").value,
+    from: from.value,
+    to: to.value,
+    purpose: purpose.value,
+    persons: persons.value,
     status: "In afwachting",
     timestamp: Date.now()
   };
@@ -176,10 +172,10 @@ document.getElementById("submitBtn").addEventListener("click", () => {
     .then(() => {
       // Velden leegmaken
       document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
-      document.getElementById("from").value = "";
-      document.getElementById("to").value = "";
-      document.getElementById("purpose").value = "";
-      document.getElementById("persons").value = "";
+      from.value = "";
+      to.value = "";
+      purpose.value = "";
+      persons.value = "";
     })
     .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
 });
@@ -189,8 +185,7 @@ db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
   const reservations = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
-      .sort((a,b) => new Date(a.from) - new Date(b.from)) // chronologisch
-      .filter(r => isAdmin ? true : r.status === "Goedgekeurd");
+      .filter(r => isAdmin ? true : r.status === "Goedgekeurd"); // Admin ziet alles, gewone gebruikers alleen goedgekeurd
   renderFirebase(reservations);
 });
 
@@ -198,28 +193,38 @@ db.ref("reservations").on("value", snapshot => {
 function renderFirebase(reservations) {
   const wrap = document.getElementById("reservations");
   wrap.innerHTML = "";
-  reservations.forEach(r => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-header">${r.vehicle}</div>
-      <div class="card-body">
-        <div><strong>Van:</strong> ${r.from}</div>
-        <div><strong>Tot:</strong> ${r.to}</div>
-        <div><strong>Door:</strong> ${r.user}</div>
-        <div><strong>Doel:</strong> ${r.purpose}</div>
-        <div><strong>Personen:</strong> ${r.persons}</div>
-        <div><strong>Status:</strong> ${r.status}</div>
 
-        ${isAdmin ? `
-          ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}','Goedgekeurd')">✔ Goedkeuren</button>
-                                           <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}','Afgekeurd')">✖ Afkeuren</button>` : ""}
-          <button class="call-btn" style="background:#900" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>
-        ` : ""}
-      </div>
-    `;
-    wrap.appendChild(card);
-  });
+  reservations
+    .sort((a,b) => new Date(a.from) - new Date(b.from)) // Van vroeg naar laat
+    .forEach(r => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      // admin of eigenaar kan verwijderen
+      const canDelete = isAdmin || r.user === currentUser;
+
+      card.innerHTML = `
+        <div class="card-header">${r.vehicle}</div>
+        <div class="card-body">
+          <div><strong>Van:</strong> ${r.from}</div>
+          <div><strong>Tot:</strong> ${r.to}</div>
+          <div><strong>Door:</strong> ${r.user}</div>
+          <div><strong>Doel:</strong> ${r.purpose}</div>
+          <div><strong>Personen:</strong> ${r.persons}</div>
+          <div><strong>Status:</strong> ${r.status}</div>
+
+          ${isAdmin ? `
+            ${r.status === "In afwachting" ? `
+              <button class="call-btn" onclick="approveFirebase('${r.id}','Goedgekeurd')">✔ Goedkeuren</button>
+              <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}','Afgekeurd')">✖ Afkeuren</button>
+            ` : ""}
+          ` : ""}
+
+          ${canDelete ? `<button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>` : ""}
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
 }
 
 /* -------------------- APPROVE / REMOVE -------------------- */
@@ -232,5 +237,6 @@ function removeFirebase(id) {
   db.ref("reservations/" + id).remove();
 }
 </script>
+
 </body>
 </html>
