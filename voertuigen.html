@@ -6,13 +6,13 @@
 <title>Voertuigenreservatie</title>
 <link rel="stylesheet" href="style.css">
 
-<!-- Firebase compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Google API & Identity Services -->
 <script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -41,10 +41,10 @@
       <div class="card-body">
         <label>Voertuig</label>
         <div class="vehicle-options">
-          <label class="vehicle-check"><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
-          <label class="vehicle-check"><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
-          <label class="vehicle-check"><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
-          <label class="vehicle-check"><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
+          <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
+          <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
+          <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
+          <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
         </div>
 
         <label>Van</label>
@@ -66,22 +66,23 @@
     <h2>📅 Reservaties</h2>
     <div id="reservations" class="grid"></div>
   </div>
-
 </div>
 
 <script>
-// -------------------- GEBRUIKER --------------------
+/* -------------------- GEBRUIKER -------------------- */
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("userName").textContent = currentUser;
+
+/* -------------------- ADMIN CHECK -------------------- */
 const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
 const isAdmin = admins.includes(currentUser);
 
-// -------------------- DATETIME --------------------
+/* -------------------- DATETIME -------------------- */
 setInterval(() => {
   document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
 }, 1000);
 
-// -------------------- FIREBASE INIT --------------------
+/* -------------------- FIREBASE INIT -------------------- */
 const firebaseConfig = {
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 };
@@ -89,38 +90,36 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 console.log("✅ Firebase klaar");
 
-// -------------------- GOOGLE CALENDAR via GIS --------------------
-let tokenClient;
+/* -------------------- GOOGLE API INIT -------------------- */
 let gapiInited = false;
+let gapiAuthInstance = null;
 
 function initGapi() {
-  gapi.load('client', async () => {
+  gapi.load('client:auth2', async () => {
     await gapi.client.init({
       apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
-      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
+      clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+      scope: "https://www.googleapis.com/auth/calendar"
     });
+    gapiAuthInstance = gapi.auth2.getAuthInstance();
     gapiInited = true;
-    console.log("✅ GAPI ready");
+    console.log("✅ Google API klaar");
   });
 }
+initGapi();
 
-function initGIS() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
-    scope: 'https://www.googleapis.com/auth/calendar',
-    callback: (tokenResponse) => {
-      console.log("Access token ontvangen");
-    }
-  });
+/* -------------------- GOOGLE SIGN-IN -------------------- */
+async function googleSignIn() {
+  if (!gapiInited) return alert("Google API nog niet geladen");
+  const user = await gapiAuthInstance.signIn();
+  console.log("Ingelogd als:", user.getBasicProfile().getName());
 }
 
-function requestAccessToken() {
-  tokenClient.requestAccessToken();
-}
-
+/* -------------------- PUSH NAAR GOOGLE CALENDAR -------------------- */
 async function pushToGoogleCalendar(reservation){
-  if(!gapiInited) return console.warn("GAPI nog niet klaar");
-  if(!tokenClient) requestAccessToken();
+  if(!gapiInited) return console.warn("Google API nog niet klaar");
+  if(!gapiAuthInstance.isSignedIn.get()) await googleSignIn();
 
   const event = {
     summary: reservation.vehicle,
@@ -141,44 +140,45 @@ async function pushToGoogleCalendar(reservation){
   }
 }
 
-// -------------------- SUBMIT RESERVATIE --------------------
+/* -------------------- SUBMIT RESERVATIE -------------------- */
 document.getElementById("submitBtn").addEventListener("click", () => {
   const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
   const r = {
     user: currentUser,
     vehicle,
-    from: document.getElementById("from").value,
-    to: document.getElementById("to").value,
-    purpose: document.getElementById("purpose").value,
-    persons: document.getElementById("persons").value,
+    from: from.value,
+    to: to.value,
+    purpose: purpose.value,
+    persons: persons.value,
     status: "In afwachting",
     timestamp: Date.now()
   };
   db.ref("reservations").push(r)
     .then(() => {
+      // Velden leegmaken
       document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
-      document.getElementById("from").value = "";
-      document.getElementById("to").value = "";
-      document.getElementById("purpose").value = "";
-      document.getElementById("persons").value = "";
+      from.value = "";
+      to.value = "";
+      purpose.value = "";
+      persons.value = "";
     })
     .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
 });
 
-// -------------------- LIVE RENDER --------------------
+/* -------------------- LIVE RENDER VAN FIREBASE -------------------- */
 db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
   const reservations = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
-      .filter(r => new Date(r.to) >= new Date());
-  renderReservations(reservations);
+      .filter(r => new Date(r.to) >= new Date()); // alleen toekomstige
+  renderFirebase(reservations);
 });
 
-function renderReservations(reservations){
+/* -------------------- RENDER FUNCTIE -------------------- */
+function renderFirebase(reservations) {
   const wrap = document.getElementById("reservations");
   wrap.innerHTML = "";
   reservations.forEach(r => {
-    if(!isAdmin && r.user !== currentUser) return;
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
@@ -190,17 +190,19 @@ function renderReservations(reservations){
         <div><strong>Doel:</strong> ${r.purpose}</div>
         <div><strong>Personen:</strong> ${r.persons}</div>
         <div><strong>Status:</strong> ${r.status}</div>
+
         ${isAdmin ? `
-          ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}', 'Goedgekeurd')">✔ Goedkeuren</button>
-                                           <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}', 'Afgekeurd')">✖ Afkeuren</button>` : ""}
-          <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>` : ""}
+          ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}','Goedgekeurd')">✔ Goedkeuren</button>
+                                           <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}','Afgekeurd')">✖ Afkeuren</button>` : ""}
+          <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>
+        ` : ""}
       </div>
     `;
     wrap.appendChild(card);
   });
 }
 
-// -------------------- APPROVE / REMOVE --------------------
+/* -------------------- APPROVE / REMOVE -------------------- */
 function approveFirebase(id, status) {
   db.ref("reservations/" + id).update({ status })
     .then(() => {
@@ -218,10 +220,16 @@ function removeFirebase(id) {
   db.ref("reservations/" + id).remove();
 }
 
-// -------------------- INIT --------------------
-initGapi();
-initGIS();
-
+/* -------------------- WACHT TOT GIS CLIENT BESCHIKBAAR IS -------------------- */
+function waitForGIS() {
+  if (typeof google !== 'undefined' && google.accounts) {
+    console.log("✅ GIS client klaar");
+  } else {
+    setTimeout(waitForGIS, 100);
+  }
+}
+waitForGIS();
 </script>
+
 </body>
 </html>
