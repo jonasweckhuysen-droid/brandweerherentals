@@ -1,275 +1,144 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Portal</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire Crew – Permanentie</title>
 
-<link rel="manifest" href="/brandweerherentals/manifest.json">
-<meta name="theme-color" content="#c71f1f">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<style>
-#nameOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.92);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:10000;
-  color:#fff;
-  text-align:center;
-}
-.box{
-  background:#111;
-  padding:28px;
-  border-radius:16px;
-  max-width:360px;
-  width:100%;
-}
-input,button{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  margin-top:10px;
-}
-button{
-  background:#c71f1f;
-  color:#fff;
-  font-weight:700;
-}
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 16px;
-  background:#c71f1f;
-  color:#fff;
-}
-.header-left img{ height:60px; }
-.header-right div{ margin:2px 0; }
-footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 16px;
-}
-footer button{
-  background:#333;
-  padding:8px 14px;
-  font-size:14px;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-}
-</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="nameOverlay" style="display:none;">
-  <div class="box">
-    <h2>👤 Identificatie</h2>
-    <input id="nameInput" placeholder="Voornaam Achternaam">
-    <button id="saveName">Verder</button>
-    <small id="nameError" style="color:#ff6b6b;display:none;">
-      Naam niet herkend
-    </small>
-  </div>
-</div>
+<div class="container">
 
-<div class="container" style="display:none;" id="appContent">
-
-<header>
-  <div class="header-left">
-    <img src="logo.png">
-  </div>
-  <div class="header-right">
-    <div id="greeting"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
+<header id="appHeader">
+  <img src="logo.png" class="header-logo">
+  <div class="header-title">
+    <h1>Fire Crew</h1>
+    <small>Permanentie beheer</small>
   </div>
 </header>
 
-<main class="content">
-  <div class="grid" id="buttonGrid"></div>
-</main>
+<div class="content">
 
-<footer>
-  <div>Versie 1.2</div>
-  <button onclick="logout()">Uitloggen</button>
-</footer>
+  <div class="info-box">
+    <i class="fa-solid fa-circle-info"></i>
+    Dit systeem gebruikt een centrale personeelslijst.<br>
+    Alle namen en rollen worden automatisch gesynchroniseerd.
+  </div>
 
+  <a href="permanentieopgave.html" class="main-btn">
+    <i class="fa-solid fa-calendar-check"></i>
+    Permanentie ingeven
+  </a>
+
+  <a href="permanentie.html" class="secondary-btn">
+    <i class="fa-solid fa-eye"></i>
+    Bekijk planning
+  </a>
+
+</div>
 </div>
 
 <script>
-// ================= LINKS =================
-const links = {
-  agenda:{title:"Agenda",icon:"📅",desc:"Belangrijke data",url:"/brandweerherentals/agenda.html",roles:[]},
-  verdi:{title:"Verdi",icon:"📟",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},
-  abiweb:{title:"Abiweb",icon:"📚",desc:"Oefeningen",url:"https://abiweb.brandweerzonekempen.be/",roles:[]},
-  defect:{title:"Defectmelding",icon:"🔧",desc:"Meld defecten",url:"/brandweerherentals/defectmelding.html",roles:[]},
-  order:{title:"Bestelling",icon:"📦",desc:"Materiaal",url:"https://forms.cloud.microsoft/e/GjHr1Kym0w",roles:[]},
+/************ FIREBASE ************/
+firebase.initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+const db = firebase.database();
 
-  chauffeur:{title:"Chauffeur",icon:"🚒",desc:"Chauffeur info",url:"/brandweerherentals/chauffeur.html",roles:["chauffeur"]},
-  ambulance:{title:"Ambulance",icon:"🚑",desc:"Ambulancier info",url:"https://dgh.brandweerzonekempen.be",roles:["ambulancier"]},
-  duiker:{title:"Duikers",icon:"🤿",desc:"Duikteam",url:"/brandweerherentals/duiker.html",roles:["duiker"]},
-
-  logistiek:{title:"Logistiek",icon:"🛒",desc:"Transport",url:"https://form.jotform.com/230682691731055",roles:["chauffeur"]},
-
-  vehicle:{title:"Voertuigreservatie",icon:"🚒",desc:"Reservatie",url:"/brandweerherentals/voertuigen.html",roles:[]},
-
-  permanentie:{title:"Permanentie",icon:"🕒",desc:"Planning",url:"/brandweerherentals/permanentieopgave.html",roles:[]},
-  wespen:{title:"Wespen",icon:"🐝",desc:"Ploeg van dienst",url:"/brandweerherentals/wespen.html",roles:[]},
-  wegenwerken:{title:"Wegenwerken",icon:"🚧",desc:"Actuele info",url:"/brandweerherentals/wegenwerken.html",roles:[]},
-
-  admin:{title:"Admin",icon:"🛠️",desc:"Beheer",url:"/brandweerherentals/admin.html",roles:["admin"]}
+/************ PERSONEEL (PERMANENT) ************/
+const personeel = {
+  "Dirk Geens":["officier","bevelvoerder"],
+  "Sus Meulemans":["officier"],
+  "Gerry Verschueren":["officier"],
+  "Danny Van den Bergh":["officier","bevelvoerder","duiker","admin"],
+  "Bart Verbiest":["ambulancier"],
+  "Johan Peeters":["ambulancier"],
+  "Seffi Vleugels":["ambulancier"],
+  "Dries Boven":["bevelvoerder","chauffeur","brandweer"],
+  "Pedro Wallyn":["bevelvoerder","chauffeur","brandweer","duiker"],
+  "Bart Leten":["chauffeur","brandweer"],
+  "Steven Maes":["chauffeur","ambulancier","brandweer"],
+  "Bart Cools":["chauffeur","brandweer"],
+  "Joris Peeters":["brandweer"],
+  "Bram Addiers":["brandweer"],
+  "Robin Buyens":["chauffeur","brandweer","ambulancier"],
+  "Maarten Geerinckx":["brandweer"],
+  "Pieter Van Doninck":["brandweer"],
+  "Bart Govaerts":["bevelvoerder","brandweer"],
+  "Roel Dekort":["chauffeur","ambulancier","brandweer"],
+  "Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker","admin"],
+  "Luc Verwimp":["brandweer"],
+  "Kris Van Looveren":["brandweer"],
+  "Kurt Cools":["chauffeur","duiker","brandweer"],
+  "Simon Baeyens":["ambulancier","brandweer"],
+  "Mike Dillen":["brandweer"],
+  "Lies Van Peer":["brandweer"],
+  "Frank Verschueren":["bevelvoerder","chauffeur","brandweer"],
+  "Rudi Van den Bergh":["ambulancier","brandweer"],
+  "Patrick Van Hove":["ambulancier","brandweer","chauffeur","duiker","admin"],
+  "Patrick Veris":["brandweer"],
+  "Kris Hoeylaerts":["brandweer","chauffeur"],
+  "Noël Van Roy":["brandweer","chauffeur"],
+  "Ignas De Keyser":["brandweer"],
+  "Joris Nyssen":["brandweer"],
+  "Deuis Mulop":["brandweer"],
+  "Evy François":["brandweer"],
+  "Jan Laeremans":["bevelvoerder","brandweer"],
+  "Kristof Geens":["bevelvoerder","brandweer"],
+  "Vincent Leemans":["chauffeur","ambulancier","brandweer"],
+  "Sven Van Buren":["chauffeur","ambulancier","brandweer"],
+  "Jef Leysen":["brandweer","duiker"],
+  "Steven Vervloet":["chauffeur","brandweer"],
+  "Liese Meyskens":["chauffeur","brandweer"],
+  "Jens Van den Bruel":["brandweer"],
+  "Dries Van der Linden":["brandweer"],
+  "Thibo Van Doninck":["brandweer","ambulancier"],
+  "Emiel Luyten":["bevelvoerder","brandweer"],
+  "Jef Luyten":["bevelvoerder","ambulancier","brandweer"],
+  "Rutger Moons":["bevelvoerder","chauffeur","brandweer"],
+  "Philippe Hoeylaerts":["ambulancier","chauffeur","brandweer"],
+  "Gianni Cornelis":["ambulancier","chauffeur","brandweer"],
+  "Danny Van den Broeck":["chauffeur","brandweer"],
+  "Bart Boons":["ambulancier","duiker","brandweer"],
+  "Jochen Smolders":["brandweer"],
+  "Vincent Fassaert":["brandweer"],
+  "Alain Leemans":["brandweer","bevelvoerder","chauffeur","duiker"],
+  "Hans Van Thielen":["bevelvoerder","brandweer"],
+  "Joris Van Vracem":["ambulancier","brandweer","chauffeur"],
+  "Rik Goris":["ambulancier","chauffeur","brandweer"],
+  "Toon Vervoort":["brandweer"],
+  "Wannes Verhegge":["brandweer","duiker"],
+  "Christoph Verhaegen":["brandweer","chauffeur","ambulancier"],
+  "Robbe Vervecken":["ambulancier","brandweer","chauffeur"],
+  "Lander Mondelaers":["brandweer"],
+  "Evans Ocran":["brandweer"],
+  "Bob Debecker":["brandweer"]
 };
 
-// ================= PERSONEEL =================
-const personnel = {
-"Dirk Geens":["officier","bevelvoerder"],
-"Sus Meulemans":["officier"],
-"Gerry Verschueren":["officier"],
-"Danny Van den Bergh":["officier","bevelvoerder","duiker"],
-"Bart Verbiest":["ambulancier"],
-"Johan Peeters":["ambulancier"],
-"Seffi Vleugels":["ambulancier"],
-"Dries Boven":["bevelvoerder","chauffeur","brandweer"],
-"Pedro Wallyn":["bevelvoerder","chauffeur","brandweer","duiker"],
-"Bart Leten":["chauffeur","brandweer"],
-"Steven Maes":["chauffeur","ambulancier","brandweer"],
-"Bart Cools":["chauffeur","brandweer"],
-"Joris Peeters":["brandweer"],
-"Bram Addiers":["brandweer"],
-"Robin Buyens":["chauffeur","brandweer","ambulancier"],
-"Maarten Geerinckx":["brandweer"],
-"Pieter Van Doninck":["brandweer"],
-"Bart Govaerts":["bevelvoerder","brandweer"],
-"Roel Dekort":["chauffeur","ambulancier","brandweer"],
-"Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker"],
-"Luc Verwimp":["brandweer"],
-"Kris Van Looveren":["brandweer"],
-"Kurt Cools":["chauffeur","duiker","brandweer"],
-"Simon Baeyens":["ambulancier","brandweer"],
-"Mike Dillen":["brandweer"],
-"Lies Van Peer":["brandweer"],
-"Frank Verschueren":["bevelvoerder","chauffeur","brandweer"],
-"Rudi Van den Bergh":["ambulancier","brandweer"],
-"Patrick Van Hove":["ambulancier","brandweer","chauffeur","duiker"],
-"Patrick Veris":["brandweer"],
-"Kris Hoeylaerts":["brandweer","chauffeur"],
-"Noël Van Roy":["brandweer","chauffeur"],
-"Ignas De Keyser":["brandweer"],
-"Joris Nyssen":["brandweer"],
-"Deuis Mulop":["brandweer"],
-"Evy François":["brandweer"],
-"Jan Laeremans":["bevelvoerder","brandweer"],
-"Kristof Geens":["bevelvoerder","brandweer"],
-"Vincent Leemans":["chauffeur","ambulancier","brandweer"],
-"Sven Van Buren":["chauffeur","ambulancier","brandweer"],
-"Jef Leysen":["brandweer","duiker"],
-"Steven Vervloet":["chauffeur","brandweer"],
-"Liese Meyskens":["chauffeur","brandweer"],
-"Jens Van den Bruel":["brandweer"],
-"Dries Van der Linden":["brandweer"],
-"Thibo Van Doninck":["brandweer","ambulancier"],
-"Emiel Luyten":["bevelvoerder","brandweer"],
-"Jef Luyten":["bevelvoerder","ambulancier","brandweer"],
-"Rutger Moons":["bevelvoerder","chauffeur","brandweer"],
-"Philippe Hoeylaerts":["ambulancier","chauffeur","brandweer"],
-"Gianni Cornelis":["ambulancier","chauffeur","brandweer"],
-"Danny Van den Broeck":["chauffeur","brandweer"],
-"Bart Boons":["ambulancier","duiker","brandweer"],
-"Jochen Smolders":["brandweer"],
-"Vincent Fassaert":["brandweer"],
-"Alain Leemans":["brandweer","bevelvoerder","chauffeur","duiker"],
-"Hans Van Thielen":["bevelvoerder","brandweer"],
-"Joris Van Vracem":["ambulancier","brandweer","chauffeur"],
-"Rik Goris":["ambulancier","chauffeur","brandweer"],
-"Toon Vervoort":["brandweer"],
-"Wannes Verhegge":["brandweer","duiker"],
-"Christoph Verhaegen":["brandweer","chauffeur","ambulancier"],
-"Robbe Vervecken":["ambulancier","brandweer","chauffeur"],
-"Lander Mondelaers":["brandweer"],
-"Evans Ocran":["brandweer"],
-"Bob Debecker":["brandweer"]
-};
-
-// ================= ADMINS =================
-const adminNames = [
-  "jonas weckhuysen",
-  "patrick van hove",
-  "danny van den bergh"
-];
-
-// ================= HELPERS =================
-function normalizeName(name){
-  return name.trim().replace(/\s+/g," ").toLowerCase();
+/************ OPSLAAN IN FIREBASE ************/
+function normalize(name){
+  return name.toLowerCase().replace(/\s+/g," ").trim();
 }
 
-// ================= NORMALIZED PERSONNEL =================
-const personnelNormalized = {};
-Object.keys(personnel).forEach(n=>{
-  const key = normalizeName(n);
-  personnelNormalized[key] = [...personnel[n]];
-  if(adminNames.includes(key)){
-    personnelNormalized[key].push("admin");
-  }
+Object.keys(personeel).forEach(naam => {
+  const key = normalize(naam);
+  db.ref("users/" + key).set({
+    displayName: naam,
+    roles: personeel[naam],
+    permanentieCount: 0
+  });
 });
 
-// ================= LOGIN =================
-saveName.onclick = () => {
-  const name = normalizeName(nameInput.value);
-  if(!personnelNormalized[name]){
-    nameError.style.display="block";
-    return;
-  }
-  localStorage.setItem("userName", name);
-  location.reload();
-};
+console.log("✅ Alle personeelsleden zijn gesynchroniseerd");
 
-// ================= GRID =================
-function renderGrid(){
-  const roles = personnelNormalized[localStorage.getItem("userName")] || [];
-  const grid = document.getElementById("buttonGrid");
-  grid.innerHTML="";
-
-  Object.values(links)
-    .sort((a,b)=>a.title.localeCompare(b.title,"nl"))
-    .forEach(l=>{
-      if(l.roles.length && !l.roles.some(r=>roles.includes(r))) return;
-      const a=document.createElement("a");
-      a.className="btn";
-      a.href=l.url;
-      a.innerHTML=`<div class="icon">${l.icon}</div><div><div>${l.title}</div><small>${l.desc}</small></div>`;
-      grid.appendChild(a);
-    });
-}
-
-// ================= LOGOUT =================
-function logout(){
-  localStorage.removeItem("userName");
-  location.reload();
-}
-
-// ================= START =================
-window.addEventListener("DOMContentLoaded",()=>{
-  if(!localStorage.getItem("userName")){
-    nameOverlay.style.display="flex";
-    return;
-  }
-  appContent.style.display="block";
-  renderGrid();
-});
 </script>
 
-<script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
-
-
-
