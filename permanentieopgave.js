@@ -4,20 +4,13 @@ firebase.initializeApp({
 });
 const db = firebase.database();
 
-/************ GEBRUIKERS & ROLLEN ************/
-const rollen = {
-  "Jan Peeters": "chauffeur",
-  "Tom Janssens": "bevelvoerder",
-  "Bram Verhoeven": "brandweerman",
-  "Lisa Maes": "stagiair"
-};
+/************ INGelogde gebruiker ************/
+const userKey = localStorage.getItem("userName"); // genormaliseerde naam
 
-const rolIconen = {
-  chauffeur: "fa-truck",
-  bevelvoerder: "fa-user-tie",
-  brandweerman: "fa-fire",
-  stagiair: "fa-graduation-cap"
-};
+if (!userKey) {
+  alert("Niet ingelogd");
+  location.href = "index.html";
+}
 
 /************ DATUMLOGICA ************/
 const vandaag = new Date();
@@ -25,7 +18,7 @@ const huidigeDag = vandaag.getDate();
 const huidigeMaand = vandaag.getMonth();
 const huidigeJaar = vandaag.getFullYear();
 
-// DOELMAAND = MAAND + 2 (vanaf 16de)
+// LOGICA: 16 maand 1 → 15 maand 2 = maand 3
 let doelMaand = huidigeDag >= 16 ? huidigeMaand + 2 : huidigeMaand + 1;
 let doelJaar = huidigeJaar;
 if (doelMaand > 11) {
@@ -34,22 +27,21 @@ if (doelMaand > 11) {
 }
 
 document.getElementById("doelMaand").innerText =
-  new Date(doelJaar, doelMaand).toLocaleDateString("nl-BE", { month: "long", year: "numeric" });
+  new Date(doelJaar, doelMaand).toLocaleDateString("nl-BE", {
+    month: "long",
+    year: "numeric"
+  });
 
 document.getElementById("periodeTitel").innerText =
   `Planning ${new Date(doelJaar, doelMaand).toLocaleDateString("nl-BE", { month: "long" })}`;
 
-/************ FEESTDAGEN (voorbeeld) ************/
-const feestdagen = [
-  "01-01","01-05","21-07","15-08","01-11","11-11","25-12"
-];
+/************ FEESTDAGEN ************/
+const feestdagen = ["01-01","01-05","21-07","15-08","01-11","11-11","25-12"];
 
-/************ HULPFUNCTIES ************/
 function isFeestdag(d) {
   const key = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}`;
   return feestdagen.includes(key);
 }
-
 function isWeekend(d) {
   return d.getDay() === 0 || d.getDay() === 6;
 }
@@ -69,37 +61,57 @@ for (let d = 1; d <= 31; d++) {
     <div class="dag-header">
       ${datum.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"})}
     </div>
-
-    <div class="dag-inhoud" id="dag-${d}">
-      <button class="btn-ik-kan" onclick="opgeven('${datum.toISOString()}')">
+    <div class="dag-inhoud">
+      <button class="btn-ik-kan" data-datum="${datum.toISOString()}">
         <i class="fa-solid fa-check"></i> Ik ben beschikbaar
       </button>
     </div>
   `;
 
+  kaart.querySelector("button").onclick = () =>
+    opgeven(datum.toISOString(), kaart);
+
   dagenContainer.appendChild(kaart);
 }
 
-/************ OPSLAAN ************/
-function opgeven(datumISO) {
-  const naam = prompt("Geef je naam in");
-  if (!rollen[naam]) {
-    alert("Naam niet gekend");
-    return;
-  }
+/************ OPSLAAN BESCHIKBAARHEID ************/
+function opgeven(datumISO, kaart) {
 
-  db.ref("permanenties/beschikbaar").push({
-    naam,
-    rol: rollen[naam],
-    datum: datumISO
+  // haal gebruiker + rollen op uit firebase
+  db.ref("users/" + userKey).once("value", snap => {
+
+    if (!snap.exists()) {
+      alert("Gebruiker niet gevonden");
+      return;
+    }
+
+    const user = snap.val();
+
+    db.ref("permanenties/beschikbaar").push({
+      userKey,
+      naam: user.displayName,
+      rollen: user.roles,
+      datum: datumISO,
+      timestamp: Date.now()
+    });
+
+    // visuele feedback
+    kaart.querySelector(".dag-inhoud").innerHTML = `
+      <div class="ingevuld">
+        <i class="fa-solid fa-circle-check"></i>
+        Beschikbaar opgegeven
+      </div>
+    `;
   });
 }
 
 /************ AUTOMATISCHE PLANNING ************/
 function maakPlanning() {
+
   const maandKey = `${doelJaar}-${String(doelMaand+1).padStart(2,"0")}`;
 
   db.ref("permanenties/beschikbaar").once("value", snap => {
+
     const data = Object.values(snap.val() || {});
     const perDag = {};
 
@@ -109,13 +121,19 @@ function maakPlanning() {
     });
 
     Object.keys(perDag).forEach(datumISO => {
+
       const kandidaten = perDag[datumISO];
 
+      // sorteer op minst aantal permanenties
+      kandidaten.sort((a,b) =>
+        (a.permanentieCount || 0) - (b.permanentieCount || 0)
+      );
+
       const ploeg = {
-        chauffeur: kandidaten.find(k => k.rol==="chauffeur")?.naam || "",
-        bevelvoerder: kandidaten.find(k => k.rol==="bevelvoerder")?.naam || "",
-        brandweermannen: kandidaten.filter(k => k.rol==="brandweerman").slice(0,4).map(b => b.naam),
-        stagiair: kandidaten.find(k => k.rol==="stagiair")?.naam || ""
+        bevelvoerder: kandidaten.find(k => k.rollen.includes("bevelvoerder"))?.naam || "",
+        chauffeur: kandidaten.find(k => k.rollen.includes("chauffeur"))?.naam || "",
+        brandweer: kandidaten.filter(k => k.rollen.includes("brandweer")).slice(0,4).map(b => b.naam),
+        ambulancier: kandidaten.find(k => k.rollen.includes("ambulancier"))?.naam || ""
       };
 
       const dagKey = datumISO.split("T")[0];
@@ -126,6 +144,6 @@ function maakPlanning() {
       });
     });
 
-    alert("Planning is aangemaakt en gepubliceerd");
+    alert("✅ Planning is aangemaakt");
   });
 }
