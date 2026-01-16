@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Init Personeel</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; padding: 50px; }
+h1 { color: #c71f1f; }
+button { padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; background: #c71f1f; color: #fff; cursor: pointer; }
+pre { text-align: left; background: #222; color: #0f0; padding: 16px; border-radius: 12px; overflow-x: auto; max-width: 800px; margin: 20px auto; }
+</style>
+</head>
+<body>
+
+<h1>Init Personeel Firebase</h1>
+<p>Klik op de knop om alle namen + functies in Firebase te zetten.</p>
+<button id="startInit">Start Init</button>
+
+<pre id="log"></pre>
+
+<script>
+// ================= FIREBASE CONFIG =================
+firebase.initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+const db = firebase.database();
+
+// ================= PERSONEEL =================
+const personeel = {
+"Dirk Geens":["officier","bevelvoerder"],
+"Sus Meulemans":["officier"],
+"Gerry Verschueren":["officier"],
+"Danny Van den Bergh":["officier","bevelvoerder","duiker","admin"],
+"Bart Verbiest":["ambulancier"],
+"Johan Peeters":["ambulancier"],
+"Seffi Vleugels":["ambulancier"],
+"Dries Boven":["bevelvoerder","chauffeur","brandweer"],
+"Pedro Wallyn":["bevelvoerder","chauffeur","brandweer","duiker"],
+"Bart Leten":["chauffeur","brandweer"],
+"Steven Maes":["chauffeur","ambulancier","brandweer"],
+"Bart Cools":["chauffeur","brandweer"],
+"Joris Peeters":["brandweer"],
+"Bram Addiers":["brandweer"],
+"Robin Buyens":["chauffeur","brandweer","ambulancier"],
+"Maarten Geerinckx":["brandweer"],
+"Pieter Van Doninck":["brandweer"],
+"Bart Govaerts":["bevelvoerder","brandweer"],
+"Roel Dekort":["chauffeur","ambulancier","brandweer"],
+"Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker","admin"],
+"Luc Verwimp":["brandweer"],
+"Kris Van Looveren":["brandweer"],
+"Kurt Cools":["chauffeur","duiker","brandweer"],
+"Simon Baeyens":["ambulancier","brandweer"],
+"Mike Dillen":["brandweer"],
+"Lies Van Peer":["brandweer"],
+"Frank Verschueren":["bevelvoerder","chauffeur","brandweer"],
+"Rudi Van den Bergh":["ambulancier","brandweer"],
+"Patrick Van Hove":["ambulancier","brandweer","chauffeur","duiker","admin"],
+"Patrick Veris":["brandweer"],
+"Kris Hoeylaerts":["brandweer","chauffeur"],
+"Noël Van Roy":["brandweer","chauffeur"],
+"Ignas De Keyser":["brandweer"],
+"Joris Nyssen":["brandweer"],
+"Deuis Mulop":["brandweer"],
+"Evy François":["brandweer"],
+"Jan Laeremans":["bevelvoerder","brandweer"],
+"Kristof Geens":["bevelvoerder","brandweer"],
+"Vincent Leemans":["chauffeur","ambulancier","brandweer"],
+"Sven Van Buren":["chauffeur","ambulancier","brandweer"],
+"Jef Leysen":["brandweer","duiker"],
+"Steven Vervloet":["chauffeur","brandweer"],
+"Liese Meyskens":["chauffeur","brandweer"],
+"Jens Van den Bruel":["brandweer"],
+"Dries Van der Linden":["brandweer"],
+"Thibo Van Doninck":["brandweer","ambulancier"],
+"Emiel Luyten":["bevelvoerder","brandweer"],
+"Jef Luyten":["bevelvoerder","ambulancier","brandweer"],
+"Rutger Moons":["bevelvoerder","chauffeur","brandweer"],
+"Philippe Hoeylaerts":["ambulancier","chauffeur","brandweer"],
+"Gianni Cornelis":["ambulancier","chauffeur","brandweer"],
+"Danny Van den Broeck":["chauffeur","brandweer"],
+"Bart Boons":["ambulancier","duiker","brandweer"],
+"Jochen Smolders":["brandweer"],
+"Vincent Fassaert":["brandweer"],
+"Alain Leemans":["brandweer","bevelvoerder","chauffeur","duiker"],
+"Hans Van Thielen":["bevelvoerder","brandweer"],
+"Joris Van Vracem":["ambulancier","brandweer","chauffeur"],
+"Rik Goris":["ambulancier","chauffeur","brandweer"],
+"Toon Vervoort":["brandweer"],
+"Wannes Verhegge":["brandweer","duiker"],
+"Christoph Verhaegen":["brandweer","chauffeur","ambulancier"],
+"Robbe Vervecken":["ambulancier","brandweer","chauffeur"],
+"Lander Mondelaers":["brandweer"],
+"Evans Ocran":["brandweer"],
+"Bob Debecker":["brandweer"]
+};
+
+// ================= HELPERS =================
+function normalize(name){
+  return name.toLowerCase().replace(/\s+/g," ").trim();
+}
+
+// ================= INIT SCRIPT =================
+document.getElementById("startInit").onclick = async () => {
+  const log = document.getElementById("log");
+  log.textContent = "Start upload...\n";
+
+  for(const naam of Object.keys(personeel)){
+    const key = normalize(naam);
+    await db.ref("users/" + key).set({
+      displayName: naam,
+      roles: personeel[naam],
+      permanentieCount: 0
+    });
+    log.textContent += `✅ ${naam} geplaatst\n`;
+  }
+
+  log.textContent += "\n🎉 Klaar! Alle personeel staat nu in Firebase.";
+};
+</script>
+
+</body>
+</html>
