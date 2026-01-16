@@ -9,21 +9,21 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <style>
 /* Container & header */
-.container{max-width:900px;margin:auto;padding:10px;font-family:sans-serif;}
+body{margin:0;padding:0;font-family:sans-serif;background:#f9f9f9;}
+.container{max-width:900px;margin:auto;padding:10px;}
+#appHeader{background:#d32f2f;padding:10px 15px;border-radius:8px 8px 0 0;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
 .header-logo{height:50px;}
-.header-right{float:right;text-align:right;}
 .header-datetime{font-size:0.85em;color:#fff;}
-#appHeader{background:#d32f2f;padding:10px 15px;border-radius:8px 8px 0 0;color:#fff;margin-bottom:10px;}
 .backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
 .content h2{margin-top:0;}
 
-/* Dag blok */
+/* Kalender dag blok */
 .day-block{border-radius:8px;background:#ffe5e0;margin-bottom:15px;padding:10px;border-left:6px solid #d32f2f;}
 .day-date{font-weight:bold;font-size:1.2em;margin-bottom:5px;color:#d32f2f;}
 
 /* Rol regels */
-.role-row{display:flex;align-items:center;margin:2px 0;padding:2px 4px;border-radius:5px;background:#f2f2f2;}
-.role-row span.icon{width:30px;text-align:center;margin-right:5px;}
+.role-row{display:flex;align-items:center;margin:3px 0;padding:5px 8px;border-radius:5px;background:#f2f2f2;}
+.role-row span.icon{width:30px;text-align:center;margin-right:8px;font-size:1.2em;}
 .role-row span.name{font-weight:bold;}
 .role-row.chauffeur{background:#FF9800;color:#fff;}
 .role-row.bevelvoerder{background:#4CAF50;color:#fff;}
@@ -31,8 +31,19 @@
 .role-row.stagiair{background:#9C27B0;color:#fff;}
 
 /* Buttons */
-.call-btn{margin-top:5px;padding:5px 10px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.call-btn{margin-top:5px;padding:10px 15px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:1em;width:100%;}
 .call-btn:hover{background:#1976d2;}
+
+/* Rol selectie */
+#roleSelection{margin-bottom:15px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.2);}
+#roleSelect{font-size:1em;padding:8px;width:100%;margin-top:5px;border-radius:5px;border:1px solid #ccc;}
+
+/* Mobiel responsiveness */
+@media(max-width:600px){
+  .day-block{padding:8px;}
+  .role-row{font-size:0.9em;padding:5px;}
+  .call-btn{font-size:0.95em;padding:8px;}
+}
 </style>
 </head>
 <body>
@@ -54,19 +65,21 @@
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
     <h2>🧑‍🚒 Permanentie Opgave</h2>
     <p>Periode voor doorgeven beschikbaarheid: <span id="periodeText"></span> voor de maand <span id="maandText"></span></p>
-    <div id="calendar"></div>
 
-    <div id="roleSelection" style="margin-top:15px;display:none;">
-      <label>Rol:</label>
+    <!-- Rol selectie direct boven kalender -->
+    <div id="roleSelection">
+      <label for="roleSelect">Kies uw rol:</label>
       <select id="roleSelect">
         <option value="chauffeur">🚗 Chauffeur</option>
         <option value="bevelvoerder">🧑‍✈️ Bevelvoerder</option>
         <option value="brandweerman">🔥 Brandweerman</option>
         <option value="stagiair">👶 Stagiair</option>
       </select>
-      <button class="call-btn" id="submitRoleBtn">Doorgeven</button>
+      <button class="call-btn" id="submitRoleBtn">Beschikbaarheid doorgeven</button>
+      <p id="selectedDateText" style="margin-top:5px;font-size:0.9em;color:#555;"></p>
     </div>
 
+    <div id="calendar"></div>
   </div>
 </div>
 
@@ -134,14 +147,14 @@ function renderCalendar(){
     calendarDiv.appendChild(dayDiv);
 
     if(isAvailable(dateStr)){
+      dayDiv.style.cursor='pointer';
       dayDiv.addEventListener('click', ()=>{
         selectedDate=dateStr;
-        document.getElementById('roleSelection').style.display='block';
+        document.getElementById('selectedDateText').textContent=`Geselecteerde datum: ${current.getDate()}/${current.getMonth()+1}`;
       });
     } else {
       dayDiv.style.opacity=0.5;
     }
-
     current.setDate(current.getDate()+1);
   }
 }
@@ -150,9 +163,13 @@ renderCalendar();
 /* -------------------- BESCHIKBAARHEID DOORGEVEN -------------------- */
 document.getElementById('submitRoleBtn').addEventListener('click', ()=>{
   const role=document.getElementById('roleSelect').value;
-  if(!selectedDate) return;
+  if(!selectedDate) return alert('Kies eerst een datum!');
   db.ref('permanencies/'+selectedDate).push({user:currentUser,role,timestamp:Date.now()})
-    .then(()=>{alert('Rol doorgegeven'); selectedDate=null; document.getElementById('roleSelection').style.display='none';})
+    .then(()=>{
+      alert('Rol doorgegeven!');
+      selectedDate=null;
+      document.getElementById('selectedDateText').textContent='';
+    })
     .catch(err=>console.error(err));
 });
 
