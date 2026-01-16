@@ -7,12 +7,8 @@
 <link rel="stylesheet" href="style.css">
 
 <!-- Firebase compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -33,148 +29,58 @@
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
-    <h2>📅 Agenda Voertuigen</h2>
-    <div id="agenda-error" class="hidden"></div>
-    <div id="agenda-loading">Even geduld…</div>
-    <div id="agenda" class="agenda-list"></div>
+    <h2>📅 Goedgekeurde Voertuigenreservaties</h2>
+    <div id="reservations" class="grid"></div>
   </div>
-
 </div>
 
 <script>
-// -------------------- GEBRUIKER --------------------
+/* -------------------- GEBRUIKER -------------------- */
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("userName").textContent = currentUser;
-const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-const isAdmin = admins.includes(currentUser);
 
-// -------------------- DATETIME --------------------
+/* -------------------- DATETIME -------------------- */
 setInterval(() => {
   document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
 }, 1000);
 
-// -------------------- FIREBASE INIT --------------------
+/* -------------------- FIREBASE INIT -------------------- */
 const firebaseConfig = {
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-console.log("✅ Firebase klaar");
+console.log("✅ Firebase klaar voor agenda");
 
-// -------------------- GOOGLE CALENDAR via GIS --------------------
-let tokenClient;
-let gapiInited = false;
-
-function initGapi() {
-  gapi.load('client', async () => {
-    await gapi.client.init({
-      apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
-      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
-    });
-    gapiInited = true;
-    console.log("✅ GAPI ready");
-  });
-}
-
-function initGIS() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
-    scope: 'https://www.googleapis.com/auth/calendar',
-    callback: (tokenResponse) => {
-      console.log("Access token ontvangen");
-    }
-  });
-}
-
-function requestAccessToken() {
-  tokenClient.requestAccessToken();
-}
-
-async function pushToGoogleCalendar(reservation){
-  if(!gapiInited) return console.warn("GAPI nog niet klaar");
-  if(!tokenClient) requestAccessToken();
-
-  const event = {
-    summary: reservation.vehicle,
-    description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
-    start: { dateTime: new Date(reservation.from).toISOString() },
-    end: { dateTime: new Date(reservation.to).toISOString() },
-    reminders: { useDefault: true }
-  };
-
-  try {
-    await gapi.client.calendar.events.insert({
-      calendarId: 'primary',
-      resource: event
-    });
-    console.log("✔ Reservatie naar Google Calendar gepusht:", reservation.vehicle);
-  } catch(err){
-    console.error("⚠️ Fout bij push:", err);
-  }
-}
-
-// -------------------- LIVE AGENDA --------------------
-const agendaWrap = document.getElementById("agenda");
+/* -------------------- LIVE RENDER VAN GOEDGEKEURDE RESERVATIES -------------------- */
 db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
   const reservations = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
-      .filter(r => new Date(r.to) >= new Date())
-      .sort((a,b) => new Date(a.from) - new Date(b.from));
-
-  renderAgenda(reservations);
+      .filter(r => r.status === "Goedgekeurd" && new Date(r.to) >= new Date()); // alleen goedgekeurd en toekomstige
+  renderFirebase(reservations);
 });
 
-function renderAgenda(reservations){
-  agendaWrap.innerHTML = "";
-  if(reservations.length === 0){
-    agendaWrap.innerHTML = "<p>Geen toekomstige reservaties.</p>";
-    return;
-  }
-
+/* -------------------- RENDER FUNCTIE -------------------- */
+function renderFirebase(reservations) {
+  const wrap = document.getElementById("reservations");
+  wrap.innerHTML = "";
   reservations.forEach(r => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
       <div class="card-header"><h3>${r.vehicle}</h3></div>
       <div class="card-body">
-        <div><strong>Van:</strong> ${new Date(r.from).toLocaleString("nl-BE")}</div>
-        <div><strong>Tot:</strong> ${new Date(r.to).toLocaleString("nl-BE")}</div>
+        <div><strong>Van:</strong> ${r.from}</div>
+        <div><strong>Tot:</strong> ${r.to}</div>
         <div><strong>Door:</strong> ${r.user}</div>
         <div><strong>Doel:</strong> ${r.purpose}</div>
         <div><strong>Personen:</strong> ${r.persons}</div>
-        <div><strong>Status:</strong> ${r.status}</div>
-        ${isAdmin ? `
-          ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}', 'Goedgekeurd')">✔ Goedkeuren</button>
-                                           <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}', 'Afgekeurd')">✖ Afkeuren</button>` : ""}
-          <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>` : ""}
       </div>
     `;
-    agendaWrap.appendChild(card);
+    wrap.appendChild(card);
   });
 }
-
-// -------------------- ADMIN FUNCTIES --------------------
-function approveFirebase(id, status){
-  db.ref("reservations/" + id).update({ status })
-    .then(() => {
-      if(status === "Goedgekeurd"){
-        db.ref("reservations/" + id).once("value", snap => {
-          const r = snap.val();
-          if(r) pushToGoogleCalendar(r);
-        });
-      }
-    });
-}
-
-function removeFirebase(id){
-  if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
-  db.ref("reservations/" + id).remove();
-}
-
-// -------------------- INIT --------------------
-initGapi();
-initGIS();
 </script>
 
 </body>
