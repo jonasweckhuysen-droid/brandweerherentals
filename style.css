@@ -413,5 +413,39 @@
   background: white;
 }
 
+.info-box {
+  background:#ffe9c7;
+  padding:15px;
+  border-radius:16px;
+  margin-bottom:20px;
+}
 
+.dag-kaart {
+  background:#fff;
+  border-radius:20px;
+  margin-bottom:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+
+.dag-header {
+  background:#c30000;
+  color:white;
+  padding:12px;
+  border-radius:20px 20px 0 0;
+  font-weight:bold;
+}
+
+.dag-inhoud {
+  padding:15px;
+}
+
+.btn-ik-kan {
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#1e8f3d;
+  color:white;
+  font-size:16px;
+}
 
