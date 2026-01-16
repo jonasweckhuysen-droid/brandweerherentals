@@ -1,278 +1,42 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Permanenties</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permanentie Planning</title>
 
-<link rel="stylesheet" href="/brandweerherentals/style.css">
-<script src="/brandweerherentals/header.js" defer></script>
-
-<!-- Font Awesome -->
+<link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
-  authDomain: "post-herentals.firebaseapp.com",
-  projectId: "post-herentals",
-  storageBucket: "post-herentals.appspot.com",
-  messagingSenderId: "762725561089",
-  appId: "1:762725561089:web:38c46cc8cf44d624252100"
-};
-
-const app = initializeApp(firebaseConfig);
-window.db = getFirestore(app);
-</script>
-
-<style>
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* ===== HEADER IDENTIEK AAN INDEX ===== */
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 16px;
-  background:#c71f1f;
-  color:#fff;
-  border-radius:18px 18px 0 0;
-}
-
-.header-left img{
-  height:60px;
-}
-
-.header-right div{
-  margin:2px 0;
-}
-
-/* ===== CONTENT ===== */
-.page-content {
-  padding:22px;
-}
-
-.backlink {
-  color:#c71f1f;
-  font-weight:bold;
-  text-decoration:none;
-  display:inline-block;
-  margin-bottom:22px;
-}
-
-.permanentie-card {
-  background:#f7f7f7;
-  border-radius:14px;
-  padding:18px;
-  margin-bottom:22px;
-  box-shadow:0 3px 6px rgba(0,0,0,.12);
-}
-
-.permanentie-card h3 {
-  color:#c71f1f;
-  margin-bottom:14px;
-}
-
-.permanentie-list {
-  list-style:none;
-  padding:0;
-  margin:0;
-}
-
-.permanentie-list li {
-  display:grid;
-  grid-template-columns: 34px 200px 1fr;
-  align-items:start;
-  gap:8px;
-  padding:8px 10px;
-  border-radius:6px;
-  background:#fff;
-  margin-bottom:4px;
-}
-
-@media(max-width:600px){
-  .permanentie-list li {
-    grid-template-columns: 30px 160px 1fr;
-  }
-}
-
-.checkbox-person {
-  transform:scale(1.3);
-  margin-top:4px;
-}
-
-.functie {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-weight:600;
-}
-
-.naam {
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-
-.aanwezig-lijst {
-  display:flex;
-  flex-wrap:wrap;
-  gap:4px;
-}
-
-.aanwezig-badge {
-  font-size:.7rem;
-  background:#c71f1f;
-  color:#fff;
-  padding:2px 6px;
-  border-radius:6px;
-}
-
-/* STAGIAIR+ */
-.stagiair-plus {
-  background:#fff2cc !important;
-  border-left:5px solid #f0b400;
-}
-
-.stagiair-badge {
-  font-size:.7rem;
-  background:#f0b400;
-  color:#fff;
-  padding:2px 6px;
-  border-radius:6px;
-}
-</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
 
 <div class="container">
 
-<!-- ===== HEADER (IDENTIEK AAN INDEX) ===== -->
 <header id="appHeader">
   <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" class="header-logo">
+    <img src="logo.png" class="header-logo">
   </div>
   <div class="header-right">
-    <div id="greeting"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
+    <div class="header-greeting">Permanentie</div>
+    <div class="header-name">Planning</div>
   </div>
 </header>
 
-<div class="page-content">
-  <a href="/brandweerherentals/" class="backlink">← Terug</a>
-  <div id="permanentieContainer"></div>
-</div>
+<div class="content">
+
+<a href="index.html" class="backlink">
+  <span class="arrow">←</span> Terug
+</a>
+
+<div id="planningContainer"></div>
 
 </div>
+</div>
 
-<script type="module">
-import {
-  doc, setDoc, onSnapshot, collection, query, where
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const container = document.getElementById('permanentieContainer');
-const gebruikersNaam = "Jonas";
-
-const stagiairPlusNamen = [
-  "Lies Van Peer",
-  "Dries Van der Linden",
-  "Jochen Smolders",
-  "Evi François"
-];
-
-const functieIconen = {
-  Bevelvoerder: "fa-user-shield",
-  chauffeur: "fa-truck",
-  brandweerman: "fa-fire-extinguisher",
-  "warme stagiair": "fa-user-graduate"
-};
-
-fetch('/brandweerherentals/permanentie.json')
-.then(r=>r.json())
-.then(data=>{
-  const today=new Date(); today.setHours(0,0,0,0);
-
-  data.dagen.forEach(dag=>{
-    const d=new Date(dag.datum);
-    if(d<today) return;
-
-    const card=document.createElement('div');
-    card.className='permanentie-card';
-
-    const dateStr=d.toLocaleDateString('nl-BE',{weekday:'long',day:'2-digit',month:'long'});
-    let html=`<h3>${dateStr}</h3><ul class="permanentie-list">`;
-
-    dag.diensten.forEach(p=>{
-      const baseId=`${dag.datum}_${p.functie}_${p.naam.replaceAll(' ','_')}`;
-      const isStagiairPlus=stagiairPlusNamen.includes(p.naam);
-      const icon=functieIconen[p.functie]||"fa-user";
-
-      html+=`
-      <li class="${isStagiairPlus?'stagiair-plus':''}">
-        <input type="checkbox" class="checkbox-person" id="${baseId}">
-        <span class="functie">
-          <i class="fa-solid ${icon}"></i> ${p.functie}
-        </span>
-        <span class="naam">
-          ${p.naam || '<em>Vrij</em>'}
-          ${isStagiairPlus?'<span class="stagiair-badge">Stagiair+</span>':''}
-          <div class="aanwezig-lijst" id="lijst_${baseId}"></div>
-        </span>
-      </li>`;
-    });
-
-    html+='</ul>';
-    card.innerHTML=html;
-    container.appendChild(card);
-
-    dag.diensten.forEach(p=>{
-      const baseId=`${dag.datum}_${p.functie}_${p.naam.replaceAll(' ','_')}`;
-      const checkbox=document.getElementById(baseId);
-      const lijst=document.getElementById(`lijst_${baseId}`);
-
-      const q=query(
-        collection(db,"permanentieAanwezigheden"),
-        where("baseId","==",baseId),
-        where("aanwezig","==",true)
-      );
-
-      onSnapshot(q,snap=>{
-        lijst.innerHTML='';
-        snap.forEach(d=>{
-          const b=document.createElement('span');
-          b.className='aanwezig-badge';
-          b.textContent=d.data().naam;
-          lijst.appendChild(b);
-        });
-      });
-
-      const ref=doc(db,"permanentieAanwezigheden",`${baseId}_${gebruikersNaam}`);
-
-      onSnapshot(ref,s=>{
-        if(s.exists()) checkbox.checked=s.data().aanwezig;
-      });
-
-      checkbox.addEventListener('change',()=>{
-        setDoc(ref,{
-          baseId,
-          naam:gebruikersNaam,
-          aanwezig:checkbox.checked,
-          ts:Date.now()
-        });
-      });
-    });
-  });
-});
-</script>
-
+<script src="permanentie.js"></script>
 </body>
 </html>
