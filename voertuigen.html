@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voertuigenreservatie</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://apis.google.com/js/api.js"></script>
 <script type="module">
   // --- Firebase SDK import ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -16,8 +17,8 @@
   };
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  window.firebaseDB = db; // globaal beschikbaar
 
-  window.firebaseDB = db; // globaal beschikbaar voor scripts
   console.log("✅ Firebase klaar");
 
   // --- Google API init ---
@@ -66,7 +67,6 @@
           console.error("⚠️ Fout bij push:", err);
       }
   }
-
 </script>
 </head>
 <body>
@@ -93,12 +93,24 @@
       <div class="card-header"><h3>Nieuwe aanvraag</h3></div>
       <div class="card-body">
         <label>Voertuig</label>
-        <select id="vehicle">
-          <option>Caddy S542</option>
-          <option>Galaxy S541</option>
-          <option>Personeelsbus S545</option>
-          <option>Camionette L543</option>
-        </select>
+        <div id="vehicleRadios">
+          <label class="radio-container">Caddy S542
+            <input type="radio" name="vehicle" value="Caddy S542" checked>
+            <span class="checkmark"></span>
+          </label>
+          <label class="radio-container">Galaxy S541
+            <input type="radio" name="vehicle" value="Galaxy S541">
+            <span class="checkmark"></span>
+          </label>
+          <label class="radio-container">Personeelsbus S545
+            <input type="radio" name="vehicle" value="Personeelsbus S545">
+            <span class="checkmark"></span>
+          </label>
+          <label class="radio-container">Camionette L543
+            <input type="radio" name="vehicle" value="Camionette L543">
+            <span class="checkmark"></span>
+          </label>
+        </div>
 
         <label>Van</label>
         <input type="datetime-local" id="from">
@@ -123,26 +135,23 @@
 </div>
 
 <script type="module">
-  // -------------------- GEBRUIKER --------------------
   const currentUser = localStorage.getItem("userName") || "Onbekend";
   document.getElementById("userName").textContent = currentUser;
-
-  // -------------------- ADMIN CHECK --------------------
   const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
   const isAdmin = admins.includes(currentUser);
 
-  // -------------------- DATETIME --------------------
   setInterval(() => {
       document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
   }, 1000);
 
   const reservationsRef = ref(window.firebaseDB, "reservations");
 
-  // -------------------- SUBMIT --------------------
+  // --- submit ---
   document.getElementById("submitBtn").addEventListener("click", () => {
+      const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
       const r = {
           user: currentUser,
-          vehicle: vehicle.value,
+          vehicle,
           from: from.value,
           to: to.value,
           purpose: purpose.value,
@@ -153,21 +162,21 @@
       push(reservationsRef, r)
           .then(() => {
               // Velden leegmaken
-              vehicle.selectedIndex = 0;
+              document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
               from.value = "";
               to.value = "";
               purpose.value = "";
               persons.value = "";
-              console.log("✔ Reservatie opgeslagen in Firebase");
           })
           .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
   });
 
-  // -------------------- LIVE RENDER --------------------
-  import { onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+  // --- live render met filter voor verlopen ---
   onValue(reservationsRef, snapshot => {
       const data = snapshot.val() || {};
-      const reservations = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      const reservations = Object.keys(data)
+          .map(key => ({ id: key, ...data[key] }))
+          .filter(r => new Date(r.to) >= new Date()); // alleen toekomstige reserveringen
       renderFirebase(reservations);
   });
 
@@ -202,12 +211,11 @@
       });
   }
 
-  // -------------------- APPROVE / DELETE --------------------
-  function approveFirebase(id, status) {
+  // --- approve / delete ---
+  window.approveFirebase = function(id, status) {
       const rRef = ref(window.firebaseDB, "reservations/" + id);
       update(rRef, { status })
           .then(() => {
-              console.log(`✔ Reservatie ${status}`);
               if(status === "Goedgekeurd"){
                   get(rRef).then(snapshot => {
                       const r = snapshot.val();
@@ -218,7 +226,7 @@
           .catch(err => console.error("⚠️ Fout bij update:", err));
   }
 
-  function removeFirebase(id) {
+  window.removeFirebase = function(id) {
       if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
       const rRef = ref(window.firebaseDB, "reservations/" + id);
       remove(rRef).then(()=>console.log("🗑 Reservatie verwijderd"));
