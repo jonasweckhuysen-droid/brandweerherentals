@@ -66,6 +66,22 @@
 </div>
 
 <script>
+  console.log("OAuth init test");
+gapi.load('client:auth2', async () => {
+  try {
+    await gapi.client.init({
+      apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
+      clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+      scope: "https://www.googleapis.com/auth/calendar"
+    });
+    const authInstance = gapi.auth2.getAuthInstance();
+    console.log("✅ GAPI ready, signed in:", authInstance.isSignedIn.get());
+  } catch(err) {
+    console.error("❌ GAPI init failed", err);
+  }
+});
+
 // -------------------- GEBRUIKER --------------------
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("userName").textContent = currentUser;
