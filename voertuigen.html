@@ -20,6 +20,7 @@
       <div class="header-greeting">Welkom</div>
       <div class="header-name" id="userName"></div>
       <div class="header-datetime" id="datetime"></div>
+      <button id="googleSignInBtn" class="call-btn" style="margin-top:5px;">Sign in met Google</button>
     </div>
   </header>
 
@@ -65,124 +66,6 @@
 </div>
 
 <script src="agenda.js"></script>
-<script>
-// -------------------- GEBRUIKER --------------------
-const currentUser = localStorage.getItem("userName") || "Onbekend";
-document.getElementById("userName").textContent = currentUser;
-
-// -------------------- ADMIN CHECK --------------------
-const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-const isAdmin = admins.includes(currentUser);
-
-// -------------------- DATETIME --------------------
-setInterval(()=>{
-  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
-},1000);
-
-// -------------------- DATA --------------------
-let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
-
-// -------------------- SUBMIT --------------------
-function submitReservation() {
-  const r = {
-    id: Date.now(),
-    user: currentUser,
-    vehicle: vehicle.value,
-    from: from.value,
-    to: to.value,
-    purpose: purpose.value,
-    persons: persons.value,
-    status: "In afwachting"
-  };
-  reservations.push(r);
-  save();
-  render();
-}
-
-// -------------------- SAVE --------------------
-function save() {
-  localStorage.setItem("reservations", JSON.stringify(reservations));
-}
-
-// -------------------- APPROVE --------------------
-function approve(id, status) {
-  reservations = reservations.map(r => r.id === id ? { ...r, status } : r);
-  save();
-  render();
-
-  // Als goedgekeurd, voeg toe aan agenda.html via localStorage
-  if(status === "Goedgekeurd") {
-    const approved = reservations.find(r=>r.id===id);
-    if(approved){
-      let agenda = JSON.parse(localStorage.getItem("agendaEvents")) || [];
-      // Voeg alleen toe als nog niet aanwezig
-      if(!agenda.some(e=>e.id===approved.id)){
-        agenda.push(approved);
-        localStorage.setItem("agendaEvents", JSON.stringify(agenda));
-      }
-
-      // Optioneel: push naar Google Calendar
-      if(typeof pushToGoogleCalendar === "function"){
-        pushToGoogleCalendar(approved);
-      }
-    }
-  }
-}
-
-// -------------------- DELETE RESERVATION --------------------
-function deleteReservation(id){
-  if(!isAdmin) return;
-  reservations = reservations.filter(r => r.id !== id);
-  save();
-  render();
-  
-  // Verwijder ook uit agenda
-  let agenda = JSON.parse(localStorage.getItem("agendaEvents")) || [];
-  agenda = agenda.filter(r => r.id !== id);
-  localStorage.setItem("agendaEvents", JSON.stringify(agenda));
-}
-
-// -------------------- RENDER --------------------
-function render() {
-  const wrap = document.getElementById("reservations");
-  wrap.innerHTML = "";
-
-  reservations.forEach(r => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <div class="card-header">
-        <h3>${r.vehicle}</h3>
-      </div>
-      <div class="card-body">
-        <div><strong>Van:</strong> ${r.from}</div>
-        <div><strong>Tot:</strong> ${r.to}</div>
-        <div><strong>Door:</strong> ${r.user}</div>
-        <div><strong>Doel:</strong> ${r.purpose}</div>
-        <div><strong>Personen:</strong> ${r.persons}</div>
-        <div><strong>Status:</strong> ${r.status}</div>
-
-        ${
-          isAdmin && r.status === "In afwachting"
-          ? `<button class="call-btn" onclick="approve(${r.id}, 'Goedgekeurd')">✔ Goedkeuren & push</button>
-             <button class="call-btn" style="background:#444" onclick="approve(${r.id}, 'Afgekeurd')">✖ Afkeuren</button>`
-          : ""
-        }
-
-        ${
-          isAdmin && r.status === "Goedgekeurd"
-          ? `<button class="call-btn" style="background:#900" onclick="deleteReservation(${r.id})">🗑 Verwijderen</button>`
-          : ""
-        }
-      </div>
-    `;
-    wrap.appendChild(card);
-  });
-}
-
-render();
-</script>
-
+<script src="voertuigen.js"></script>
 </body>
 </html>
