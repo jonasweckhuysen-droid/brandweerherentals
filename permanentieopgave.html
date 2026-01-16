@@ -4,221 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Permanentie Opgave</title>
+
 <link rel="stylesheet" href="style.css">
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-<style>
-/* Container & header */
-body{margin:0;padding:0;font-family:sans-serif;background:#f9f9f9;}
-.container{max-width:900px;margin:auto;padding:10px;}
-#appHeader{background:#d32f2f;padding:10px 15px;border-radius:8px 8px 0 0;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.header-logo{height:50px;}
-.header-datetime{font-size:0.85em;color:#fff;}
-.backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
-.content h2{margin-top:0;}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-/* Kalender dag blok */
-.day-block{border-radius:8px;background:#ffe5e0;margin-bottom:15px;padding:10px;border-left:6px solid #d32f2f;}
-.day-date{font-weight:bold;font-size:1.2em;margin-bottom:5px;color:#d32f2f;}
-
-/* Rol regels */
-.role-row{display:flex;align-items:center;margin:3px 0;padding:5px 8px;border-radius:5px;background:#f2f2f2;}
-.role-row span.icon{width:30px;text-align:center;margin-right:8px;font-size:1.2em;}
-.role-row span.name{font-weight:bold;}
-.role-row.chauffeur{background:#FF9800;color:#fff;}
-.role-row.bevelvoerder{background:#4CAF50;color:#fff;}
-.role-row.brandweerman{background:#f44336;color:#fff;}
-.role-row.stagiair{background:#9C27B0;color:#fff;}
-
-/* Buttons */
-.call-btn{margin-top:5px;padding:10px 15px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:1em;width:100%;}
-.call-btn:hover{background:#1976d2;}
-
-/* Rol selectie */
-#roleSelection{margin-bottom:15px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.2);}
-#roleSelect{font-size:1em;padding:8px;width:100%;margin-top:5px;border-radius:5px;border:1px solid #ccc;}
-
-/* Mobiel responsiveness */
-@media(max-width:600px){
-  .day-block{padding:8px;}
-  .role-row{font-size:0.9em;padding:5px;}
-  .call-btn{font-size:0.95em;padding:8px;}
-}
-</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
+
 <body>
 
 <div class="container">
 
-  <header id="appHeader">
-    <div class="header-left">
-      <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
-    </div>
-    <div class="header-right">
-      <div class="header-greeting">Welkom</div>
-      <div class="header-name" id="userName"></div>
-      <div class="header-datetime" id="datetime"></div>
-    </div>
-  </header>
-
-  <div class="content">
-    <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
-    <h2>🧑‍🚒 Permanentie Opgave</h2>
-    <p>Periode voor doorgeven beschikbaarheid: <span id="periodeText"></span> voor de maand <span id="maandText"></span></p>
-
-    <!-- Rol selectie direct boven kalender -->
-    <div id="roleSelection">
-      <label for="roleSelect">Kies uw rol:</label>
-      <select id="roleSelect">
-        <option value="chauffeur">🚗 Chauffeur</option>
-        <option value="bevelvoerder">🧑‍✈️ Bevelvoerder</option>
-        <option value="brandweerman">🔥 Brandweerman</option>
-        <option value="stagiair">👶 Stagiair</option>
-      </select>
-      <button class="call-btn" id="submitRoleBtn">Beschikbaarheid doorgeven</button>
-      <p id="selectedDateText" style="margin-top:5px;font-size:0.9em;color:#555;"></p>
-    </div>
-
-    <div id="calendar"></div>
+<header id="appHeader">
+  <div class="header-left">
+    <img src="logo.png" class="header-logo">
   </div>
+  <div class="header-right">
+    <div class="header-greeting">Permanentie</div>
+    <div class="header-name" id="periodeTitel"></div>
+  </div>
+</header>
+
+<div class="content">
+
+  <div id="infoBox" class="info-box">
+    <i class="fa-solid fa-circle-info"></i>
+    Geef je beschikbaarheid op voor <b id="doelMaand"></b><br>
+    <small>Periode: 16 → 15</small>
+  </div>
+
+  <div id="dagenContainer"></div>
+
+</div>
 </div>
 
-<script>
-/* -------------------- GEBRUIKER -------------------- */
-const currentUser = localStorage.getItem("userName") || "Onbekend";
-document.getElementById("userName").textContent = currentUser;
-const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-const isAdmin = admins.includes(currentUser);
-
-/* -------------------- DATETIME -------------------- */
-setInterval(() => {
-  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
-}, 1000);
-
-/* -------------------- FIREBASE -------------------- */
-const firebaseConfig = {databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-/* -------------------- FEESTDAGEN & SCHOOLVAKANTIES -------------------- */
-const belgischeFeestdagen = ["2026-01-01","2026-04-06","2026-05-01","2026-05-14","2026-05-25","2026-07-21","2026-08-15","2026-11-01","2026-11-11","2026-12-25"];
-const schoolVakanties = [
-  {start:"2026-02-16",end:"2026-02-20"},
-  {start:"2026-04-06",end:"2026-04-17"},
-  {start:"2026-07-01",end:"2026-08-31"},
-  {start:"2026-10-26",end:"2026-10-30"},
-  {start:"2026-12-21",end:"2027-01-03"}
-];
-
-function isAvailable(dateStr){
-  const date = new Date(dateStr);
-  const day = date.getDay();
-  if(day === 0 || day === 6) return false;
-  if(belgischeFeestdagen.includes(dateStr)) return false;
-  for(const v of schoolVakanties){if(dateStr >= v.start && dateStr <= v.end) return false;}
-  return true;
-}
-
-/* -------------------- PERIODE TEKST -------------------- */
-const today = new Date();
-// 16e huidige maand
-const periodeStart = new Date(today.getFullYear(), today.getMonth(),16);
-// 15e volgende maand
-const periodeEnd = new Date(today.getFullYear(), today.getMonth()+1,15);
-// De maand waarvoor permanentie wordt opgegeven = maand na volgende maand
-const permanentieMonth = new Date(today.getFullYear(), today.getMonth()+2,1);
-document.getElementById("periodeText").textContent = `${periodeStart.getDate()}/${periodeStart.getMonth()+1} tot ${periodeEnd.getDate()}/${periodeEnd.getMonth()+1}`;
-document.getElementById("maandText").textContent = permanentieMonth.toLocaleString('nl-NL',{month:'long'});
-
-/* -------------------- KALENDER -------------------- */
-const calendarDiv = document.getElementById("calendar");
-function pad(n){return n<10?'0'+n:n;}
-let selectedDate=null;
-
-function renderCalendar(){
-  calendarDiv.innerHTML='';
-  let current = new Date(permanentieMonth.getFullYear(), permanentieMonth.getMonth(),1);
-  const lastDay = new Date(permanentieMonth.getFullYear(), permanentieMonth.getMonth()+1,0);
-  while(current <= lastDay){
-    const dateStr = `${current.getFullYear()}-${pad(current.getMonth()+1)}-${pad(current.getDate())}`;
-    const dayDiv = document.createElement('div');
-    dayDiv.className='day-block';
-    dayDiv.innerHTML=`<div class="day-date">${current.getDate()}/${current.getMonth()+1}</div><div id="day-${dateStr}"></div>`;
-    calendarDiv.appendChild(dayDiv);
-
-    if(isAvailable(dateStr)){
-      dayDiv.style.cursor='pointer';
-      dayDiv.addEventListener('click', ()=>{
-        selectedDate=dateStr;
-        document.getElementById('selectedDateText').textContent=`Geselecteerde datum: ${current.getDate()}/${current.getMonth()+1}`;
-      });
-    } else {
-      dayDiv.style.opacity=0.5;
-    }
-    current.setDate(current.getDate()+1);
-  }
-}
-renderCalendar();
-
-/* -------------------- BESCHIKBAARHEID DOORGEVEN -------------------- */
-document.getElementById('submitRoleBtn').addEventListener('click', ()=>{
-  const role=document.getElementById('roleSelect').value;
-  if(!selectedDate) return alert('Kies eerst een datum!');
-  db.ref('permanencies/'+selectedDate).push({user:currentUser,role,timestamp:Date.now()})
-    .then(()=>{
-      alert('Rol doorgegeven!');
-      selectedDate=null;
-      document.getElementById('selectedDateText').textContent='';
-    })
-    .catch(err=>console.error(err));
-});
-
-/* -------------------- TEAMS RENDEREN -------------------- */
-function renderTeams(){
-  db.ref('permanencies').on('value', snap=>{
-    const data = snap.val() || {};
-    for(const dateStr in data){
-      const dayDiv = document.getElementById(`day-${dateStr}`);
-      if(dayDiv){
-        dayDiv.innerHTML=''; // leegmaken
-        Object.values(data[dateStr]).forEach(p=>{
-          const row = document.createElement('div');
-          row.className='role-row '+p.role;
-          let icon='';
-          if(p.role==='chauffeur') icon='🚗';
-          if(p.role==='bevelvoerder') icon='🧑‍✈️';
-          if(p.role==='brandweerman') icon='🔥';
-          if(p.role==='stagiair') icon='👶';
-          row.innerHTML=`<span class="icon">${icon}</span><span class="name">${p.user}</span>`;
-          dayDiv.appendChild(row);
-        });
-
-        // admin button
-        if(isAdmin){
-          const btn=document.createElement('button');
-          btn.className='call-btn';
-          btn.textContent='✏️ Wijzig';
-          btn.onclick=()=>editDay(dateStr);
-          dayDiv.appendChild(btn);
-        }
-      }
-    }
-  });
-}
-renderTeams();
-
-/* -------------------- ADMIN WIJZIGEN -------------------- */
-function editDay(dateStr){
-  db.ref('permanencies/'+dateStr).once('value').then(snap=>{
-    const users = snap.val() || {};
-    Object.keys(users).forEach(k=>{
-      const u=users[k];
-      let newName=prompt(`Nieuwe naam voor ${u.role}`, u.user);
-      if(newName) db.ref(`permanencies/${dateStr}/${k}/user`).set(newName);
-    });
-  });
-}
-</script>
-
+<script src="permanentieopgave.js"></script>
 </body>
 </html>
