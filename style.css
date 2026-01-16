@@ -448,4 +448,31 @@
   color:white;
   font-size:16px;
 }
+.planning-kaart {
+  background:#fff;
+  border-radius:20px;
+  margin-bottom:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
 
+.planning-datum {
+  background:#c30000;
+  color:white;
+  padding:14px;
+  font-weight:bold;
+  border-radius:20px 20px 0 0;
+}
+
+.planning-rij {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 15px;
+  border-bottom:1px solid #eee;
+}
+
+.planning-rij i {
+  width:24px;
+  text-align:center;
+  color:#c30000;
+}
