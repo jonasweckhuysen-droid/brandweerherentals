@@ -97,6 +97,8 @@ function opgeven(datumISO) {
 
 /************ AUTOMATISCHE PLANNING ************/
 function maakPlanning() {
+  const maandKey = `${doelJaar}-${String(doelMaand+1).padStart(2,"0")}`;
+
   db.ref("permanenties/beschikbaar").once("value", snap => {
     const data = Object.values(snap.val() || {});
     const perDag = {};
@@ -106,17 +108,24 @@ function maakPlanning() {
       perDag[e.datum].push(e);
     });
 
-    Object.keys(perDag).forEach(datum => {
-      const kandidaten = perDag[datum];
+    Object.keys(perDag).forEach(datumISO => {
+      const kandidaten = perDag[datumISO];
 
       const ploeg = {
-        chauffeur: kandidaten.find(k => k.rol==="chauffeur"),
-        bevelvoerder: kandidaten.find(k => k.rol==="bevelvoerder"),
-        brandweermannen: kandidaten.filter(k => k.rol==="brandweerman").slice(0,4),
-        stagiair: kandidaten.find(k => k.rol==="stagiair")
+        chauffeur: kandidaten.find(k => k.rol==="chauffeur")?.naam || "",
+        bevelvoerder: kandidaten.find(k => k.rol==="bevelvoerder")?.naam || "",
+        brandweermannen: kandidaten.filter(k => k.rol==="brandweerman").slice(0,4).map(b => b.naam),
+        stagiair: kandidaten.find(k => k.rol==="stagiair")?.naam || ""
       };
 
-      db.ref("permanenties/planning").push({ datum, ploeg });
+      const dagKey = datumISO.split("T")[0];
+
+      db.ref(`permanenties/planning/${maandKey}/${dagKey}`).set({
+        datum: dagKey,
+        ploeg
+      });
     });
+
+    alert("Planning is aangemaakt en gepubliceerd");
   });
 }
