@@ -9,6 +9,10 @@
 <meta name="theme-color" content="#c71f1f">
 <link rel="stylesheet" href="style.css">
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
 #nameOverlay{
   position:fixed;
@@ -105,7 +109,13 @@ footer button{
 </div>
 
 <script>
-// ================= LINKS =================
+/**************** FIREBASE ****************/
+firebase.initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+const db = firebase.database();
+
+/**************** LINKS ****************/
 const links = {
   agenda:{title:"Agenda",icon:"📅",desc:"Belangrijke data",url:"/brandweerherentals/agenda.html",roles:[]},
   verdi:{title:"Verdi",icon:"📟",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},
@@ -117,51 +127,74 @@ const links = {
   admin:{title:"Admin",icon:"🛠️",desc:"Beheer",url:"/brandweerherentals/admin.html",roles:["admin"]}
 };
 
-// ================= LOGIN =================
-saveName.onclick = () => {
-  const name = nameInput.value.trim().toLowerCase();
-  if(!name){
-    nameError.style.display="block";
-    return;
-  }
-  localStorage.setItem("userName", name);
-  location.reload();
-};
-
-// ================= GRID =================
-function renderGrid(){
-  const grid = document.getElementById("buttonGrid");
-  grid.innerHTML="";
-  Object.values(links)
-    .sort((a,b)=>a.title.localeCompare(b.title,"nl"))
-    .forEach(l=>{
-      const a=document.createElement("a");
-      a.className="btn";
-      a.href=l.url;
-      a.innerHTML=`
-        <div class="icon">${l.icon}</div>
-        <div>
-          <div>${l.title}</div>
-          <small>${l.desc}</small>
-        </div>
-      `;
-      grid.appendChild(a);
-    });
+/**************** HELPERS ****************/
+function normalizeName(name){
+  return name.trim().replace(/\s+/g," ").toLowerCase();
 }
 
-// ================= LOGOUT =================
+/**************** LOGIN ****************/
+saveName.onclick = () => {
+  const name = normalizeName(nameInput.value);
+
+  db.ref("users/" + name).once("value", snap => {
+    if (!snap.exists()) {
+      nameError.style.display = "block";
+      return;
+    }
+
+    localStorage.setItem("userName", name);
+    location.reload();
+  });
+};
+
+/**************** GRID ****************/
+function renderGrid(){
+  const userKey = localStorage.getItem("userName");
+
+  db.ref("users/" + userKey).once("value", snap => {
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+    const roles = data.roles || [];
+
+    greeting.innerText = `Welkom ${data.displayName}`;
+
+    const grid = document.getElementById("buttonGrid");
+    grid.innerHTML = "";
+
+    Object.values(links)
+      .sort((a,b)=>a.title.localeCompare(b.title,"nl"))
+      .forEach(l=>{
+        if(l.roles.length && !l.roles.some(r=>roles.includes(r))) return;
+
+        const a=document.createElement("a");
+        a.className="btn";
+        a.href=l.url;
+        a.innerHTML=`
+          <div class="icon">${l.icon}</div>
+          <div>
+            <div>${l.title}</div>
+            <small>${l.desc}</small>
+          </div>
+        `;
+        grid.appendChild(a);
+      });
+  });
+}
+
+/**************** LOGOUT ****************/
 function logout(){
   localStorage.removeItem("userName");
   location.reload();
 }
 
-// ================= DATETIME =================
+/**************** DATETIME ****************/
 setInterval(()=>{
   document.getElementById("datetime").innerText =
     new Date().toLocaleString("nl-BE");
 },1000);
 
-// ================= START =================
+/**************** START ****************/
 window.addEventListener("DOMContentLoaded",()=>{
   if(!localStorage.getItem("userName")){
     nameOverlay.style.display="flex";
