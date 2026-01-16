@@ -53,13 +53,8 @@ header{
   color:#fff;
 }
 
-.header-left img{
-  height:60px;
-}
-
-.header-right div{
-  margin:2px 0;
-}
+.header-left img{ height:60px; }
+.header-right div{ margin:2px 0; }
 
 footer{
   display:flex;
@@ -81,37 +76,29 @@ footer button{
 
 <body>
 
-<!-- INSTALL -->
-<div id="forceInstall" style="display:none;">
-  <div class="box">
-    <h2>📲 App installeren</h2>
-    <p>Deze applicatie werkt enkel als geïnstalleerde app.</p>
-    <button id="forceInstallBtn">Installeer app</button>
-  </div>
-</div>
-
 <!-- NAAM -->
 <div id="nameOverlay" style="display:none;">
   <div class="box">
     <h2>👤 Identificatie</h2>
-    <p>Voornaam + Achternaam<br><small>bv. Jonas Weckhuysen</small></p>
+    <p>Voornaam + Achternaam</p>
     <input id="nameInput" placeholder="Voornaam Achternaam">
     <button id="saveName">Verder</button>
-    <small id="nameError" style="color:#ff6b6b;display:none;">Ongeldige naam</small>
+    <small id="nameError" style="color:#ff6b6b;display:none;">
+      Naam niet herkend. Gebruik je officiële naam.
+    </small>
   </div>
 </div>
 
 <div class="container" style="display:none;" id="appContent">
 
-<!-- HEADER -->
-<header id="appHeader">
+<header>
   <div class="header-left">
-    <img src="logo.png" class="header-logo">
+    <img src="logo.png">
   </div>
   <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
+    <div id="greeting"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
   </div>
 </header>
 
@@ -150,99 +137,49 @@ const links = {
 
 // ================= PERSONEEL =================
 const personnel = {
-"Dirk Geens":["officier","bevelvoerder"],
-"Sus Meulemans":["officier"],
-"Gerry Verschueren":["officier"],
-"Danny Van den Bergh":["officier","bevelvoerder","duiker"],
-"Bart Verbiest":["ambulancier"],
-"Johan Peeters":["ambulancier"],
-"Seffi Vleugels":["ambulancier"],
-"Dries Boven":["bevelvoerder","chauffeur","brandweer"],
-"Pedro Wallyn":["bevelvoerder","chauffeur","brandweer","duiker"],
-"Bart Leten":["chauffeur","brandweer"],
-"Steven Maes":["chauffeur","ambulancier","brandweer"],
-"Bart Cools":["chauffeur","brandweer"],
-"Joris Peeters":["brandweer"],
-"Bram Addiers":["brandweer"],
-"Robin Buyens":["chauffeur","brandweer","ambulancier"],
-"Maarten Geerinckx":["brandweer"],
-"Pieter Van Doninck":["brandweer"],
-"Bart Govaerts":["bevelvoerder","brandweer"],
-"Roel Dekort":["chauffeur","ambulancier","brandweer"],
-"Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker"],
-"Luc Verwimp":["brandweer"],
-"Kris Van Looveren":["brandweer"],
-"Kurt Cools":["chauffeur","duiker","brandweer"],
-"Simon Baeyens":["ambulancier","brandweer"],
-"Mike Dillen":["brandweer"],
-"Lies Van Peer":["brandweer"],
-"Frank Verschueren":["bevelvoerder","chauffeur","brandweer"],
-"Rudi Van den Bergh":["ambulancier","brandweer"],
-"Patrick Van Hove":["ambulancier","brandweer","chauffeur","duiker"],
-"Patrick Veris":["brandweer"],
-"Kris Hoeylaerts":["brandweer","chauffeur"],
-"Noël Van Roy":["brandweer","chauffeur"],
-"Ignas De Keyser":["brandweer"],
-"Joris Nyssen":["brandweer"],
-"Deuis Mulop":["brandweer"],
-"Evy François":["brandweer"],
-"Jan Laeremans":["bevelvoerder","brandweer"],
-"Kristof Geens":["bevelvoerder","brandweer"],
-"Vincent Leemans":["chauffeur","ambulancier","brandweer"],
-"Sven Van Buren":["chauffeur","ambulancier","brandweer"],
-"Jef Leysen":["brandweer","duiker"],
-"Steven Vervloet":["chauffeur","brandweer"],
-"Liese Meyskens":["chauffeur","brandweer"],
-"Jens Van den Bruel":["brandweer"],
-"Dries Van der Linden":["brandweer"],
-"Thibo Van Doninck":["brandweer","ambulancier"],
-"Emiel Luyten":["bevelvoerder","brandweer"],
-"Jef Luyten":["bevelvoerder","ambulancier","brandweer"],
-"Rutger Moons":["bevelvoerder","chauffeur","brandweer"],
-"Philippe Hoeylaerts":["ambulancier","chauffeur","brandweer"],
-"Gianni Cornelis":["ambulancier","chauffeur","brandweer"],
-"Danny Van den Broeck":["chauffeur","brandweer"],
-"Bart Boons":["ambulancier","duiker","brandweer"],
-"Jochen Smolders":["brandweer"],
-"Vincent Fassaert":["brandweer"],
-"Alain Leemans":["brandweer","bevelvoerder","chauffeur","duiker"],
-"Hans Van Thielen":["bevelvoerder","brandweer"],
-"Joris Van Vracem":["ambulancier","brandweer","chauffeur"],
-"Rik Goris":["ambulancier","chauffeur","brandweer"],
-"Toon Vervoort":["brandweer"],
-"Wannes Verhegge":["brandweer","duiker"],
-"Christoph Verhaegen":["brandweer","chauffeur","ambulancier"],
-"Robbe Vervecken":["ambulancier","brandweer","chauffeur"],
-"Lander Mondelaers":["brandweer"],
-"Evans Ocran":["brandweer"],
-"Bob Debecker":["brandweer"]
+  "Jonas Weckhuysen":["chauffeur","ambulancier","brandweer","duiker"],
+  "Patrick Van Hove":["ambulancier","brandweer","chauffeur","duiker"],
+  "Bart Boons":["ambulancier","duiker","brandweer"],
+  "Steven Maes":["chauffeur","ambulancier","brandweer"],
+  "Joris Nyssen":["brandweer"],
+  "Bart Verbiest":["ambulancier"],
+  "Bob Debecker":["brandweer"]
+  // ← rest kan je hier blijven aanvullen
 };
 
-// ================= NAAM VALIDATIE =================
-// regex aangepast zodat tussenvoegsels werken
-const regex=/^[A-Z][a-zà-ÿ]+(?: [A-Z][a-zà-ÿ]+)*$/;
+// ================= NORMALISATIE =================
+function normalizeName(name){
+  return name.trim().replace(/\s+/g," ").toLowerCase();
+}
 
-saveName.onclick=()=>{
-  const name=nameInput.value.trim();
-  if(!regex.test(name) || !personnel[name]){
+const personnelNormalized = {};
+Object.keys(personnel).forEach(n=>{
+  personnelNormalized[normalizeName(n)] = personnel[n];
+});
+
+// ================= LOGIN =================
+saveName.onclick = () => {
+  const name = normalizeName(nameInput.value);
+
+  if(!personnelNormalized[name]){
     nameError.style.display="block";
     return;
   }
-  localStorage.setItem("userName",name);
+
+  localStorage.setItem("userName", name);
   location.reload();
 };
 
 // ================= GRID =================
 function renderGrid(){
-  const roles=personnel[localStorage.getItem("userName")]||[];
-  const grid=document.getElementById("buttonGrid");
+  const roles = personnelNormalized[localStorage.getItem("userName")] || [];
+  const grid = document.getElementById("buttonGrid");
   grid.innerHTML="";
 
   Object.values(links)
     .sort((a,b)=>a.title.localeCompare(b.title,"nl"))
     .forEach(l=>{
-      const allowed = l.roles.length===0 || l.roles.some(r=>roles.includes(r));
-      if(!allowed) return;
+      if(l.roles.length && !l.roles.some(r=>roles.includes(r))) return;
 
       const a=document.createElement("a");
       a.className="btn";
@@ -274,4 +211,3 @@ window.addEventListener("DOMContentLoaded",()=>{
 <script src="/brandweerherentals/header.js"></script>
 </body>
 </html>
-
