@@ -1,156 +1,107 @@
-/* -------------------- GEBRUIKER -------------------- */
-const currentUser = window.currentUser;
-const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-const isAdmin = admins.includes(currentUser);
+const currentUser = localStorage.getItem("userName") || "Onbekend";
+const isAdmin = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"].includes(currentUser);
+const agendaEl = document.getElementById("agenda");
+const todayEl = document.getElementById("today");
+const loadingEl = document.getElementById("agenda-loading");
 
-/* -------------------- DATETIME -------------------- */
+// -------------------- DATETIME --------------------
 setInterval(() => {
-    document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
+  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
 }, 1000);
 
-/* -------------------- DATA -------------------- */
-let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+// -------------------- FIREBASE --------------------
+const firebaseConfig = { databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-/* -------------------- GOOGLE API INIT -------------------- */
+// -------------------- GOOGLE API --------------------
 let gapiInited = false;
 let gapiAuthInstance = null;
-
 function initGapi() {
     gapi.load('client:auth2', async () => {
         await gapi.client.init({
             apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
             clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
             discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-            scope: "https://www.googleapis.com/auth/calendar"
+            scope: "https://www.googleapis.com/auth/calendar.readonly"
         });
         gapiAuthInstance = gapi.auth2.getAuthInstance();
         gapiInited = true;
-        console.log("✅ Google API klaar");
-        fetchGoogleEvents();
+        loadAgenda(); // start laden na init
     });
 }
 initGapi();
 
 async function googleSignIn() {
-    if (!gapiInited) return alert("Google API nog niet geladen");
-    if (!gapiAuthInstance.isSignedIn.get()) {
-        await gapiAuthInstance.signIn();
-    }
+    if(!gapiInited) return alert("Google API nog niet geladen");
+    if(!gapiAuthInstance.isSignedIn.get()) await gapiAuthInstance.signIn();
 }
 
-/* -------------------- PUSH NAAR GOOGLE -------------------- */
-async function pushToGoogleCalendar(reservation) {
-    if (!gapiInited) return console.warn("Google API nog niet klaar");
-    await googleSignIn();
-
-    const event = {
-        summary: reservation.vehicle,
-        description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
-        start: { dateTime: new Date(reservation.from).toISOString() },
-        end: { dateTime: new Date(reservation.to).toISOString() },
-        reminders: { useDefault: true }
-    };
+// -------------------- COMBINED AGENDA --------------------
+async function loadAgenda() {
+    loadingEl.textContent = "Even geduld…";
 
     try {
-        await gapi.client.calendar.events.insert({
-            calendarId: 'primary',
-            resource: event
-        });
-        console.log("✔ Reservatie gepusht:", reservation.vehicle);
-    } catch (err) {
-        console.error("⚠️ Fout bij push:", err);
-    }
-}
+        // 1️⃣ Firebase events
+        const fbSnapshot = await db.ref("reservations").once("value");
+        const fbData = fbSnapshot.val() || {};
+        const fbEvents = Object.keys(fbData).map(key => ({ id: key, ...fbData[key], source: 'firebase' }));
 
-/* -------------------- FETCH VAN GOOGLE -------------------- */
-async function fetchGoogleEvents() {
-    if (!gapiInited) return;
-
-    await googleSignIn();
-
-    const now = new Date().toISOString();
-    try {
+        // 2️⃣ Google Calendar events
+        await googleSignIn();
+        const now = new Date().toISOString();
         const response = await gapi.client.calendar.events.list({
             calendarId: 'primary',
             timeMin: now,
-            maxResults: 50,
+            showDeleted: false,
             singleEvents: true,
+            maxResults: 50,
             orderBy: 'startTime'
         });
+        const gcEvents = (response.result.items || []).map(e => ({
+            id: e.id,
+            summary: e.summary,
+            from: e.start.dateTime || e.start.date,
+            to: e.end.dateTime || e.end.date,
+            user: e.organizer?.displayName || "Google Calendar",
+            purpose: e.description || "",
+            persons: "",
+            status: "Goedgekeurd",
+            source: "google"
+        }));
 
-        const events = response.result.items;
-        if (events) {
-            events.forEach(ev => {
-                // Check of event al in localStorage staat
-                if (!reservations.some(r => r.id == ev.id)) {
-                    reservations.push({
-                        id: ev.id,
-                        vehicle: ev.summary,
-                        from: ev.start.dateTime,
-                        to: ev.end.dateTime,
-                        purpose: ev.description.split('\n')[0].replace('Doel: ',''),
-                        persons: ev.description.split('\n')[1].replace('Aantal personen: ',''),
-                        user: ev.description.split('\n')[2].replace('Aanvrager: ',''),
-                        status: "Goedgekeurd"
-                    });
-                }
-            });
-            save();
-            renderAgenda();
-        }
-    } catch (err) {
-        console.error("⚠️ Fout bij ophalen Google events:", err);
+        // 3️⃣ Combine & sort
+        const allEvents = [...fbEvents, ...gcEvents].sort((a,b)=> new Date(a.from) - new Date(b.from));
+
+        renderAgenda(allEvents);
+
+    } catch(err) {
+        console.error("⚠️ Fout bij laden agenda:", err);
+        document.getElementById("agenda-error").textContent = "Fout bij laden agenda. Controleer console.";
+        loadingEl.style.display = "none";
     }
 }
 
-/* -------------------- AUTOREMOVE VERLOPEN -------------------- */
-function removeExpired() {
-    const now = new Date();
-    reservations = reservations.filter(r => new Date(r.to) >= now);
-    save();
-}
-setInterval(removeExpired, 60*1000);
+// -------------------- RENDER --------------------
+function renderAgenda(events){
+    agendaEl.innerHTML = "";
+    loadingEl.style.display = "none";
+    todayEl.textContent = "Vandaag: " + new Date().toLocaleDateString("nl-BE");
 
-/* -------------------- SAVE -------------------- */
-function save() {
-    localStorage.setItem("reservations", JSON.stringify(reservations));
-}
-
-/* -------------------- RENDER AGENDA -------------------- */
-function renderAgenda() {
-    const wrap = document.getElementById("agenda");
-    wrap.innerHTML = "";
-
-    // Filter: admin ziet alles, gewone gebruiker alleen goedgekeurd
-    const visibleReservations = isAdmin ? reservations : reservations.filter(r => r.status === "Goedgekeurd");
-
-    visibleReservations.sort((a,b) => new Date(a.from) - new Date(b.from));
-
-    visibleReservations.forEach(r => {
+    events.forEach(e => {
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-            <div class="card-header"><h3>${r.vehicle}</h3></div>
+            <div class="card-header"><h3>${e.summary || e.vehicle}</h3></div>
             <div class="card-body">
-                <div><strong>Van:</strong> ${new Date(r.from).toLocaleString()}</div>
-                <div><strong>Tot:</strong> ${new Date(r.to).toLocaleString()}</div>
-                <div><strong>Door:</strong> ${r.user}</div>
-                <div><strong>Doel:</strong> ${r.purpose}</div>
-                <div><strong>Personen:</strong> ${r.persons}</div>
-                <div><strong>Status:</strong> ${r.status}</div>
-                ${
-                  isAdmin
-                  ? `<button class="call-btn" style="background:#900;" onclick="removeReservation('${r.id}')">🗑 Verwijderen</button>`
-                  : ""
-                }
+                <div><strong>Van:</strong> ${new Date(e.from).toLocaleString("nl-BE")}</div>
+                <div><strong>Tot:</strong> ${new Date(e.to).toLocaleString("nl-BE")}</div>
+                <div><strong>Door:</strong> ${e.user}</div>
+                ${e.purpose ? `<div><strong>Doel:</strong> ${e.purpose}</div>` : ""}
+                ${e.persons ? `<div><strong>Personen:</strong> ${e.persons}</div>` : ""}
+                ${e.source==='firebase' ? `<div><strong>Status:</strong> ${e.status}</div>` : ""}
             </div>
         `;
-        wrap.appendChild(card);
+        agendaEl.appendChild(card);
     });
-
-    // Datum van vandaag
-    document.getElementById("today").textContent = "Vandaag: " + new Date().toLocaleDateString("nl-BE");
 }
-
-/* -------------------- INIT -------------------- */
-renderAgenda();
