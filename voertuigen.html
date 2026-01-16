@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voertuigenreservatie</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
+    </div>
+    <div class="header-right">
+      <div class="header-greeting">Welkom</div>
+      <div class="header-name" id="userName"></div>
+      <div class="header-datetime" id="datetime"></div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <a href="index.html" class="backlink">
+      <span class="arrow">←</span> Terug
+    </a>
+
+    <h2>🚒 Voertuigenreservatie</h2>
+
+    <!-- RESERVATIE FORMULIER -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Nieuwe aanvraag</h3>
+      </div>
+      <div class="card-body">
+
+        <label>Voertuig</label>
+        <select id="vehicle">
+          <option>Caddy S542</option>
+          <option>Galaxy S541</option>
+          <option>Personeelsbus S545</option>
+          <option>Camionette L543</option>
+        </select>
+
+        <label>Van</label>
+        <input type="datetime-local" id="from">
+
+        <label>Tot</label>
+        <input type="datetime-local" id="to">
+
+        <label>Doeleinde</label>
+        <input type="text" id="purpose">
+
+        <label>Aantal personen</label>
+        <input type="number" id="persons" min="1">
+
+        <button class="call-btn" onclick="submitReservation()">Aanvraag indienen</button>
+      </div>
+    </div>
+
+    <h2>📅 Reservaties</h2>
+    <div id="reservations" class="grid"></div>
+
+  </div>
+
+  <footer>
+    <span>Brandweer Herentals</span>
+    <span>Voertuigen</span>
+  </footer>
+
+</div>
+
+<script>
+/* -------------------- GEBRUIKER -------------------- */
+const currentUser = localStorage.getItem("userName") || "Onbekend";
+document.getElementById("userName").textContent = currentUser;
+
+/* -------------------- ADMIN CHECK -------------------- */
+const admins = [
+  "Jonas Weckhuysen",
+  "Patrick Van Hove",
+  "Danny Van den Bergh"
+];
+const isAdmin = admins.includes(currentUser);
+
+/* -------------------- DATETIME -------------------- */
+setInterval(() => {
+  document.getElementById("datetime").textContent =
+    new Date().toLocaleString("nl-BE");
+}, 1000);
+
+/* -------------------- DATA -------------------- */
+let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+
+/* -------------------- SUBMIT -------------------- */
+function submitReservation() {
+  const r = {
+    id: Date.now(),
+    user: currentUser,
+    vehicle: vehicle.value,
+    from: from.value,
+    to: to.value,
+    purpose: purpose.value,
+    persons: persons.value,
+    status: "In afwachting"
+  };
+
+  reservations.push(r);
+  save();
+  render();
+}
+
+/* -------------------- SAVE -------------------- */
+function save() {
+  localStorage.setItem("reservations", JSON.stringify(reservations));
+}
+
+/* -------------------- APPROVE -------------------- */
+function approve(id, status) {
+  reservations = reservations.map(r =>
+    r.id === id ? { ...r, status } : r
+  );
+  save();
+  render();
+}
+
+/* -------------------- RENDER -------------------- */
+function render() {
+  const wrap = document.getElementById("reservations");
+  wrap.innerHTML = "";
+
+  reservations.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-header">
+        <h3>${r.vehicle}</h3>
+      </div>
+      <div class="card-body">
+        <div><strong>Van:</strong> ${r.from}</div>
+        <div><strong>Tot:</strong> ${r.to}</div>
+        <div><strong>Door:</strong> ${r.user}</div>
+        <div><strong>Doel:</strong> ${r.purpose}</div>
+        <div><strong>Personen:</strong> ${r.persons}</div>
+        <div><strong>Status:</strong> ${r.status}</div>
+
+        ${
+          isAdmin && r.status === "In afwachting"
+          ? `
+          <button class="call-btn" onclick="approve(${r.id}, 'Goedgekeurd')">✔ Goedkeuren</button>
+          <button class="call-btn" style="background:#444"
+            onclick="approve(${r.id}, 'Afgekeurd')">✖ Afkeuren</button>
+          `
+          : ""
+        }
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
