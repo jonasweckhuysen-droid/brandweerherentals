@@ -9,6 +9,44 @@
 <!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<style>
+/* --- Kalenderstijl --- */
+#reservations {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.card {
+  border-radius: 10px;
+  background: #f4f4f4;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.card-header {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.card-date {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #0077cc;
+}
+
+.card-body div {
+  margin-bottom: 4px;
+}
+
+.card-body div span {
+  font-weight: bold;
+}
+</style>
 </head>
 <body>
 
@@ -30,7 +68,7 @@
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
     <h2>📅 Goedgekeurde Voertuigenreservaties</h2>
-    <div id="reservations" class="grid"></div>
+    <div id="reservations"></div>
   </div>
 </div>
 
@@ -57,7 +95,11 @@ db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
   const reservations = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
-      .filter(r => r.status === "Goedgekeurd" && new Date(r.to) >= new Date()); // alleen goedgekeurd en toekomstige
+      .filter(r => r.status === "Goedgekeurd" && new Date(r.to) >= new Date());
+
+  // Sorteer op startdatum
+  reservations.sort((a, b) => new Date(a.from) - new Date(b.from));
+
   renderFirebase(reservations);
 });
 
@@ -65,17 +107,22 @@ db.ref("reservations").on("value", snapshot => {
 function renderFirebase(reservations) {
   const wrap = document.getElementById("reservations");
   wrap.innerHTML = "";
+
   reservations.forEach(r => {
+    const fromDate = new Date(r.from);
+    const toDate = new Date(r.to);
+
     const card = document.createElement("div");
     card.className = "card";
+
     card.innerHTML = `
-      <div class="card-header"><h3>${r.vehicle}</h3></div>
+      <div class="card-date">${fromDate.toLocaleDateString("nl-BE", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+      <div class="card-header">${r.vehicle}</div>
       <div class="card-body">
-        <div><strong>Van:</strong> ${r.from}</div>
-        <div><strong>Tot:</strong> ${r.to}</div>
-        <div><strong>Door:</strong> ${r.user}</div>
-        <div><strong>Doel:</strong> ${r.purpose}</div>
-        <div><strong>Personen:</strong> ${r.persons}</div>
+        <div><span>Tijd:</span> ${fromDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${toDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+        <div><span>Doel:</span> ${r.purpose}</div>
+        <div><span>Personen:</span> ${r.persons}</div>
+        <div><span>Door:</span> ${r.user}</div>
       </div>
     `;
     wrap.appendChild(card);
