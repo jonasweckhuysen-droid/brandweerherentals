@@ -161,7 +161,6 @@ function approve(id, status) {
     save();
     render();
 
-    // Als goedgekeurd, push direct naar Google Calendar
     if(status === "Goedgekeurd"){
         const approved = reservations.find(r=>r.id===id);
         if(approved) pushToGoogleCalendar(approved);
@@ -189,6 +188,9 @@ function render() {
     wrap.innerHTML = "";
 
     reservations.forEach(r => {
+        // Admin ziet alles, gebruiker alleen eigen aanvragen
+        if(!isAdmin && r.user !== currentUser) return;
+
         const card = document.createElement("div");
         card.className = "card";
 
