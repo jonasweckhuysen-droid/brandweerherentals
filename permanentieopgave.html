@@ -3,36 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Permanentie Kalender</title>
+<title>Permanentie Opgave</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <style>
-/* Container en header */
-.container{max-width:1000px;margin:auto;padding:10px;font-family:sans-serif;}
+/* Container & header */
+.container{max-width:900px;margin:auto;padding:10px;font-family:sans-serif;}
 .header-logo{height:50px;}
 .header-right{float:right;text-align:right;}
 .header-datetime{font-size:0.85em;color:#fff;}
-#appHeader{background:#d32f2f;padding:10px 15px;border-radius:8px 8px 0 0;color:#fff;}
-.content{margin-top:20px;}
+#appHeader{background:#d32f2f;padding:10px 15px;border-radius:8px 8px 0 0;color:#fff;margin-bottom:10px;}
 .backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
+.content h2{margin-top:0;}
 
-/* Kalender */
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
-.day{padding:10px;border-radius:8px;min-height:80px;background:#f2f2f2;cursor:pointer;position:relative;}
-.day.unavailable{background:#ddd;cursor:not-allowed;}
-.day.today{border:2px solid #d32f2f;}
-.day-header{font-weight:bold;margin-bottom:5px;text-align:center;}
+/* Dag blok */
+.day-block{border-radius:8px;background:#ffe5e0;margin-bottom:15px;padding:10px;border-left:6px solid #d32f2f;}
+.day-date{font-weight:bold;font-size:1.2em;margin-bottom:5px;color:#d32f2f;}
 
-/* Team in dag */
-.team-member{display:block;margin:2px 0;padding:2px 4px;border-radius:4px;color:#fff;font-size:0.85em;}
-.chauffeur{background:#FF9800;}
-.bevelvoerder{background:#4CAF50;}
-.brandweermannen{background:#f44336;}
-.stagiair{background:#9C27B0;}
-
-/* Tooltip */
-.day-tooltip{position:absolute;top:5px;right:5px;font-size:0.7em;color:#555;}
+/* Rol regels */
+.role-row{display:flex;align-items:center;margin:2px 0;padding:2px 4px;border-radius:5px;background:#f2f2f2;}
+.role-row span.icon{width:30px;text-align:center;margin-right:5px;}
+.role-row span.name{font-weight:bold;}
+.role-row.chauffeur{background:#FF9800;color:#fff;}
+.role-row.bevelvoerder{background:#4CAF50;color:#fff;}
+.role-row.brandweerman{background:#f44336;color:#fff;}
+.role-row.stagiair{background:#9C27B0;color:#fff;}
 
 /* Buttons */
 .call-btn{margin-top:5px;padding:5px 10px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;}
@@ -43,7 +39,6 @@
 
 <div class="container">
 
-  <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
       <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
@@ -57,11 +52,10 @@
 
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
+    <h2>🧑‍🚒 Permanentie Opgave</h2>
+    <p>Periode voor doorgeven beschikbaarheid: <span id="periodeText"></span></p>
+    <div id="calendar"></div>
 
-    <h2>🧑‍🚒 Permanentie Kalender</h2>
-    <p>Geef je beschikbaarheid door van de 16e van deze maand tot de 15e van volgende maand voor de daaropvolgende maand. Rollen: 🚗 Chauffeur, 🧑‍✈️ Bevelvoerder, 🔥 Brandweerman, 👶 Stagiair.</p>
-
-    <div id="calendar" class="calendar"></div>
     <div id="roleSelection" style="margin-top:15px;display:none;">
       <label>Rol:</label>
       <select id="roleSelect">
@@ -80,8 +74,6 @@
 /* -------------------- GEBRUIKER -------------------- */
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("userName").textContent = currentUser;
-
-/* -------------------- ADMIN CHECK -------------------- */
 const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
 const isAdmin = admins.includes(currentUser);
 
@@ -90,10 +82,8 @@ setInterval(() => {
   document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
 }, 1000);
 
-/* -------------------- FIREBASE INIT -------------------- */
-const firebaseConfig = {
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-};
+/* -------------------- FIREBASE -------------------- */
+const firebaseConfig = {databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"};
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 console.log("✅ Firebase klaar");
@@ -113,30 +103,30 @@ function isAvailable(dateStr){
   const day = date.getDay();
   if(day === 0 || day === 6) return false;
   if(belgischeFeestdagen.includes(dateStr)) return false;
-  for(const v of schoolVakanties){
-    if(dateStr >= v.start && dateStr <= v.end) return false;
-  }
+  for(const v of schoolVakanties){if(dateStr >= v.start && dateStr <= v.end) return false;}
   return true;
 }
 
-/* -------------------- KALENDER MAKEN -------------------- */
-const calendarDiv = document.getElementById("calendar");
-let today = new Date();
-let startDate = new Date(today.getFullYear(), today.getMonth(),16);
-let endDate = new Date(today.getFullYear(), today.getMonth()+1,15);
+/* -------------------- PERIODETEKST -------------------- */
+const today = new Date();
+const periodeStart = new Date(today.getFullYear(), today.getMonth(),16);
+const periodeEnd = new Date(today.getFullYear(), today.getMonth()+1,15);
+document.getElementById("periodeText").textContent = `${periodeStart.getDate()}/${periodeStart.getMonth()+1} tot ${periodeEnd.getDate()}/${periodeEnd.getMonth()+1} voor de maand ${(today.getMonth()+2)}`;
 
+/* -------------------- KALENDER -------------------- */
+const calendarDiv = document.getElementById("calendar");
 function pad(n){return n<10?'0'+n:n;}
+let selectedDate=null;
+
 function renderCalendar(){
   calendarDiv.innerHTML='';
-  let current = new Date(startDate);
-  while(current<=endDate){
+  let current = new Date(periodeStart);
+  while(current <= periodeEnd){
     const dateStr = `${current.getFullYear()}-${pad(current.getMonth()+1)}-${pad(current.getDate())}`;
     const dayDiv = document.createElement('div');
-    dayDiv.className='day';
-    if(!isAvailable(dateStr)) dayDiv.classList.add('unavailable');
-    if(current.toDateString()===today.toDateString()) dayDiv.classList.add('today');
-    dayDiv.dataset.date=dateStr;
-    dayDiv.innerHTML=`<div class="day-header">${current.getDate()}/${current.getMonth()+1}</div><div class="team-members" id="day-${dateStr}"></div><div class="day-tooltip" id="tooltip-${dateStr}"></div>`;
+    dayDiv.className='day-block';
+    if(!isAvailable(dateStr)) dayDiv.style.opacity=0.5;
+    dayDiv.innerHTML=`<div class="day-date">${current.getDate()}/${current.getMonth()+1}</div><div id="day-${dateStr}"></div>`;
     calendarDiv.appendChild(dayDiv);
 
     if(isAvailable(dateStr)){
@@ -151,38 +141,39 @@ function renderCalendar(){
 renderCalendar();
 
 /* -------------------- BESCHIKBAARHEID DOORGEVEN -------------------- */
-let selectedDate=null;
 document.getElementById('submitRoleBtn').addEventListener('click', ()=>{
   const role=document.getElementById('roleSelect').value;
   if(!selectedDate) return;
-  const r={user: currentUser, role, timestamp:Date.now()};
-  db.ref('permanencies/'+selectedDate).push(r)
+  db.ref('permanencies/'+selectedDate).push({user:currentUser,role,timestamp:Date.now()})
     .then(()=>{alert('Rol doorgegeven'); selectedDate=null; document.getElementById('roleSelection').style.display='none';})
     .catch(err=>console.error(err));
 });
 
-/* -------------------- TEAMS EN TOOLTIPS RENDEREN -------------------- */
-function renderTeamsAndTooltips(){
+/* -------------------- TEAMS RENDEREN -------------------- */
+function renderTeams(){
   db.ref('permanencies').on('value', snap=>{
     const data = snap.val() || {};
     for(const dateStr in data){
-      const dayDiv=document.getElementById(`day-${dateStr}`);
-      const tooltipDiv=document.getElementById(`tooltip-${dateStr}`);
+      const dayDiv = document.getElementById(`day-${dateStr}`);
       if(dayDiv){
-        dayDiv.innerHTML=''; tooltipDiv.innerHTML='';
-        let counts={chauffeur:0,bevelvoerder:0,brandweerman:0,stagiair:0};
+        dayDiv.innerHTML=''; // leegmaken
         Object.values(data[dateStr]).forEach(p=>{
-          const span=document.createElement('span');
-          span.className='team-member '+p.role;
-          span.textContent=p.user;
-          dayDiv.appendChild(span);
-          counts[p.role]++;
+          const row = document.createElement('div');
+          row.className='role-row '+p.role;
+          let icon='';
+          if(p.role==='chauffeur') icon='🚗';
+          if(p.role==='bevelvoerder') icon='🧑‍✈️';
+          if(p.role==='brandweerman') icon='🔥';
+          if(p.role==='stagiair') icon='👶';
+          row.innerHTML=`<span class="icon">${icon}</span><span class="name">${p.user}</span>`;
+          dayDiv.appendChild(row);
         });
-        tooltipDiv.textContent=`Chauffeur:${counts.chauffeur} | Bevelvoerder:${counts.bevelvoerder} | Brandweermannen:${counts.brandweerman} | Stagiair:${counts.stagiair}`;
+
+        // admin button
         if(isAdmin){
           const btn=document.createElement('button');
-          btn.textContent='✏️ Wijzig';
           btn.className='call-btn';
+          btn.textContent='✏️ Wijzig';
           btn.onclick=()=>editDay(dateStr);
           dayDiv.appendChild(btn);
         }
@@ -190,7 +181,7 @@ function renderTeamsAndTooltips(){
     }
   });
 }
-renderTeamsAndTooltips();
+renderTeams();
 
 /* -------------------- ADMIN WIJZIGEN -------------------- */
 function editDay(dateStr){
@@ -198,46 +189,11 @@ function editDay(dateStr){
     const users = snap.val() || {};
     Object.keys(users).forEach(k=>{
       const u=users[k];
-      let newName = prompt(`Nieuwe naam voor ${u.role}`, u.user);
+      let newName=prompt(`Nieuwe naam voor ${u.role}`, u.user);
       if(newName) db.ref(`permanencies/${dateStr}/${k}/user`).set(newName);
     });
   });
 }
-
-/* -------------------- AUTOMATISCHE PLANNING MET VOORRANG -------------------- */
-function autoScheduleMonth(){
-  db.ref('permanencies').once('value').then(snap=>{
-    const data = snap.val() || {};
-    let userCounts={}; // tel wie al hoe vaak
-    db.ref('teams').once('value').then(tsnap=>{
-      const tdata=tsnap.val()||{};
-      Object.values(tdata).forEach(team=>{
-        Object.values(team).forEach(val=>{
-          if(Array.isArray(val)) val.forEach(u=>userCounts[u]=(userCounts[u]||0)+1);
-          else userCounts[val]=(userCounts[val]||0)+1;
-        });
-      });
-
-      for(const dateStr in data){
-        const avail = data[dateStr];
-        let roles={chauffeur:[],bevelvoerder:[],brandweerman:[],stagiair:[]};
-        Object.values(avail).forEach(p=>roles[p.role].push(p.user));
-        if(roles.chauffeur.length>=1 && roles.bevelvoerder.length>=1 && roles.brandweerman.length>=4 && roles.stagiair.length>=1){
-          const team={
-            chauffeur:roles.chauffeur.sort((a,b)=> (userCounts[a]||0)-(userCounts[b]||0))[0],
-            bevelvoerder:roles.bevelvoerder.sort((a,b)=> (userCounts[a]||0)-(userCounts[b]||0))[0],
-            brandweermannen:shuffleArray(roles.brandweerman).slice(0,4),
-            stagiair:roles.stagiair.sort((a,b)=> (userCounts[a]||0)-(userCounts[b]||0))[0]
-          };
-          db.ref('teams/'+dateStr).set(team);
-        }
-      }
-    });
-  });
-}
-function shuffleArray(arr){return arr.sort(()=>Math.random()-0.5);}
-autoScheduleMonth();
-
 </script>
 
 </body>
