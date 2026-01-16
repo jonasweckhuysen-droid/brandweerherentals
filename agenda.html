@@ -3,29 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agenda — Brandweer Herentals</title>
+<title>Agenda Voertuigen</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
 
 <div class="container">
+
+  <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
       <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
     </div>
     <div class="header-right">
       <div class="header-greeting">Welkom</div>
+      <div class="header-name" id="userName"></div>
       <div class="header-datetime" id="datetime"></div>
     </div>
   </header>
 
   <div class="content">
-    <h2>📅 Voertuigenagenda</h2>
+    <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
+
+    <h2>📅 Agenda Voertuigen</h2>
+    <div id="agenda-error" class="hidden"></div>
+    <div id="agenda-loading">Even geduld…</div>
     <div id="agenda" class="agenda-list"></div>
-    <p id="agenda-loading">Even laden…</p>
-    <p id="agenda-error" class="hidden"></p>
+    <p id="today"></p>
   </div>
+
 </div>
 
 <script src="agenda.js"></script>
