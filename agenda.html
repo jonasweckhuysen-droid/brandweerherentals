@@ -27,13 +27,81 @@
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
     <h2>📅 Agenda Voertuigen</h2>
-    <div id="agenda-error" class="hidden"></div>
-    <div id="agenda-loading">Even geduld…</div>
-    <div id="agenda" class="agenda-list"></div>
-    <p id="today"></p>
+
+    <!-- ERROR / LOADING -->
+    <div id="agenda-error" class="card hidden" style="background:#ffdddd;color:#900;padding:10px;margin-bottom:10px;"></div>
+    <div id="agenda-loading" class="card" style="padding:10px;margin-bottom:10px;">Even geduld…</div>
+
+    <!-- AGENDA EVENTS -->
+    <div id="agenda" class="grid"></div>
+
+    <!-- DATUM ONDERAAN -->
+    <p id="today" style="margin-top:20px;text-align:center;font-weight:bold;"></p>
   </div>
 
 </div>
+
+<script>
+/* -------------------- GEBRUIKER -------------------- */
+const currentUser = localStorage.getItem("userName") || "Onbekend";
+document.getElementById("userName").textContent = currentUser;
+
+/* -------------------- DATETIME -------------------- */
+setInterval(() => {
+  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
+}, 1000);
+
+/* -------------------- DISPLAY EVENTS -------------------- */
+function displayEvents(events, fromCache) {
+    const container = document.getElementById("agenda");
+    const loading = document.getElementById("agenda-loading");
+    const errorEl = document.getElementById("agenda-error");
+
+    if (loading) loading.classList.add("hidden");
+    if (errorEl) errorEl.classList.add("hidden");
+
+    container.innerHTML = "";
+
+    if (!events || !events.length) {
+        container.innerHTML = `<p class="card">Geen aankomende evenementen.</p>`;
+        return;
+    }
+
+    events.forEach(ev => {
+        const dateStr = ev.start.toLocaleDateString("nl-BE", { weekday:"short", day:"2-digit", month:"short" });
+        const startTime = ev.start.toLocaleTimeString("nl-BE",{hour:"2-digit",minute:"2-digit"});
+        const endTime = ev.end ? ev.end.toLocaleTimeString("nl-BE",{hour:"2-digit",minute:"2-digit"}) : "";
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="card-header"><h3>${ev.summary}</h3></div>
+            <div class="card-body">
+                <div><strong>Datum:</strong> ${dateStr}</div>
+                <div><strong>Tijd:</strong> ${startTime}${endTime ? " – " + endTime : ""}</div>
+                ${ev.location ? `<div><strong>Locatie:</strong> ${ev.location}</div>` : ""}
+                ${ev.description ? `<div><strong>Omschrijving:</strong><br>${ev.description.replace(/\n/g,"<br>")}</div>` : ""}
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+/* -------------------- TOON DATUM ONDERAAN -------------------- */
+function showToday() {
+    const el = document.getElementById("today");
+    if (!el) return;
+    el.textContent = new Date().toLocaleDateString("nl-BE", {
+        weekday: "long", year: "numeric", month: "long", day: "numeric"
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    showToday();
+});
+</script>
 
 <script src="agenda.js"></script>
 </body>
