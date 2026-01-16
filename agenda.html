@@ -56,7 +56,6 @@ console.log("✅ Firebase klaar");
 
 /* -------------------- GOOGLE CALENDAR CONFIG -------------------- */
 const GOOGLE_API_KEY = "AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE"; // je Google API key
-const VEHICLE_CALENDAR_ID = "primary"; // of een aparte kalender ID
 const IMPORT_CALENDAR_ID = "df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com";
 
 /* -------------------- LOAD GOOGLE CALENDAR EVENTS -------------------- */
@@ -80,10 +79,9 @@ async function loadGoogleCalendar() {
 /* -------------------- RENDER FUNCTIE -------------------- */
 function renderEvents(events) {
   const wrap = document.getElementById("agenda");
-  wrap.innerHTML = "";
-
-  // Sorteer op datum
-  events.sort((a,b) => new Date(a.start.dateTime||a.start.date) - new Date(b.start.dateTime||b.start.date));
+  
+  // Sorteer op datum, meest recent bovenaan
+  events.sort((a,b) => new Date(b.start.dateTime||b.start.date) - new Date(a.start.dateTime||a.start.date));
 
   events.forEach(e => {
     const start = e.start.dateTime || e.start.date;
@@ -117,6 +115,9 @@ db.ref("reservations").on("value", snapshot => {
 /* -------------------- RENDER VEHICLE RESERVATIONS -------------------- */
 function renderVehicleReservations(reservations) {
   const wrap = document.getElementById("agenda");
+  
+  // Sorteer meest recent bovenaan
+  reservations.sort((a,b) => new Date(b.from) - new Date(a.from));
 
   reservations.forEach(r => {
     const card = document.createElement("div");
