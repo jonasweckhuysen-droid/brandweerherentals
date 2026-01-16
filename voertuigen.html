@@ -141,6 +141,13 @@ function submitReservation() {
     reservations.push(r);
     save();
     render();
+
+    // --- VELDEN LEEGMAKEN ---
+    vehicle.selectedIndex = 0;
+    from.value = "";
+    to.value = "";
+    purpose.value = "";
+    persons.value = "";
 }
 
 /* -------------------- SAVE -------------------- */
