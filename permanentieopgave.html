@@ -78,8 +78,8 @@ console.log("✅ Firebase klaar");
 
 /* -------------------- BELGISCHE FEESTDAGEN & SCHOOLVAKANTIES -------------------- */
 const belgischeFeestdagen = [
-  "2026-01-01","2026-04-06","2026-05-01","2026-05-14","2026-05-25","2026-07-21",
-  "2026-08-15","2026-11-01","2026-11-11","2026-12-25"
+  "2026-01-01","2026-04-06","2026-05-01","2026-05-14","2026-05-25",
+  "2026-07-21","2026-08-15","2026-11-01","2026-11-11","2026-12-25"
 ];
 
 const schoolVakanties = [
@@ -101,12 +101,34 @@ function isAvailable(dateStr){
   return true;
 }
 
+/* -------------------- DATUM PICKER BEPERKEN -------------------- */
+function setDateInputLimits(){
+  const input = document.getElementById("date");
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let minDate = today.toISOString().split('T')[0];
+  let maxDateObj = new Date(today.getFullYear(), today.getMonth()+1, 0);
+  let maxDate = maxDateObj.toISOString().split('T')[0];
+
+  input.setAttribute("min", minDate);
+  input.setAttribute("max", maxDate);
+
+  // Optioneel: voorkom selecteren via alert
+  input.addEventListener("input", ()=>{
+    if(!isAvailable(input.value)){
+      alert("Deze datum is niet beschikbaar (weekend, feestdag of vakantie)");
+      input.value = "";
+    }
+  });
+}
+setDateInputLimits();
+
 /* -------------------- SUBMIT BESCHIKBAARHEID -------------------- */
 document.getElementById("submitBtn").addEventListener("click", () => {
   const date = document.getElementById("date").value;
   const role = document.getElementById("role").value;
   if(!date) return alert("Kies een datum");
-  if(!isAvailable(date)) return alert("Deze datum is niet beschikbaar (weekend, feestdag of vakantie)");
+  if(!isAvailable(date)) return alert("Deze datum is niet beschikbaar");
 
   const r = {user: currentUser, role, date, timestamp: Date.now()};
   db.ref("permanencies/" + date).push(r)
@@ -116,9 +138,8 @@ document.getElementById("submitBtn").addEventListener("click", () => {
 
 /* -------------------- AUTOMATISCHE MAANDPLANNING -------------------- */
 function autoScheduleMonth(month, year){
-  // Alleen na de 15e van de maand
   const today = new Date();
-  if(today.getDate() <= 15) return;
+  if(today.getDate() <= 15) return; // Alleen na 15e van de maand
 
   db.ref("permanencies").once("value").then(snapshot => {
     const data = snapshot.val() || {};
@@ -133,11 +154,9 @@ function autoScheduleMonth(month, year){
       const roles = {chauffeur:[], bevelvoerder:[], brandweerman:[], stagiair:[]};
       Object.values(availabilities).forEach(p => roles[p.role].push(p.user));
 
-      // Alleen indelen als nog geen team
-      const existingTeamRef = db.ref("teams/" + date);
-      existingTeamRef.once("value").then(snap=>{
-        if(snap.exists()) return;
-
+      const teamRef = db.ref("teams/" + date);
+      teamRef.once("value").then(snap=>{
+        if(snap.exists()) return; // alleen als nog geen team
         if(roles.chauffeur.length>=1 && roles.bevelvoerder.length>=1 && roles.brandweerman.length>=4 && roles.stagiair.length>=1){
           const team = {
             chauffeur: roles.chauffeur[Math.floor(Math.random()*roles.chauffeur.length)],
@@ -145,7 +164,7 @@ function autoScheduleMonth(month, year){
             brandweermannen: shuffleArray(roles.brandweerman).slice(0,4),
             stagiair: roles.stagiair[Math.floor(Math.random()*roles.stagiair.length)]
           };
-          existingTeamRef.set(team);
+          teamRef.set(team);
         }
       });
     });
@@ -218,8 +237,8 @@ autoScheduleMonth(now.getMonth(), now.getFullYear());
 .header-datetime{font-size:0.85em;color:#555;}
 .content{margin-top:20px;}
 .backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
-.card{border-radius:8px;padding:10px;margin-bottom:15px;background:#f8f8f8;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-.card-header{font-weight:bold;margin-bottom:5px;}
+.card{border-radius:8px;padding:10px;margin-bottom:15px;background:#f0f4f8;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.card-header{font-weight:bold;margin-bottom:5px;font-size:1.1em;}
 .card-body{margin-left:5px;}
 .call-btn{margin-top:5px;padding:5px 10px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;}
 .call-btn:hover{background:#1976d2;}
