@@ -1,53 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Agenda</title>
-
-<link rel="stylesheet" href="/brandweerherentals/style.css">
-<script src="/brandweerherentals/header.js" defer></script>
-<script src="/brandweerherentals/agenda.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda — Brandweer Herentals</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
 
 <div class="container">
- <!-- -----------------------------------
-       HEADER
-  ------------------------------------ -->
   <header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png"
-         alt="Brandweer Herentals"
-         class="header-logo">
-  </div>
-
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
+    <div class="header-left">
+      <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
+    </div>
+    <div class="header-right">
+      <div class="header-greeting">Welkom</div>
+      <div class="header-datetime" id="datetime"></div>
+    </div>
   </header>
 
-  <main class="content">
-    <a href="/brandweerherentals/" class="backlink">
-      <span class="arrow">←</span> Terug naar start
-    </a>
-
-    <div id="agenda-container">
-      <div id="agenda-loading">Agenda laden…</div>
-      <div id="agenda-error" class="hidden"></div>
-      <div id="agenda"></div>
-    </div>
-  </main>
-
-  <footer>
-    <div class="small">Versie 1.4 (Ultra-Fast Google Calendar)</div>
-    <div class="small">Laatste update: <span id="today"></span></div>
-  </footer>
-
+  <div class="content">
+    <h2>📅 Voertuigenagenda</h2>
+    <div id="agenda" class="agenda-list"></div>
+    <p id="agenda-loading">Even laden…</p>
+    <p id="agenda-error" class="hidden"></p>
+  </div>
 </div>
 
+<script src="agenda.js"></script>
 </body>
 </html>
-
