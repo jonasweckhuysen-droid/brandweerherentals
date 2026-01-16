@@ -11,6 +11,7 @@
 
 <div class="container">
 
+  <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
       <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
@@ -62,26 +63,27 @@
 
 <script>
 /* -------------------- GEBRUIKER -------------------- */
-const currentUser = localStorage.getItem("userName") || "Onbekend";
-document.getElementById("userName").textContent = currentUser;
+// Globale variabele zodat agenda.js het kan gebruiken
+window.currentUser = localStorage.getItem("userName") || "Onbekend";
+document.getElementById("userName").textContent = window.currentUser;
 
+/* -------------------- ADMIN CHECK -------------------- */
 const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-const isAdmin = admins.includes(currentUser);
+const isAdmin = admins.includes(window.currentUser);
 
 /* -------------------- DATETIME -------------------- */
-setInterval(()=>{
+setInterval(() => {
   document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
-},1000);
+}, 1000);
 
 /* -------------------- DATA -------------------- */
 let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
-/* -------------------- GOOGLE API -------------------- */
+/* -------------------- GOOGLE API INIT -------------------- */
 let gapiInited = false;
 let gapiAuthInstance = null;
-const CALENDAR_ID = 'primary';
-function initGapi(){
-    gapi.load('client:auth2', async ()=>{
+function initGapi() {
+    gapi.load('client:auth2', async () => {
         await gapi.client.init({
             apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
             clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
@@ -91,69 +93,44 @@ function initGapi(){
         gapiAuthInstance = gapi.auth2.getAuthInstance();
         gapiInited = true;
         console.log("✅ gapi klaar");
-        fetchEventsFromGoogle(); // haal meteen Google events bij init
     });
 }
 initGapi();
 
 async function googleSignIn() {
-    if(!gapiInited) return alert("Google API nog niet geladen");
-    if(!gapiAuthInstance.isSignedIn.get()) await gapiAuthInstance.signIn();
-    console.log("Ingelogd als:", gapiAuthInstance.currentUser.get().getBasicProfile().getName());
+    if (!gapiInited) return alert("Google API nog niet geladen");
+    const user = await gapiAuthInstance.signIn();
+    console.log("Ingelogd als:", user.getBasicProfile().getName());
 }
 
-async function pushToGoogleCalendar(res){
+async function pushToGoogleCalendar(reservation){
     if(!gapiInited) return console.warn("gapi nog niet klaar");
-    await googleSignIn();
+    if(!gapiAuthInstance.isSignedIn.get()) await googleSignIn();
+
     const event = {
-        summary: res.vehicle,
-        description: `Doel: ${res.purpose}\nAantal personen: ${res.persons}\nAanvrager: ${res.user}`,
-        start: {dateTime: new Date(res.from).toISOString()},
-        end: {dateTime: new Date(res.to).toISOString()},
-        reminders: {useDefault:true}
+        summary: reservation.vehicle,
+        description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
+        start: { dateTime: new Date(reservation.from).toISOString() },
+        end: { dateTime: new Date(reservation.to).toISOString() },
+        reminders: { useDefault: true }
     };
-    try{
-        const result = await gapi.client.calendar.events.insert({calendarId:CALENDAR_ID, resource:event});
-        console.log("✔ Naar Google Calendar:", res.vehicle, result);
-    }catch(err){console.error("⚠️ Fout push:", err);}
+
+    try {
+        await gapi.client.calendar.events.insert({
+            calendarId: 'primary',
+            resource: event
+        });
+        console.log("✔ Reservatie naar Google Calendar gepusht:", reservation.vehicle);
+    } catch(err){
+        console.error("⚠️ Fout bij push:", err);
+    }
 }
 
-async function fetchEventsFromGoogle(){
-    if(!gapiInited) return;
-    await googleSignIn();
-    try{
-        const now = new Date().toISOString();
-        const response = await gapi.client.calendar.events.list({
-            calendarId: CALENDAR_ID,
-            timeMin: now,
-            maxResults: 50,
-            singleEvents: true,
-            orderBy: "startTime"
-        });
-        const googleEvents = response.result.items.map(ev=>({
-            id: ev.id,
-            vehicle: ev.summary,
-            from: ev.start.dateTime || ev.start.date,
-            to: ev.end.dateTime || ev.end.date,
-            purpose: ev.description,
-            user: "Google Calendar",
-            status: "Goedgekeurd"
-        }));
-
-        // merge Google events met lokale app-reservaties
-        googleEvents.forEach(ge=>{
-            if(!reservations.some(r=>r.id===ge.id)) reservations.push(ge);
-        });
-        save();
-        render();
-    }catch(err){console.error("⚠️ Fout bij ophalen Google:", err);}
-}
-
-/* -------------------- SUBMIT -------------------- */
-function submitReservation(){
+/* -------------------- SUBMIT RESERVATIE -------------------- */
+function submitReservation() {
     const r = {
         id: Date.now(),
-        user: currentUser,
+        user: window.currentUser,
         vehicle: vehicle.value,
         from: from.value,
         to: to.value,
@@ -164,51 +141,57 @@ function submitReservation(){
     reservations.push(r);
     save();
     render();
-    // velden leegmaken
-    vehicle.selectedIndex=0; from.value=""; to.value=""; purpose.value=""; persons.value="";
+
+    // --- VELDEN LEEGMAKEN ---
+    vehicle.selectedIndex = 0;
+    from.value = "";
+    to.value = "";
+    purpose.value = "";
+    persons.value = "";
 }
 
 /* -------------------- SAVE -------------------- */
-function save(){ localStorage.setItem("reservations", JSON.stringify(reservations)); }
+function save() {
+    localStorage.setItem("reservations", JSON.stringify(reservations));
+}
 
 /* -------------------- APPROVE / DELETE -------------------- */
-function approve(id,status){
-    reservations = reservations.map(r=>r.id===id?{...r,status}:r);
+function approve(id, status) {
+    reservations = reservations.map(r => r.id === id ? { ...r, status } : r);
     save();
     render();
-    if(status==="Goedgekeurd"){
+
+    if(status === "Goedgekeurd"){
         const approved = reservations.find(r=>r.id===id);
-        if(approved && !approved.googlePushed){ // enkel pushen als nog niet in Google
-            pushToGoogleCalendar(approved);
-            approved.googlePushed = true; save();
-        }
+        if(approved) pushToGoogleCalendar(approved);
     }
 }
 
 function removeReservation(id){
     if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
-    reservations = reservations.filter(r=>r.id!==id);
+    reservations = reservations.filter(r => r.id !== id);
     save();
     render();
 }
 
-/* -------------------- VERLOPEN -------------------- */
-function removeExpired(){
-    const now=new Date();
-    reservations = reservations.filter(r=>new Date(r.to)>=now);
+/* -------------------- AUTOREMOVE VERLOPEN -------------------- */
+function removeExpired() {
+    const now = new Date();
+    reservations = reservations.filter(r => new Date(r.to) >= now);
     save();
 }
-setInterval(removeExpired,60000);
+setInterval(removeExpired, 60*1000);
 
 /* -------------------- RENDER -------------------- */
-function render(){
+function render() {
     const wrap = document.getElementById("reservations");
-    wrap.innerHTML="";
-    reservations.forEach(r=>{
-        if(!isAdmin && r.user!==currentUser && r.user!=="Google Calendar") return;
+    wrap.innerHTML = "";
+
+    reservations.forEach(r => {
         const card = document.createElement("div");
-        card.className="card";
-        card.innerHTML=`
+        card.className = "card";
+
+        card.innerHTML = `
           <div class="card-header"><h3>${r.vehicle}</h3></div>
           <div class="card-body">
             <div><strong>Van:</strong> ${r.from}</div>
@@ -217,12 +200,18 @@ function render(){
             <div><strong>Doel:</strong> ${r.purpose}</div>
             <div><strong>Personen:</strong> ${r.persons}</div>
             <div><strong>Status:</strong> ${r.status}</div>
+
             ${
-              isAdmin? `
-                ${r.status==="In afwachting"?`<button class="call-btn" onclick="approve(${r.id},'Goedgekeurd')">✔ Goedkeuren</button>
-                                                  <button class="call-btn" style="background:#444" onclick="approve(${r.id},'Afgekeurd')">✖ Afkeuren</button>`:""}
-                <button class="call-btn" style="background:#900;" onclick="removeReservation(${r.id})">🗑 Verwijderen</button>`:""}
-          </div>`;
+              isAdmin
+              ? `
+              ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approve(${r.id}, 'Goedgekeurd')">✔ Goedkeuren</button>
+                                                <button class="call-btn" style="background:#444" onclick="approve(${r.id}, 'Afgekeurd')">✖ Afkeuren</button>` : ""}
+              <button class="call-btn" style="background:#900;" onclick="removeReservation(${r.id})">🗑 Verwijderen</button>
+              `
+              : ""
+            }
+          </div>
+        `;
         wrap.appendChild(card);
     });
 }
@@ -230,7 +219,6 @@ function render(){
 /* -------------------- INIT -------------------- */
 render();
 removeExpired();
-setInterval(fetchEventsFromGoogle, 5*60*1000); // elke 5 minuten Google events sync
 </script>
 
 </body>
