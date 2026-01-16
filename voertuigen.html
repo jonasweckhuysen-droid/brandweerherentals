@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voertuigenreservatie</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://apis.google.com/js/api.js"></script>
 </head>
-
 <body>
 
 <div class="container">
@@ -24,7 +24,6 @@
   </header>
 
   <div class="content">
-
     <a href="index.html" class="backlink">
       <span class="arrow">←</span> Terug
     </a>
@@ -33,9 +32,7 @@
 
     <!-- RESERVATIE FORMULIER -->
     <div class="card">
-      <div class="card-header">
-        <h3>Nieuwe aanvraag</h3>
-      </div>
+      <div class="card-header"><h3>Nieuwe aanvraag</h3></div>
       <div class="card-body">
 
         <label>Voertuig</label>
@@ -64,39 +61,28 @@
 
     <h2>📅 Reservaties</h2>
     <div id="reservations" class="grid"></div>
-
   </div>
-
-  <footer>
-    <span>Brandweer Herentals</span>
-    <span>Voertuigen</span>
-  </footer>
-
 </div>
 
+<script src="agenda.js"></script>
 <script>
-/* -------------------- GEBRUIKER -------------------- */
+// -------------------- GEBRUIKER --------------------
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("userName").textContent = currentUser;
 
-/* -------------------- ADMIN CHECK -------------------- */
-const admins = [
-  "Jonas Weckhuysen",
-  "Patrick Van Hove",
-  "Danny Van den Bergh"
-];
+// -------------------- ADMIN CHECK --------------------
+const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
 const isAdmin = admins.includes(currentUser);
 
-/* -------------------- DATETIME -------------------- */
-setInterval(() => {
-  document.getElementById("datetime").textContent =
-    new Date().toLocaleString("nl-BE");
-}, 1000);
+// -------------------- DATETIME --------------------
+setInterval(()=>{
+  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
+},1000);
 
-/* -------------------- DATA -------------------- */
+// -------------------- DATA --------------------
 let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
-/* -------------------- SUBMIT -------------------- */
+// -------------------- SUBMIT --------------------
 function submitReservation() {
   const r = {
     id: Date.now(),
@@ -108,36 +94,29 @@ function submitReservation() {
     persons: persons.value,
     status: "In afwachting"
   };
-
   reservations.push(r);
   save();
   render();
 }
 
-/* -------------------- SAVE -------------------- */
+// -------------------- SAVE --------------------
 function save() {
   localStorage.setItem("reservations", JSON.stringify(reservations));
 }
 
-/* -------------------- APPROVE -------------------- */
+// -------------------- APPROVE --------------------
 function approve(id, status) {
-  reservations = reservations.map(r =>
-    r.id === id ? { ...r, status } : r
-  );
+  reservations = reservations.map(r => r.id === id ? { ...r, status } : r);
   save();
   render();
+  // Als goedgekeurd, push direct naar agenda en Google Calendar
+  if(status === "Goedgekeurd") {
+    const approved = reservations.find(r=>r.id===id);
+    if(approved) approveReservation(approved);
+  }
 }
 
-/* -------------------- DELETE (ADMIN) -------------------- */
-function removeReservation(id){
-  if(!confirm("Deze reservatie definitief verwijderen?")) return;
-
-  reservations = reservations.filter(r => r.id !== id);
-  save();
-  render();
-}
-
-/* -------------------- RENDER -------------------- */
+// -------------------- RENDER --------------------
 function render() {
   const wrap = document.getElementById("reservations");
   wrap.innerHTML = "";
@@ -160,20 +139,8 @@ function render() {
 
         ${
           isAdmin && r.status === "In afwachting"
-          ? `
-          <button class="call-btn" onclick="approve(${r.id}, 'Goedgekeurd')">✔ Goedkeuren</button>
-          <button class="call-btn" style="background:#444"
-            onclick="approve(${r.id}, 'Afgekeurd')">✖ Afkeuren</button>
-          `
-          : ""
-        }
-
-        ${
-          isAdmin
-          ? `
-          <button class="call-btn" style="background:#900"
-            onclick="removeReservation(${r.id})">🗑 Verwijderen</button>
-          `
+          ? `<button class="call-btn" onclick="approve(${r.id}, 'Goedgekeurd')">✔ Goedkeuren & push</button>
+             <button class="call-btn" style="background:#444" onclick="approve(${r.id}, 'Afgekeurd')">✖ Afkeuren</button>`
           : ""
         }
       </div>
