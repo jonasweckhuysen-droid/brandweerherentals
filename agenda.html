@@ -9,27 +9,11 @@
 <!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
-<style>
-  body { font-family: Arial, sans-serif; background:#f5f5f5; color:#333; }
-  .container { max-width:900px; margin:20px auto; padding:10px; }
-  h2 { margin-top:20px; }
-  .day-card { margin-bottom:20px; }
-  .event-card { border-radius:10px; padding:10px; margin:5px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-  .event-card.google { background:#dce7ff; }   /* lichtblauw voor Google events */
-  .event-card.firebase { background:#d4ffd4; } /* lichtgroen voor voertuigreservaties */
-  .event-card div { margin:3px 0; }
-  .header-logo { height:50px; }
-  #appHeader { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-  .backlink { display:inline-block; margin-bottom:15px; text-decoration:none; color:#555; }
-  .backlink .arrow { font-weight:bold; }
-</style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- HEADER -->
   <header id="appHeader">
     <div class="header-left">
       <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
@@ -44,8 +28,7 @@
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
     <h2>📅 Agenda</h2>
-
-    <div id="reservations" class="agenda-list"></div>
+    <div id="agenda" class="agenda-list"></div>
   </div>
 </div>
 
@@ -71,104 +54,106 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 console.log("✅ Firebase klaar");
 
-/* -------------------- GOOGLE CALENDAR API -------------------- */
-const API_KEY = "AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE";
-const CALENDAR_ID = "df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com";
-const MAX_EVENTS = 100;
+/* -------------------- GOOGLE CALENDAR CONFIG -------------------- */
+const GOOGLE_API_KEY = "AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE"; // je Google API key
+const VEHICLE_CALENDAR_ID = "primary"; // of een aparte kalender ID
+const IMPORT_CALENDAR_ID = "df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com";
 
-async function fetchGoogleEvents() {
+/* -------------------- LOAD GOOGLE CALENDAR EVENTS -------------------- */
+async function loadGoogleCalendar() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(),0,1).toISOString();
+  const endOfYear = new Date(now.getFullYear(),11,31,23,59,59).toISOString();
+
   try {
-    const now = new Date().toISOString();
-    const endOfYear = new Date(new Date().getFullYear(),11,31,23,59,59).toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?maxResults=${MAX_EVENTS}&orderBy=startTime&singleEvents=true&timeMin=${now}&timeMax=${endOfYear}&key=${API_KEY}`;
-    const res = await fetch(url);
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(IMPORT_CALENDAR_ID)}/events?key=${GOOGLE_API_KEY}&timeMin=${startOfYear}&timeMax=${endOfYear}&singleEvents=true&orderBy=startTime`
+    );
     const data = await res.json();
-    return data.items || [];
-  } catch (err) {
+    const events = data.items || [];
+    renderEvents(events);
+  } catch(err){
     console.error("⚠️ Fout bij laden Google Calendar:", err);
-    return [];
   }
 }
 
-/* -------------------- LIVE FIREBASE -------------------- */
+/* -------------------- RENDER FUNCTIE -------------------- */
+function renderEvents(events) {
+  const wrap = document.getElementById("agenda");
+  wrap.innerHTML = "";
+
+  // Sorteer op datum
+  events.sort((a,b) => new Date(a.start.dateTime||a.start.date) - new Date(b.start.dateTime||b.start.date));
+
+  events.forEach(e => {
+    const start = e.start.dateTime || e.start.date;
+    const end = e.end.dateTime || e.end.date;
+
+    const card = document.createElement("div");
+    card.className = "card agenda-event";
+    card.innerHTML = `
+      <div class="card-header">
+        📅 ${new Date(start).toLocaleDateString("nl-BE")}
+      </div>
+      <div class="card-body">
+        <div><strong>${e.summary}</strong></div>
+        <div>${start.includes("T") ? new Date(start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ""} - ${end.includes("T") ? new Date(end).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ""}</div>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+/* -------------------- LOAD VEHICLE RESERVATIONS -------------------- */
 db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
   const reservations = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
-      .filter(r => r.status === "Goedgekeurd" && new Date(r.to) >= new Date());
-  updateAgenda(reservations);
+      .filter(r => r.status === "Goedgekeurd") // Alleen goedgekeurde tonen
+      .filter(r => new Date(r.to) >= new Date()); // Alleen toekomstige
+  renderVehicleReservations(reservations);
 });
 
-/* -------------------- UPDATE AGENDA -------------------- */
-async function updateAgenda(firebaseRes) {
-  const wrap = document.getElementById("reservations");
-  wrap.innerHTML = "";
+/* -------------------- RENDER VEHICLE RESERVATIONS -------------------- */
+function renderVehicleReservations(reservations) {
+  const wrap = document.getElementById("agenda");
 
-  const googleEvents = await fetchGoogleEvents();
-
-  const combined = [];
-
-  // Firebase (voertuigreservaties)
-  firebaseRes.forEach(r => {
-    combined.push({
-      type: 'firebase',
-      date: new Date(r.from),
-      title: r.vehicle,
-      from: new Date(r.from),
-      to: new Date(r.to),
-      purpose: r.purpose,
-      persons: r.persons,
-      user: r.user
-    });
-  });
-
-  // Google Calendar
-  googleEvents.forEach(e => {
-    const eventDate = new Date(e.start.dateTime || e.start.date);
-    // filter enkel dit jaar
-    if(eventDate.getFullYear() !== new Date().getFullYear()) return;
-
-    combined.push({
-      type: 'google',
-      date: eventDate,
-      title: e.summary || 'Geen titel',
-      from: eventDate,
-      to: new Date(e.end.dateTime || e.end.date),
-      purpose: '',
-      persons: '',
-      user: ''
-    });
-  });
-
-  // Sorteer op datum/tijd
-  combined.sort((a,b) => a.from - b.from);
-
-  // Render elk event apart in een kader
-  combined.forEach(ev => {
+  reservations.forEach(r => {
     const card = document.createElement("div");
-    card.className = ev.type === 'firebase' ? "event-card firebase" : "event-card google";
-
-    if(ev.type === 'firebase'){
-      card.innerHTML = `
-        <div>📅 <strong>${ev.date.toLocaleDateString("nl-BE")}</strong></div>
-        <div>🚒 ${ev.title}</div>
-        <div>⏰ ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-        <div>🎯 Doel: ${ev.purpose}</div>
-        <div>👥 Personen: ${ev.persons}</div>
-        <div>👤 Door: ${ev.user}</div>
-      `;
-    } else {
-      card.innerHTML = `
-        <div>📅 <strong>${ev.date.toLocaleDateString("nl-BE")}</strong></div>
-        <div>📌 ${ev.title}</div>
-        <div>⏰ ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-      `;
-    }
-
+    card.className = "card vehicle-event";
+    card.innerHTML = `
+      <div class="card-header">
+        🚒 ${new Date(r.from).toLocaleDateString("nl-BE")}
+      </div>
+      <div class="card-body">
+        <div><strong>${r.vehicle}</strong></div>
+        <div>${new Date(r.from).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${new Date(r.to).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+        <div>Doel: ${r.purpose}</div>
+        <div>Personen: ${r.persons}</div>
+        <div>Door: ${r.user}</div>
+      </div>
+    `;
     wrap.appendChild(card);
   });
 }
+
+/* -------------------- INIT -------------------- */
+loadGoogleCalendar();
 </script>
+
+<style>
+.container{max-width:900px;margin:auto;padding:10px;font-family:sans-serif;}
+.header-logo{height:50px;}
+.header-right{float:right;text-align:right;}
+.header-datetime{font-size:0.85em;color:#555;}
+.content{margin-top:20px;}
+.backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
+.card{border-radius:8px;padding:10px;margin-bottom:15px;background:#f8f8f8;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.card-header{font-weight:bold;margin-bottom:5px;}
+.card-body{margin-left:5px;}
+.agenda-event{background:#e0f7fa;}
+.vehicle-event{background:#fff3e0;border-left:5px solid #ff9800;}
+</style>
 
 </body>
 </html>
