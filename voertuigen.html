@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voertuigenreservatie</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://apis.google.com/js/api.js"></script>
 
 <!-- Firebase compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
 
@@ -38,10 +41,10 @@
       <div class="card-body">
         <label>Voertuig</label>
         <div class="vehicle-options">
-          <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
-          <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
-          <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
-          <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
+          <label class="vehicle-check"><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
+          <label class="vehicle-check"><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
+          <label class="vehicle-check"><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
+          <label class="vehicle-check"><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
         </div>
 
         <label>Van</label>
@@ -63,30 +66,13 @@
     <h2>📅 Reservaties</h2>
     <div id="reservations" class="grid"></div>
   </div>
+
 </div>
 
 <script>
-  console.log("OAuth init test");
-gapi.load('client:auth2', async () => {
-  try {
-    await gapi.client.init({
-      apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
-      clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
-      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-      scope: "https://www.googleapis.com/auth/calendar"
-    });
-    const authInstance = gapi.auth2.getAuthInstance();
-    console.log("✅ GAPI ready, signed in:", authInstance.isSignedIn.get());
-  } catch(err) {
-    console.error("❌ GAPI init failed", err);
-  }
-});
-
 // -------------------- GEBRUIKER --------------------
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 document.getElementById("userName").textContent = currentUser;
-
-// -------------------- ADMIN CHECK --------------------
 const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
 const isAdmin = admins.includes(currentUser);
 
@@ -103,51 +89,56 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 console.log("✅ Firebase klaar");
 
-// -------------------- GOOGLE API INIT --------------------
+// -------------------- GOOGLE CALENDAR via GIS --------------------
+let tokenClient;
 let gapiInited = false;
-let gapiAuthInstance = null;
-function initGapi() {
-    gapi.load('client:auth2', async () => {
-        await gapi.client.init({
-            apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
-            clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
-            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-            scope: "https://www.googleapis.com/auth/calendar"
-        });
-        gapiAuthInstance = gapi.auth2.getAuthInstance();
-        gapiInited = true;
-        console.log("✅ Google API klaar");
-    });
-}
-initGapi();
 
-async function googleSignIn() {
-    if (!gapiInited) return alert("Google API nog niet geladen");
-    const user = await gapiAuthInstance.signIn();
-    console.log("Ingelogd als:", user.getBasicProfile().getName());
+function initGapi() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
+    });
+    gapiInited = true;
+    console.log("✅ GAPI ready");
+  });
+}
+
+function initGIS() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
+    scope: 'https://www.googleapis.com/auth/calendar',
+    callback: (tokenResponse) => {
+      console.log("Access token ontvangen");
+    }
+  });
+}
+
+function requestAccessToken() {
+  tokenClient.requestAccessToken();
 }
 
 async function pushToGoogleCalendar(reservation){
-    if(!gapiInited) return console.warn("Google API nog niet klaar");
-    if(!gapiAuthInstance.isSignedIn.get()) await googleSignIn();
+  if(!gapiInited) return console.warn("GAPI nog niet klaar");
+  if(!tokenClient) requestAccessToken();
 
-    const event = {
-        summary: reservation.vehicle,
-        description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
-        start: { dateTime: new Date(reservation.from).toISOString() },
-        end: { dateTime: new Date(reservation.to).toISOString() },
-        reminders: { useDefault: true }
-    };
+  const event = {
+    summary: reservation.vehicle,
+    description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
+    start: { dateTime: new Date(reservation.from).toISOString() },
+    end: { dateTime: new Date(reservation.to).toISOString() },
+    reminders: { useDefault: true }
+  };
 
-    try {
-        await gapi.client.calendar.events.insert({
-            calendarId: 'primary',
-            resource: event
-        });
-        console.log("✔ Reservatie naar Google Calendar gepusht:", reservation.vehicle);
-    } catch(err){
-        console.error("⚠️ Fout bij push:", err);
-    }
+  try {
+    await gapi.client.calendar.events.insert({
+      calendarId: 'primary',
+      resource: event
+    });
+    console.log("✔ Reservatie naar Google Calendar gepusht:", reservation.vehicle);
+  } catch(err){
+    console.error("⚠️ Fout bij push:", err);
+  }
 }
 
 // -------------------- SUBMIT RESERVATIE --------------------
@@ -156,21 +147,20 @@ document.getElementById("submitBtn").addEventListener("click", () => {
   const r = {
     user: currentUser,
     vehicle,
-    from: from.value,
-    to: to.value,
-    purpose: purpose.value,
-    persons: persons.value,
+    from: document.getElementById("from").value,
+    to: document.getElementById("to").value,
+    purpose: document.getElementById("purpose").value,
+    persons: document.getElementById("persons").value,
     status: "In afwachting",
     timestamp: Date.now()
   };
   db.ref("reservations").push(r)
     .then(() => {
-      // Velden leegmaken
       document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
-      from.value = "";
-      to.value = "";
-      purpose.value = "";
-      persons.value = "";
+      document.getElementById("from").value = "";
+      document.getElementById("to").value = "";
+      document.getElementById("purpose").value = "";
+      document.getElementById("persons").value = "";
     })
     .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
 });
@@ -180,15 +170,15 @@ db.ref("reservations").on("value", snapshot => {
   const data = snapshot.val() || {};
   const reservations = Object.keys(data)
       .map(key => ({ id: key, ...data[key] }))
-      .filter(r => new Date(r.to) >= new Date()); // alleen toekomstige
-  renderFirebase(reservations);
+      .filter(r => new Date(r.to) >= new Date());
+  renderReservations(reservations);
 });
 
-// -------------------- RENDER FUNCTIE --------------------
-function renderFirebase(reservations) {
+function renderReservations(reservations){
   const wrap = document.getElementById("reservations");
   wrap.innerHTML = "";
   reservations.forEach(r => {
+    if(!isAdmin && r.user !== currentUser) return;
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
@@ -200,16 +190,10 @@ function renderFirebase(reservations) {
         <div><strong>Doel:</strong> ${r.purpose}</div>
         <div><strong>Personen:</strong> ${r.persons}</div>
         <div><strong>Status:</strong> ${r.status}</div>
-
-        ${
-          isAdmin
-          ? `
+        ${isAdmin ? `
           ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}', 'Goedgekeurd')">✔ Goedkeuren</button>
                                            <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}', 'Afgekeurd')">✖ Afkeuren</button>` : ""}
-          <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>
-          `
-          : ""
-        }
+          <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>` : ""}
       </div>
     `;
     wrap.appendChild(card);
@@ -233,7 +217,11 @@ function removeFirebase(id) {
   if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
   db.ref("reservations/" + id).remove();
 }
-</script>
 
+// -------------------- INIT --------------------
+initGapi();
+initGIS();
+
+</script>
 </body>
 </html>
