@@ -29,11 +29,12 @@
 
     <h2>🧑‍🚒 Permanentie doorgeven</h2>
 
+    <!-- BESCHIKBAARHEID FORM -->
     <div class="card">
       <div class="card-header"><h3>Beschikbaarheid invullen</h3></div>
       <div class="card-body">
         <label>Datum</label>
-        <input type="date" id="date" min="<?= new Date().toISOString().split('T')[0] ?>">
+        <input type="date" id="date">
 
         <label>Functie</label>
         <select id="role">
@@ -107,84 +108,107 @@ document.getElementById("submitBtn").addEventListener("click", () => {
   if(!date) return alert("Kies een datum");
   if(!isAvailable(date)) return alert("Deze datum is niet beschikbaar (weekend, feestdag of vakantie)");
 
-  const r = {
-    user: currentUser,
-    role,
-    date,
-    timestamp: Date.now()
-  };
+  const r = {user: currentUser, role, date, timestamp: Date.now()};
   db.ref("permanencies/" + date).push(r)
     .then(()=>{ alert("Beschikbaarheid doorgegeven"); })
     .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
 });
 
+/* -------------------- AUTOMATISCHE MAANDPLANNING -------------------- */
+function autoScheduleMonth(month, year){
+  // Alleen na de 15e van de maand
+  const today = new Date();
+  if(today.getDate() <= 15) return;
+
+  db.ref("permanencies").once("value").then(snapshot => {
+    const data = snapshot.val() || {};
+    const dates = Object.keys(data).filter(d => {
+      const dt = new Date(d);
+      return dt.getMonth() === month && dt.getFullYear() === year;
+    });
+
+    dates.forEach(date => {
+      const availabilities = data[date];
+      if(!availabilities) return;
+      const roles = {chauffeur:[], bevelvoerder:[], brandweerman:[], stagiair:[]};
+      Object.values(availabilities).forEach(p => roles[p.role].push(p.user));
+
+      // Alleen indelen als nog geen team
+      const existingTeamRef = db.ref("teams/" + date);
+      existingTeamRef.once("value").then(snap=>{
+        if(snap.exists()) return;
+
+        if(roles.chauffeur.length>=1 && roles.bevelvoerder.length>=1 && roles.brandweerman.length>=4 && roles.stagiair.length>=1){
+          const team = {
+            chauffeur: roles.chauffeur[Math.floor(Math.random()*roles.chauffeur.length)],
+            bevelvoerder: roles.bevelvoerder[Math.floor(Math.random()*roles.bevelvoerder.length)],
+            brandweermannen: shuffleArray(roles.brandweerman).slice(0,4),
+            stagiair: roles.stagiair[Math.floor(Math.random()*roles.stagiair.length)]
+          };
+          existingTeamRef.set(team);
+        }
+      });
+    });
+  });
+}
+
 /* -------------------- LOAD & RENDER PERMANENCIES -------------------- */
-db.ref("permanencies").on("value", snapshot => {
-  const data = snapshot.val() || {};
-  const dates = Object.keys(data).sort((a,b) => new Date(a) - new Date(b));
-  const wrap = document.getElementById("permanenceList");
-  wrap.innerHTML = "";
+function renderPermanencies(){
+  db.ref("teams").on("value", snapshot => {
+    const data = snapshot.val() || {};
+    const dates = Object.keys(data).sort((a,b)=>new Date(a)-new Date(b));
+    const wrap = document.getElementById("permanenceList");
+    wrap.innerHTML = "";
 
-  dates.forEach(date => {
-    const availabilities = data[date];
-    const roles = {chauffeur:[], bevelvoerder:[], brandweerman:[], stagiair:[]};
-    Object.values(availabilities).forEach(p => roles[p.role].push(p.user));
-
-    // Willekeurig ploeg selecteren indien genoeg kandidaten
-    const canFormTeam = roles.chauffeur.length >=1 && roles.bevelvoerder.length>=1 && roles.brandweerman.length>=4 && roles.stagiair.length>=1;
-    let team = {};
-    if(canFormTeam){
-      team = {
-        chauffeur: roles.chauffeur[Math.floor(Math.random()*roles.chauffeur.length)],
-        bevelvoerder: roles.bevelvoerder[Math.floor(Math.random()*roles.bevelvoerder.length)],
-        brandweermannen: shuffleArray(roles.brandweerman).slice(0,4),
-        stagiair: roles.stagiair[Math.floor(Math.random()*roles.stagiair.length)]
-      };
-    }
-
-    // Card maken
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-header">📅 ${new Date(date).toLocaleDateString("nl-BE")}</div>
-      <div class="card-body">
-        ${canFormTeam ? `
+    dates.forEach(date => {
+      const team = data[date];
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-header">📅 ${new Date(date).toLocaleDateString("nl-BE")}</div>
+        <div class="card-body">
           <div>🚗 Chauffeur: ${team.chauffeur}</div>
           <div>🧑‍✈️ Bevelvoerder: ${team.bevelvoerder}</div>
           <div>🔥 Brandweermannen: ${team.brandweermannen.join(", ")}</div>
           <div>👶 Stagiair: ${team.stagiair}</div>
-        ` : `<div style="color:#900;">❌ Ploeg kan nog niet gevormd worden</div>`}
-        ${isAdmin ? `<button class="call-btn" onclick="editPermanency('${date}')">✏️ Wijzig</button>` : ""}
-      </div>
-    `;
-    wrap.appendChild(card);
-  });
-});
-
-/* -------------------- HELPER FUNCTIONS -------------------- */
-function shuffleArray(array) {
-  return array.sort(() => Math.random() - 0.5);
-}
-
-/* -------------------- ADMIN WIJZIGEN -------------------- */
-function editPermanency(date){
-  const newUsers = prompt("Voeg comma-gescheiden lijst toe van gebruikers per rol, bv:\nchauffeur:Jan,bevelvoerder:Tim,brandweerman:Ben;Tom;Sam;Klaas,stagiair:Liam");
-  if(!newUsers) return;
-  const roles = {};
-  newUsers.split(",").forEach(pair=>{
-    const [role,users] = pair.split(":");
-    roles[role.trim()] = users.includes(";") ? users.split(";").map(u=>u.trim()) : [users.trim()];
-  });
-
-  const updates = {};
-  Object.keys(roles).forEach(role=>{
-    roles[role].forEach(user=>{
-      const id = db.ref("permanencies/"+date).push().key;
-      updates[date+"/"+id] = {role,user,date};
+          ${isAdmin ? `<button class="call-btn" onclick="editPermanency('${date}')">✏️ Wijzig</button>` : ""}
+          <button class="call-btn" onclick="swapPermanency('${date}')">🔄 Wissel</button>
+        </div>
+      `;
+      wrap.appendChild(card);
     });
   });
-  db.ref("permanencies").update(updates);
 }
+renderPermanencies();
+
+/* -------------------- SWAP FUNCTION -------------------- */
+function swapPermanency(date){
+  const teamRef = db.ref("teams/"+date);
+  teamRef.once("value").then(snap=>{
+    const team = snap.val();
+    if(!team) return alert("Geen team beschikbaar om te wisselen");
+    const role = prompt("Welke rol wil je wisselen? (chauffeur, bevelvoerder, brandweermannen, stagiair)");
+    if(!role) return;
+    let newUser = prompt("Vul de naam in van de vervanger:");
+    if(!newUser) return;
+
+    if(role === "brandweermannen"){
+      const oldUser = prompt("Welke brandweerman wil je vervangen? (volledige naam)");
+      if(!oldUser || !team.brandweermannen.includes(oldUser)) return alert("Ongeldige naam");
+      team.brandweermannen = team.brandweermannen.map(u=> u===oldUser ? newUser : u);
+    } else {
+      team[role] = newUser;
+    }
+    teamRef.set(team);
+  });
+}
+
+/* -------------------- HELPER -------------------- */
+function shuffleArray(arr){ return arr.sort(()=>Math.random()-0.5); }
+
+/* -------------------- RUN AUTO SCHEDULE -------------------- */
+const now = new Date();
+autoScheduleMonth(now.getMonth(), now.getFullYear());
 </script>
 
 <style>
