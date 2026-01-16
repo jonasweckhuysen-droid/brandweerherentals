@@ -9,6 +9,21 @@
 <!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f5f5; color:#333; }
+  .container { max-width:900px; margin:20px auto; padding:10px; }
+  h2 { margin-top:20px; }
+  .day-card { margin-bottom:20px; }
+  .event-card { border-radius:10px; padding:10px; margin:5px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  .event-card.google { background:#dce7ff; }   /* lichtblauw voor Google events */
+  .event-card.firebase { background:#d4ffd4; } /* lichtgroen voor voertuigreservaties */
+  .event-card div { margin:3px 0; }
+  .header-logo { height:50px; }
+  #appHeader { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .backlink { display:inline-block; margin-bottom:15px; text-decoration:none; color:#555; }
+  .backlink .arrow { font-weight:bold; }
+</style>
 </head>
 <body>
 
@@ -59,12 +74,13 @@ console.log("✅ Firebase klaar");
 /* -------------------- GOOGLE CALENDAR API -------------------- */
 const API_KEY = "AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE";
 const CALENDAR_ID = "df2fa36fb8ea4044f8276cf20d9922d6c350e7f7604bb5ad4a53521324f78727@group.calendar.google.com";
-const MAX_EVENTS = 50;
+const MAX_EVENTS = 100;
 
 async function fetchGoogleEvents() {
   try {
     const now = new Date().toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?maxResults=${MAX_EVENTS}&orderBy=startTime&singleEvents=true&timeMin=${now}&key=${API_KEY}`;
+    const endOfYear = new Date(new Date().getFullYear(),11,31,23,59,59).toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?maxResults=${MAX_EVENTS}&orderBy=startTime&singleEvents=true&timeMin=${now}&timeMax=${endOfYear}&key=${API_KEY}`;
     const res = await fetch(url);
     const data = await res.json();
     return data.items || [];
@@ -108,11 +124,15 @@ async function updateAgenda(firebaseRes) {
 
   // Google Calendar
   googleEvents.forEach(e => {
+    const eventDate = new Date(e.start.dateTime || e.start.date);
+    // filter enkel dit jaar
+    if(eventDate.getFullYear() !== new Date().getFullYear()) return;
+
     combined.push({
       type: 'google',
-      date: new Date(e.start.dateTime || e.start.date),
+      date: eventDate,
       title: e.summary || 'Geen titel',
-      from: new Date(e.start.dateTime || e.start.date),
+      from: eventDate,
       to: new Date(e.end.dateTime || e.end.date),
       purpose: '',
       persons: '',
@@ -123,46 +143,32 @@ async function updateAgenda(firebaseRes) {
   // Sorteer op datum/tijd
   combined.sort((a,b) => a.from - b.from);
 
-  // Groepeer per dag + filter dubbele titels
-  const grouped = {};
+  // Render elk event apart in een kader
   combined.forEach(ev => {
-    const dayKey = ev.from.toLocaleDateString("nl-BE");
-    if(!grouped[dayKey]) grouped[dayKey] = [];
-    const exists = grouped[dayKey].some(e => e.title === ev.title);
-    if(!exists) grouped[dayKey].push(ev);
-  });
+    const card = document.createElement("div");
+    card.className = ev.type === 'firebase' ? "event-card firebase" : "event-card google";
 
-  // Render per dag
-  Object.keys(grouped).forEach(date => {
-    const dayCard = document.createElement("div");
-    dayCard.className = "day-card";
-    dayCard.innerHTML = `<h2>📆 ${date}</h2>`;
-    
-    grouped[date].forEach(ev => {
-      const card = document.createElement("div");
-      card.className = ev.type === 'firebase' ? "event-card firebase" : "event-card google";
+    if(ev.type === 'firebase'){
+      card.innerHTML = `
+        <div>📅 <strong>${ev.date.toLocaleDateString("nl-BE")}</strong></div>
+        <div>🚒 ${ev.title}</div>
+        <div>⏰ ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+        <div>🎯 Doel: ${ev.purpose}</div>
+        <div>👥 Personen: ${ev.persons}</div>
+        <div>👤 Door: ${ev.user}</div>
+      `;
+    } else {
+      card.innerHTML = `
+        <div>📅 <strong>${ev.date.toLocaleDateString("nl-BE")}</strong></div>
+        <div>📌 ${ev.title}</div>
+        <div>⏰ ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+      `;
+    }
 
-      if(ev.type === 'firebase'){
-        card.innerHTML = `
-          <div>🚒 <strong>${ev.title}</strong></div>
-          <div>⏰ ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-          <div>🎯 Doel: ${ev.purpose}</div>
-          <div>👥 Personen: ${ev.persons}</div>
-          <div>👤 Door: ${ev.user}</div>
-        `;
-      } else {
-        card.innerHTML = `
-          <div>📌 <strong>${ev.title}</strong></div>
-          <div>⏰ ${ev.from.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${ev.to.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-        `;
-      }
-
-      dayCard.appendChild(card);
-    });
-
-    wrap.appendChild(dayCard);
+    wrap.appendChild(card);
   });
 }
 </script>
+
 </body>
 </html>
