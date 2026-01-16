@@ -53,7 +53,7 @@
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
     <h2>🧑‍🚒 Permanentie Opgave</h2>
-    <p>Periode voor doorgeven beschikbaarheid: <span id="periodeText"></span></p>
+    <p>Periode voor doorgeven beschikbaarheid: <span id="periodeText"></span> voor de maand <span id="maandText"></span></p>
     <div id="calendar"></div>
 
     <div id="roleSelection" style="margin-top:15px;display:none;">
@@ -86,7 +86,6 @@ setInterval(() => {
 const firebaseConfig = {databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"};
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-console.log("✅ Firebase klaar");
 
 /* -------------------- FEESTDAGEN & SCHOOLVAKANTIES -------------------- */
 const belgischeFeestdagen = ["2026-01-01","2026-04-06","2026-05-01","2026-05-14","2026-05-25","2026-07-21","2026-08-15","2026-11-01","2026-11-11","2026-12-25"];
@@ -107,11 +106,16 @@ function isAvailable(dateStr){
   return true;
 }
 
-/* -------------------- PERIODETEKST -------------------- */
+/* -------------------- PERIODE TEKST -------------------- */
 const today = new Date();
+// 16e huidige maand
 const periodeStart = new Date(today.getFullYear(), today.getMonth(),16);
+// 15e volgende maand
 const periodeEnd = new Date(today.getFullYear(), today.getMonth()+1,15);
-document.getElementById("periodeText").textContent = `${periodeStart.getDate()}/${periodeStart.getMonth()+1} tot ${periodeEnd.getDate()}/${periodeEnd.getMonth()+1} voor de maand ${(today.getMonth()+2)}`;
+// De maand waarvoor permanentie wordt opgegeven = maand na volgende maand
+const permanentieMonth = new Date(today.getFullYear(), today.getMonth()+2,1);
+document.getElementById("periodeText").textContent = `${periodeStart.getDate()}/${periodeStart.getMonth()+1} tot ${periodeEnd.getDate()}/${periodeEnd.getMonth()+1}`;
+document.getElementById("maandText").textContent = permanentieMonth.toLocaleString('nl-NL',{month:'long'});
 
 /* -------------------- KALENDER -------------------- */
 const calendarDiv = document.getElementById("calendar");
@@ -120,12 +124,12 @@ let selectedDate=null;
 
 function renderCalendar(){
   calendarDiv.innerHTML='';
-  let current = new Date(periodeStart);
-  while(current <= periodeEnd){
+  let current = new Date(permanentieMonth.getFullYear(), permanentieMonth.getMonth(),1);
+  const lastDay = new Date(permanentieMonth.getFullYear(), permanentieMonth.getMonth()+1,0);
+  while(current <= lastDay){
     const dateStr = `${current.getFullYear()}-${pad(current.getMonth()+1)}-${pad(current.getDate())}`;
     const dayDiv = document.createElement('div');
     dayDiv.className='day-block';
-    if(!isAvailable(dateStr)) dayDiv.style.opacity=0.5;
     dayDiv.innerHTML=`<div class="day-date">${current.getDate()}/${current.getMonth()+1}</div><div id="day-${dateStr}"></div>`;
     calendarDiv.appendChild(dayDiv);
 
@@ -134,7 +138,10 @@ function renderCalendar(){
         selectedDate=dateStr;
         document.getElementById('roleSelection').style.display='block';
       });
+    } else {
+      dayDiv.style.opacity=0.5;
     }
+
     current.setDate(current.getDate()+1);
   }
 }
