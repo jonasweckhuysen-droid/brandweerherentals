@@ -6,68 +6,10 @@
 <title>Voertuigenreservatie</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://apis.google.com/js/api.js"></script>
-<script type="module">
-  // --- Firebase SDK import ---
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-  // --- Firebase config ---
-  const firebaseConfig = {
-      databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  window.firebaseDB = db; // globaal beschikbaar
-
-  console.log("✅ Firebase klaar");
-
-  // --- Google API init ---
-  let gapiInited = false;
-  let gapiAuthInstance = null;
-  function initGapi() {
-      gapi.load('client:auth2', async () => {
-          await gapi.client.init({
-              apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
-              clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
-              discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-              scope: "https://www.googleapis.com/auth/calendar"
-          });
-          gapiAuthInstance = gapi.auth2.getAuthInstance();
-          gapiInited = true;
-          console.log("✅ gapi klaar");
-      });
-  }
-  initGapi();
-
-  async function googleSignIn() {
-      if (!gapiInited) return alert("Google API nog niet geladen");
-      const user = await gapiAuthInstance.signIn();
-      console.log("Ingelogd als:", user.getBasicProfile().getName());
-  }
-
-  async function pushToGoogleCalendar(reservation){
-      if(!gapiInited) return console.warn("gapi nog niet klaar");
-      if(!gapiAuthInstance.isSignedIn.get()) await googleSignIn();
-
-      const event = {
-          summary: reservation.vehicle,
-          description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
-          start: { dateTime: new Date(reservation.from).toISOString() },
-          end: { dateTime: new Date(reservation.to).toISOString() },
-          reminders: { useDefault: true }
-      };
-
-      try {
-          await gapi.client.calendar.events.insert({
-              calendarId: 'primary',
-              resource: event
-          });
-          console.log("✔ Reservatie naar Google Calendar gepusht:", reservation.vehicle);
-      } catch(err){
-          console.error("⚠️ Fout bij push:", err);
-      }
-  }
-</script>
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -88,28 +30,18 @@
   <div class="content">
     <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
-    <h2>🚒 Nieuwe Voertuigenaanvraag</h2>
+    <h2>🚒 Voertuigenreservatie</h2>
+
+    <!-- RESERVATIE FORMULIER -->
     <div class="card">
       <div class="card-header"><h3>Nieuwe aanvraag</h3></div>
       <div class="card-body">
         <label>Voertuig</label>
-        <div id="vehicleRadios">
-          <label class="radio-container">Caddy S542
-            <input type="radio" name="vehicle" value="Caddy S542" checked>
-            <span class="checkmark"></span>
-          </label>
-          <label class="radio-container">Galaxy S541
-            <input type="radio" name="vehicle" value="Galaxy S541">
-            <span class="checkmark"></span>
-          </label>
-          <label class="radio-container">Personeelsbus S545
-            <input type="radio" name="vehicle" value="Personeelsbus S545">
-            <span class="checkmark"></span>
-          </label>
-          <label class="radio-container">Camionette L543
-            <input type="radio" name="vehicle" value="Camionette L543">
-            <span class="checkmark"></span>
-          </label>
+        <div class="vehicle-options">
+          <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
+          <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
+          <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
+          <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
         </div>
 
         <label>Van</label>
@@ -128,109 +60,163 @@
       </div>
     </div>
 
-    <h2>📅 Alle Reservaties</h2>
+    <h2>📅 Reservaties</h2>
     <div id="reservations" class="grid"></div>
   </div>
-
 </div>
 
-<script type="module">
-  const currentUser = localStorage.getItem("userName") || "Onbekend";
-  document.getElementById("userName").textContent = currentUser;
-  const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-  const isAdmin = admins.includes(currentUser);
+<script>
+// -------------------- GEBRUIKER --------------------
+const currentUser = localStorage.getItem("userName") || "Onbekend";
+document.getElementById("userName").textContent = currentUser;
 
-  setInterval(() => {
-      document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
-  }, 1000);
+// -------------------- ADMIN CHECK --------------------
+const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
+const isAdmin = admins.includes(currentUser);
 
-  const reservationsRef = ref(window.firebaseDB, "reservations");
+// -------------------- DATETIME --------------------
+setInterval(() => {
+  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
+}, 1000);
 
-  // --- submit ---
-  document.getElementById("submitBtn").addEventListener("click", () => {
-      const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
-      const r = {
-          user: currentUser,
-          vehicle,
-          from: from.value,
-          to: to.value,
-          purpose: purpose.value,
-          persons: persons.value,
-          status: "In afwachting",
-          timestamp: Date.now()
-      };
-      push(reservationsRef, r)
-          .then(() => {
-              // Velden leegmaken
-              document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
-              from.value = "";
-              to.value = "";
-              purpose.value = "";
-              persons.value = "";
-          })
-          .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
+// -------------------- FIREBASE INIT --------------------
+const firebaseConfig = {
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+console.log("✅ Firebase klaar");
+
+// -------------------- GOOGLE API INIT --------------------
+let gapiInited = false;
+let gapiAuthInstance = null;
+function initGapi() {
+    gapi.load('client:auth2', async () => {
+        await gapi.client.init({
+            apiKey: 'AIzaSyDLOdqVeA-SSjSN-0RtzDP4R451nqov0lE',
+            clientId: '440406636112-36khnms08f1bjkol1aqsl6ded5pj39jk.apps.googleusercontent.com',
+            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+            scope: "https://www.googleapis.com/auth/calendar"
+        });
+        gapiAuthInstance = gapi.auth2.getAuthInstance();
+        gapiInited = true;
+        console.log("✅ Google API klaar");
+    });
+}
+initGapi();
+
+async function googleSignIn() {
+    if (!gapiInited) return alert("Google API nog niet geladen");
+    const user = await gapiAuthInstance.signIn();
+    console.log("Ingelogd als:", user.getBasicProfile().getName());
+}
+
+async function pushToGoogleCalendar(reservation){
+    if(!gapiInited) return console.warn("Google API nog niet klaar");
+    if(!gapiAuthInstance.isSignedIn.get()) await googleSignIn();
+
+    const event = {
+        summary: reservation.vehicle,
+        description: `Doel: ${reservation.purpose}\nAantal personen: ${reservation.persons}\nAanvrager: ${reservation.user}`,
+        start: { dateTime: new Date(reservation.from).toISOString() },
+        end: { dateTime: new Date(reservation.to).toISOString() },
+        reminders: { useDefault: true }
+    };
+
+    try {
+        await gapi.client.calendar.events.insert({
+            calendarId: 'primary',
+            resource: event
+        });
+        console.log("✔ Reservatie naar Google Calendar gepusht:", reservation.vehicle);
+    } catch(err){
+        console.error("⚠️ Fout bij push:", err);
+    }
+}
+
+// -------------------- SUBMIT RESERVATIE --------------------
+document.getElementById("submitBtn").addEventListener("click", () => {
+  const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
+  const r = {
+    user: currentUser,
+    vehicle,
+    from: from.value,
+    to: to.value,
+    purpose: purpose.value,
+    persons: persons.value,
+    status: "In afwachting",
+    timestamp: Date.now()
+  };
+  db.ref("reservations").push(r)
+    .then(() => {
+      // Velden leegmaken
+      document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
+      from.value = "";
+      to.value = "";
+      purpose.value = "";
+      persons.value = "";
+    })
+    .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
+});
+
+// -------------------- LIVE RENDER --------------------
+db.ref("reservations").on("value", snapshot => {
+  const data = snapshot.val() || {};
+  const reservations = Object.keys(data)
+      .map(key => ({ id: key, ...data[key] }))
+      .filter(r => new Date(r.to) >= new Date()); // alleen toekomstige
+  renderFirebase(reservations);
+});
+
+// -------------------- RENDER FUNCTIE --------------------
+function renderFirebase(reservations) {
+  const wrap = document.getElementById("reservations");
+  wrap.innerHTML = "";
+  reservations.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-header"><h3>${r.vehicle}</h3></div>
+      <div class="card-body">
+        <div><strong>Van:</strong> ${r.from}</div>
+        <div><strong>Tot:</strong> ${r.to}</div>
+        <div><strong>Door:</strong> ${r.user}</div>
+        <div><strong>Doel:</strong> ${r.purpose}</div>
+        <div><strong>Personen:</strong> ${r.persons}</div>
+        <div><strong>Status:</strong> ${r.status}</div>
+
+        ${
+          isAdmin
+          ? `
+          ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}', 'Goedgekeurd')">✔ Goedkeuren</button>
+                                           <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}', 'Afgekeurd')">✖ Afkeuren</button>` : ""}
+          <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>
+          `
+          : ""
+        }
+      </div>
+    `;
+    wrap.appendChild(card);
   });
+}
 
-  // --- live render met filter voor verlopen ---
-  onValue(reservationsRef, snapshot => {
-      const data = snapshot.val() || {};
-      const reservations = Object.keys(data)
-          .map(key => ({ id: key, ...data[key] }))
-          .filter(r => new Date(r.to) >= new Date()); // alleen toekomstige reserveringen
-      renderFirebase(reservations);
-  });
+// -------------------- APPROVE / REMOVE --------------------
+function approveFirebase(id, status) {
+  db.ref("reservations/" + id).update({ status })
+    .then(() => {
+      if(status === "Goedgekeurd"){
+        db.ref("reservations/" + id).once("value", snap => {
+          const r = snap.val();
+          if(r) pushToGoogleCalendar(r);
+        });
+      }
+    });
+}
 
-  function renderFirebase(reservations) {
-      const wrap = document.getElementById("reservations");
-      wrap.innerHTML = "";
-
-      reservations.forEach(r => {
-          const card = document.createElement("div");
-          card.className = "card";
-
-          card.innerHTML = `
-              <div class="card-header"><h3>${r.vehicle}</h3></div>
-              <div class="card-body">
-                  <div><strong>Van:</strong> ${r.from}</div>
-                  <div><strong>Tot:</strong> ${r.to}</div>
-                  <div><strong>Door:</strong> ${r.user}</div>
-                  <div><strong>Doel:</strong> ${r.purpose}</div>
-                  <div><strong>Personen:</strong> ${r.persons}</div>
-                  <div><strong>Status:</strong> ${r.status}</div>
-                  ${
-                      isAdmin
-                      ? `
-                      ${r.status === "In afwachting" ? `<button class="call-btn" onclick="approveFirebase('${r.id}', 'Goedgekeurd')">✔ Goedkeuren</button>
-                                                        <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}', 'Afgekeurd')">✖ Afkeuren</button>` : ""}
-                      <button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>`
-                      : ""
-                  }
-              </div>
-          `;
-          wrap.appendChild(card);
-      });
-  }
-
-  // --- approve / delete ---
-  window.approveFirebase = function(id, status) {
-      const rRef = ref(window.firebaseDB, "reservations/" + id);
-      update(rRef, { status })
-          .then(() => {
-              if(status === "Goedgekeurd"){
-                  get(rRef).then(snapshot => {
-                      const r = snapshot.val();
-                      if(r) pushToGoogleCalendar(r);
-                  });
-              }
-          })
-          .catch(err => console.error("⚠️ Fout bij update:", err));
-  }
-
-  window.removeFirebase = function(id) {
-      if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
-      const rRef = ref(window.firebaseDB, "reservations/" + id);
-      remove(rRef).then(()=>console.log("🗑 Reservatie verwijderd"));
-  }
+function removeFirebase(id) {
+  if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
+  db.ref("reservations/" + id).remove();
+}
 </script>
 
 </body>
