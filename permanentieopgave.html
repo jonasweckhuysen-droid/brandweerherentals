@@ -33,7 +33,7 @@
     <div class="card">
       <div class="card-header"><h3>Beschikbaarheid invullen</h3></div>
       <div class="card-body">
-        <label>Datum</label>
+        <label>Datum (volgende maand)</label>
         <input type="date" id="date">
 
         <label>Functie</label>
@@ -76,7 +76,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 console.log("✅ Firebase klaar");
 
-/* -------------------- BELGISCHE FEESTDAGEN & SCHOOLVAKANTIES -------------------- */
+/* -------------------- FEESTDAGEN & SCHOOLVAKANTIES -------------------- */
 const belgischeFeestdagen = [
   "2026-01-01","2026-04-06","2026-05-01","2026-05-14","2026-05-25",
   "2026-07-21","2026-08-15","2026-11-01","2026-11-11","2026-12-25"
@@ -93,7 +93,7 @@ const schoolVakanties = [
 function isAvailable(dateStr){
   const date = new Date(dateStr);
   const day = date.getDay();
-  if(day === 0 || day === 6) return false; // weekend
+  if(day === 0 || day === 6) return false;
   if(belgischeFeestdagen.includes(dateStr)) return false;
   for(const v of schoolVakanties){
     if(dateStr >= v.start && dateStr <= v.end) return false;
@@ -101,19 +101,23 @@ function isAvailable(dateStr){
   return true;
 }
 
-/* -------------------- DATUM PICKER BEPERKEN -------------------- */
+/* -------------------- DATUM PICKER BEPERKEN (VOLGENDE MAAND) -------------------- */
 function setDateInputLimits(){
   const input = document.getElementById("date");
   const today = new Date();
-  today.setHours(0,0,0,0);
-  let minDate = today.toISOString().split('T')[0];
-  let maxDateObj = new Date(today.getFullYear(), today.getMonth()+1, 0);
-  let maxDate = maxDateObj.toISOString().split('T')[0];
+  const nextMonth = new Date(today.getFullYear(), today.getMonth()+1, 1);
+  const firstDay = nextMonth.toISOString().split('T')[0];
+  const lastDay = new Date(nextMonth.getFullYear(), nextMonth.getMonth()+1, 0).toISOString().split('T')[0];
 
-  input.setAttribute("min", minDate);
-  input.setAttribute("max", maxDate);
+  // Alleen toelaten tot 15e van huidige maand
+  if(today.getDate() > 15) {
+    input.disabled = true;
+    input.placeholder = "Opgave gesloten voor volgende maand";
+  } else {
+    input.setAttribute("min", firstDay);
+    input.setAttribute("max", lastDay);
+  }
 
-  // Optioneel: voorkom selecteren via alert
   input.addEventListener("input", ()=>{
     if(!isAvailable(input.value)){
       alert("Deze datum is niet beschikbaar (weekend, feestdag of vakantie)");
@@ -139,7 +143,7 @@ document.getElementById("submitBtn").addEventListener("click", () => {
 /* -------------------- AUTOMATISCHE MAANDPLANNING -------------------- */
 function autoScheduleMonth(month, year){
   const today = new Date();
-  if(today.getDate() <= 15) return; // Alleen na 15e van de maand
+  if(today.getDate() <= 15) return; // Alleen na 15e van de maand wordt automatisch gepland
 
   db.ref("permanencies").once("value").then(snapshot => {
     const data = snapshot.val() || {};
@@ -156,7 +160,7 @@ function autoScheduleMonth(month, year){
 
       const teamRef = db.ref("teams/" + date);
       teamRef.once("value").then(snap=>{
-        if(snap.exists()) return; // alleen als nog geen team
+        if(snap.exists()) return;
         if(roles.chauffeur.length>=1 && roles.bevelvoerder.length>=1 && roles.brandweerman.length>=4 && roles.stagiair.length>=1){
           const team = {
             chauffeur: roles.chauffeur[Math.floor(Math.random()*roles.chauffeur.length)],
@@ -171,7 +175,7 @@ function autoScheduleMonth(month, year){
   });
 }
 
-/* -------------------- LOAD & RENDER PERMANENCIES -------------------- */
+/* -------------------- RENDER PERMANENCIES -------------------- */
 function renderPermanencies(){
   db.ref("teams").on("value", snapshot => {
     const data = snapshot.val() || {};
@@ -182,14 +186,14 @@ function renderPermanencies(){
     dates.forEach(date => {
       const team = data[date];
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card team-card";
       card.innerHTML = `
         <div class="card-header">📅 ${new Date(date).toLocaleDateString("nl-BE")}</div>
         <div class="card-body">
-          <div>🚗 Chauffeur: ${team.chauffeur}</div>
-          <div>🧑‍✈️ Bevelvoerder: ${team.bevelvoerder}</div>
-          <div>🔥 Brandweermannen: ${team.brandweermannen.join(", ")}</div>
-          <div>👶 Stagiair: ${team.stagiair}</div>
+          <div class="role chauffeur">🚗 ${team.chauffeur}</div>
+          <div class="role bevelvoerder">🧑‍✈️ ${team.bevelvoerder}</div>
+          <div class="role brandweermannen">🔥 ${team.brandweermannen.join(", ")}</div>
+          <div class="role stagiair">👶 ${team.stagiair}</div>
           ${isAdmin ? `<button class="call-btn" onclick="editPermanency('${date}')">✏️ Wijzig</button>` : ""}
           <button class="call-btn" onclick="swapPermanency('${date}')">🔄 Wissel</button>
         </div>
@@ -222,26 +226,35 @@ function swapPermanency(date){
   });
 }
 
-/* -------------------- HELPER -------------------- */
+/* -------------------- HELPERS -------------------- */
 function shuffleArray(arr){ return arr.sort(()=>Math.random()-0.5); }
 
-/* -------------------- RUN AUTO SCHEDULE -------------------- */
 const now = new Date();
-autoScheduleMonth(now.getMonth(), now.getFullYear());
+autoScheduleMonth(now.getMonth()+1, now.getFullYear()); // planning voor volgende maand
 </script>
 
 <style>
 .container{max-width:900px;margin:auto;padding:10px;font-family:sans-serif;}
 .header-logo{height:50px;}
 .header-right{float:right;text-align:right;}
-.header-datetime{font-size:0.85em;color:#555;}
+.header-datetime{font-size:0.85em;color:#fff;}
+#appHeader{background:#d32f2f;padding:10px 15px;border-radius:8px 8px 0 0;color:#fff;}
 .content{margin-top:20px;}
 .backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
-.card{border-radius:8px;padding:10px;margin-bottom:15px;background:#f0f4f8;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.card{border-radius:8px;padding:10px;margin-bottom:15px;background:#f44336;color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.2);}
 .card-header{font-weight:bold;margin-bottom:5px;font-size:1.1em;}
 .card-body{margin-left:5px;}
 .call-btn{margin-top:5px;padding:5px 10px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;}
 .call-btn:hover{background:#1976d2;}
+
+/* ROLE COLORS */
+.role{padding:3px 6px;border-radius:5px;margin-bottom:3px;display:inline-block;color:#fff;}
+.chauffeur{background:#FF9800;}
+.bevelvoerder{background:#4CAF50;}
+.brandweermannen{background:#f44336;}
+.stagiair{background:#9C27B0;}
+
+.team-card{border-left:5px solid #1976d2; padding-left:10px; margin-bottom:15px;}
 </style>
 
 </body>
