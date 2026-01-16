@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permanentieopgave</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
+    </div>
+    <div class="header-right">
+      <div class="header-greeting">Welkom</div>
+      <div class="header-name" id="userName"></div>
+      <div class="header-datetime" id="datetime"></div>
+    </div>
+  </header>
+
+  <div class="content">
+    <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
+
+    <h2>🧑‍🚒 Permanentie doorgeven</h2>
+
+    <div class="card">
+      <div class="card-header"><h3>Beschikbaarheid invullen</h3></div>
+      <div class="card-body">
+        <label>Datum</label>
+        <input type="date" id="date" min="<?= new Date().toISOString().split('T')[0] ?>">
+
+        <label>Functie</label>
+        <select id="role">
+          <option value="chauffeur">🚗 Chauffeur</option>
+          <option value="bevelvoerder">🧑‍✈️ Bevelvoerder</option>
+          <option value="brandweerman">🔥 Brandweerman</option>
+          <option value="stagiair">👶 Stagiair</option>
+        </select>
+
+        <button class="call-btn" id="submitBtn">Beschikbaarheid doorgeven</button>
+      </div>
+    </div>
+
+    <h2>📅 Permanente planning</h2>
+    <div id="permanenceList" class="agenda-list"></div>
+
+  </div>
+</div>
+
+<script>
+/* -------------------- GEBRUIKER -------------------- */
+const currentUser = localStorage.getItem("userName") || "Onbekend";
+document.getElementById("userName").textContent = currentUser;
+
+/* -------------------- ADMIN CHECK -------------------- */
+const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
+const isAdmin = admins.includes(currentUser);
+
+/* -------------------- DATETIME -------------------- */
+setInterval(() => {
+  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
+}, 1000);
+
+/* -------------------- FIREBASE INIT -------------------- */
+const firebaseConfig = {
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+console.log("✅ Firebase klaar");
+
+/* -------------------- BELGISCHE FEESTDAGEN & SCHOOLVAKANTIES -------------------- */
+const belgischeFeestdagen = [
+  "2026-01-01","2026-04-06","2026-05-01","2026-05-14","2026-05-25","2026-07-21",
+  "2026-08-15","2026-11-01","2026-11-11","2026-12-25"
+];
+
+const schoolVakanties = [
+  {start:"2026-02-16",end:"2026-02-20"},
+  {start:"2026-04-06",end:"2026-04-17"},
+  {start:"2026-07-01",end:"2026-08-31"},
+  {start:"2026-10-26",end:"2026-10-30"},
+  {start:"2026-12-21",end:"2027-01-03"}
+];
+
+function isAvailable(dateStr){
+  const date = new Date(dateStr);
+  const day = date.getDay();
+  if(day === 0 || day === 6) return false; // weekend
+  if(belgischeFeestdagen.includes(dateStr)) return false;
+  for(const v of schoolVakanties){
+    if(dateStr >= v.start && dateStr <= v.end) return false;
+  }
+  return true;
+}
+
+/* -------------------- SUBMIT BESCHIKBAARHEID -------------------- */
+document.getElementById("submitBtn").addEventListener("click", () => {
+  const date = document.getElementById("date").value;
+  const role = document.getElementById("role").value;
+  if(!date) return alert("Kies een datum");
+  if(!isAvailable(date)) return alert("Deze datum is niet beschikbaar (weekend, feestdag of vakantie)");
+
+  const r = {
+    user: currentUser,
+    role,
+    date,
+    timestamp: Date.now()
+  };
+  db.ref("permanencies/" + date).push(r)
+    .then(()=>{ alert("Beschikbaarheid doorgegeven"); })
+    .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
+});
+
+/* -------------------- LOAD & RENDER PERMANENCIES -------------------- */
+db.ref("permanencies").on("value", snapshot => {
+  const data = snapshot.val() || {};
+  const dates = Object.keys(data).sort((a,b) => new Date(a) - new Date(b));
+  const wrap = document.getElementById("permanenceList");
+  wrap.innerHTML = "";
+
+  dates.forEach(date => {
+    const availabilities = data[date];
+    const roles = {chauffeur:[], bevelvoerder:[], brandweerman:[], stagiair:[]};
+    Object.values(availabilities).forEach(p => roles[p.role].push(p.user));
+
+    // Willekeurig ploeg selecteren indien genoeg kandidaten
+    const canFormTeam = roles.chauffeur.length >=1 && roles.bevelvoerder.length>=1 && roles.brandweerman.length>=4 && roles.stagiair.length>=1;
+    let team = {};
+    if(canFormTeam){
+      team = {
+        chauffeur: roles.chauffeur[Math.floor(Math.random()*roles.chauffeur.length)],
+        bevelvoerder: roles.bevelvoerder[Math.floor(Math.random()*roles.bevelvoerder.length)],
+        brandweermannen: shuffleArray(roles.brandweerman).slice(0,4),
+        stagiair: roles.stagiair[Math.floor(Math.random()*roles.stagiair.length)]
+      };
+    }
+
+    // Card maken
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-header">📅 ${new Date(date).toLocaleDateString("nl-BE")}</div>
+      <div class="card-body">
+        ${canFormTeam ? `
+          <div>🚗 Chauffeur: ${team.chauffeur}</div>
+          <div>🧑‍✈️ Bevelvoerder: ${team.bevelvoerder}</div>
+          <div>🔥 Brandweermannen: ${team.brandweermannen.join(", ")}</div>
+          <div>👶 Stagiair: ${team.stagiair}</div>
+        ` : `<div style="color:#900;">❌ Ploeg kan nog niet gevormd worden</div>`}
+        ${isAdmin ? `<button class="call-btn" onclick="editPermanency('${date}')">✏️ Wijzig</button>` : ""}
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+});
+
+/* -------------------- HELPER FUNCTIONS -------------------- */
+function shuffleArray(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+/* -------------------- ADMIN WIJZIGEN -------------------- */
+function editPermanency(date){
+  const newUsers = prompt("Voeg comma-gescheiden lijst toe van gebruikers per rol, bv:\nchauffeur:Jan,bevelvoerder:Tim,brandweerman:Ben;Tom;Sam;Klaas,stagiair:Liam");
+  if(!newUsers) return;
+  const roles = {};
+  newUsers.split(",").forEach(pair=>{
+    const [role,users] = pair.split(":");
+    roles[role.trim()] = users.includes(";") ? users.split(";").map(u=>u.trim()) : [users.trim()];
+  });
+
+  const updates = {};
+  Object.keys(roles).forEach(role=>{
+    roles[role].forEach(user=>{
+      const id = db.ref("permanencies/"+date).push().key;
+      updates[date+"/"+id] = {role,user,date};
+    });
+  });
+  db.ref("permanencies").update(updates);
+}
+</script>
+
+<style>
+.container{max-width:900px;margin:auto;padding:10px;font-family:sans-serif;}
+.header-logo{height:50px;}
+.header-right{float:right;text-align:right;}
+.header-datetime{font-size:0.85em;color:#555;}
+.content{margin-top:20px;}
+.backlink{display:inline-block;margin-bottom:15px;text-decoration:none;color:#333;font-weight:bold;}
+.card{border-radius:8px;padding:10px;margin-bottom:15px;background:#f8f8f8;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.card-header{font-weight:bold;margin-bottom:5px;}
+.card-body{margin-left:5px;}
+.call-btn{margin-top:5px;padding:5px 10px;background:#2196f3;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.call-btn:hover{background:#1976d2;}
+</style>
+
+</body>
+</html>
