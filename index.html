@@ -1,58 +1,211 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fire Crew – Permanentie</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandweer Herentals — Portal</title>
 
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+#nameOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.92);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  color:#fff;
+}
+.box{
+  background:#111;
+  padding:28px;
+  border-radius:16px;
+  max-width:360px;
+  width:100%;
+  text-align:center;
+}
+input,button{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:none;
+  margin-top:10px;
+}
+button{
+  background:#c71f1f;
+  color:#fff;
+  font-weight:700;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  background:#c71f1f;
+  color:#fff;
+}
+.header-left img{ height:56px; }
+.header-right div{ margin:2px 0; }
+footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 16px;
+}
+footer button{
+  background:#333;
+  padding:8px 14px;
+  font-size:14px;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- LOGIN OVERLAY -->
+<div id="nameOverlay" style="display:none;">
+  <div class="box">
+    <h2>👤 Identificatie</h2>
+    <input id="nameInput" placeholder="Voornaam Achternaam">
+    <button id="saveName">Verder</button>
+    <small id="nameError" style="color:#ff6b6b;display:none;">
+      Naam niet herkend
+    </small>
+  </div>
+</div>
 
-<header id="appHeader">
-  <img src="logo.png" class="header-logo">
-  <div class="header-title">
-    <h1>Fire Crew</h1>
-    <small>Permanentie beheer</small>
+<div class="container" style="display:none;" id="appContent">
+
+<header>
+  <div class="header-left">
+    <img src="logo.png" alt="Brandweer Herentals">
+  </div>
+  <div class="header-right">
+    <div id="greeting"></div>
+    <div id="datetime"></div>
   </div>
 </header>
 
-<div class="content">
+<main class="content">
+  <div class="grid" id="buttonGrid"></div>
+</main>
 
-  <div class="info-box">
-    <i class="fa-solid fa-circle-info"></i>
-    Dit systeem gebruikt een centrale personeelslijst.<br>
-    Alle namen en rollen worden automatisch gesynchroniseerd.
-  </div>
+<footer>
+  <div>Versie 1.2</div>
+  <button onclick="logout()">Uitloggen</button>
+</footer>
 
-  <a href="permanentieopgave.html" class="main-btn">
-    <i class="fa-solid fa-calendar-check"></i>
-    Permanentie ingeven
-  </a>
-
-  <a href="permanentie.html" class="secondary-btn">
-    <i class="fa-solid fa-eye"></i>
-    Bekijk planning
-  </a>
-
-</div>
 </div>
 
 <script>
-/************ FIREBASE ************/
+/**************** FIREBASE ****************/
 firebase.initializeApp({
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 });
 const db = firebase.database();
 
-/************ PERSONEEL (PERMANENT) ************/
+/**************** LINKS ****************/
+const links = {
+  agenda:{title:"Agenda",icon:"📅",desc:"Belangrijke data",url:"/brandweerherentals/agenda.html",roles:[]},
+  verdi:{title:"Verdi",icon:"📟",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},
+  abiweb:{title:"Abiweb",icon:"📚",desc:"Oefeningen",url:"https://abiweb.brandweerzonekempen.be/",roles:[]},
+  defect:{title:"Defectmelding",icon:"🔧",desc:"Meld defecten",url:"/brandweerherentals/defectmelding.html",roles:[]},
+  order:{title:"Bestelling",icon:"📦",desc:"Materiaal",url:"https://forms.cloud.microsoft/e/GjHr1Kym0w",roles:[]},
+  vehicle:{title:"Voertuigreservatie",icon:"🚒",desc:"Reservaties",url:"/brandweerherentals/voertuigen.html",roles:[]},
+  permanentie:{title:"Permanentie",icon:"🕒",desc:"Permanentieplanning",url:"/brandweerherentals/permanentieopgave.html",roles:[]},
+  admin:{title:"Admin",icon:"🛠️",desc:"Beheer",url:"/brandweerherentals/admin.html",roles:["admin"]}
+};
+
+/**************** HELPERS ****************/
+function normalizeName(name){
+  return name.trim().replace(/\s+/g," ").toLowerCase();
+}
+
+/**************** LOGIN ****************/
+saveName.onclick = () => {
+  const name = normalizeName(nameInput.value);
+
+  db.ref("users/" + name).once("value", snap => {
+    if (!snap.exists()) {
+      nameError.style.display = "block";
+      return;
+    }
+
+    localStorage.setItem("userName", name);
+    location.reload();
+  });
+};
+
+/**************** GRID ****************/
+function renderGrid(){
+  const userKey = localStorage.getItem("userName");
+
+  db.ref("users/" + userKey).once("value", snap => {
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+    const roles = data.roles || [];
+
+    greeting.innerText = `Welkom ${data.displayName}`;
+
+    const grid = document.getElementById("buttonGrid");
+    grid.innerHTML = "";
+
+    Object.values(links)
+      .sort((a,b)=>a.title.localeCompare(b.title,"nl"))
+      .forEach(l=>{
+        if(l.roles.length && !l.roles.some(r=>roles.includes(r))) return;
+
+        const a=document.createElement("a");
+        a.className="btn";
+        a.href=l.url;
+        a.innerHTML=`
+          <div class="icon">${l.icon}</div>
+          <div>
+            <div>${l.title}</div>
+            <small>${l.desc}</small>
+          </div>
+        `;
+        grid.appendChild(a);
+      });
+  });
+}
+
+/**************** LOGOUT ****************/
+function logout(){
+  localStorage.removeItem("userName");
+  location.reload();
+}
+
+/**************** DATETIME ****************/
+setInterval(()=>{
+  document.getElementById("datetime").innerText =
+    new Date().toLocaleString("nl-BE");
+},1000);
+
+/**************** START ****************/
+window.addEventListener("DOMContentLoaded",()=>{
+  if(!localStorage.getItem("userName")){
+    nameOverlay.style.display="flex";
+    return;
+  }
+  appContent.style.display="block";
+  renderGrid();
+});
+</script>
+<script>
+/************ EENMALIGE INIT PERSONEEL ************/
 const personeel = {
   "Dirk Geens":["officier","bevelvoerder"],
   "Sus Meulemans":["officier"],
@@ -122,12 +275,11 @@ const personeel = {
   "Bob Debecker":["brandweer"]
 };
 
-/************ OPSLAAN IN FIREBASE ************/
 function normalize(name){
   return name.toLowerCase().replace(/\s+/g," ").trim();
 }
 
-Object.keys(personeel).forEach(naam => {
+Object.keys(personeel).forEach(naam=>{
   const key = normalize(naam);
   db.ref("users/" + key).set({
     displayName: naam,
@@ -136,9 +288,7 @@ Object.keys(personeel).forEach(naam => {
   });
 });
 
-console.log("✅ Alle personeelsleden zijn gesynchroniseerd");
-
+console.log("✅ Personeel succesvol in Firebase geplaatst");
 </script>
-
 </body>
 </html>
