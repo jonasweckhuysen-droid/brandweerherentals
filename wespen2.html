@@ -3,169 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Wespenverdelging & Planning</title>
-<link rel="manifest" href="/brandweerherentals/manifest.json">
-<meta name="theme-color" content="#c71f1f">
+<title>Wespenplanning</title>
+
 <link rel="stylesheet" href="/brandweerherentals/style.css">
-<!-- Firebase DB base URL; kan overschreven worden door server-side templating -->
+
 <meta name="firebase-db" content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
-<!-- maak het mogelijk om de ingelogde gebruiker & ploeg via meta tags door te geven:
-     <meta name="wespen-username" content="jan">
-     <meta name="wespen-team" content="A1">
+
+<!-- Deze meta's worden server-side gezet -->
+<!--
+<meta name="wespen-username" content="jan">
+<meta name="wespen-team" content="A1">
 -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<!-- Firebase compat libraries (zoals permanentie.html) -->
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
+
 <body>
-<div class="container" role="application" aria-label="Fire Crew Herentals portal">
+<div class="container">
 
-   <!-- -----------------------------------
-       HEADER
-  ------------------------------------ -->
-  <header id="appHeader">
-  <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png"
-         alt="Brandweer Herentals"
-         class="header-logo">
-  </div>
+<header>
+  <h1>Wespenverdelging – Planning</h1>
+  <p>
+    Gebruiker: <strong id="currentUser"></strong> |
+    Ploeg: <strong id="currentTeam"></strong>
+  </p>
+</header>
 
-  <div class="header-right">
-    <div id="greeting" class="header-greeting"></div>
-    <div id="datetime" class="header-datetime"></div>
-    <div id="ploegOfWeek" class="header-ploeg"></div>
-  </div>
-  </header>
+<section class="card">
+  <h2>Beschikbaarheid (tot 15 februari)</h2>
+  <div id="datesContainer">Laden…</div>
+</section>
 
-  <main class="content">
-    <a href="/brandweerherentals/" class="backlink">
-      <span class="arrow">←</span> Terug naar start
-    </a>
+<section class="card">
+  <h2>Planning</h2>
+  <button id="generateSchedule">Genereer planning (admin)</button>
+  <div id="scheduleContainer">Nog geen planning.</div>
+</section>
 
-    <section id="wespen-section">
-      <h2>Wespen — opvolging & planning</h2>
+<section class="card">
+  <h2>Omruil-aanvragen</h2>
+  <div id="swapsContainer">Geen aanvragen.</div>
+</section>
 
-      <div id="planningControls" class="card">
-        <div><strong>Ingelogde gebruiker:</strong> <span id="currentUser">laden…</span></div>
-        <div><strong>Ploeg:</strong> <span id="currentTeam">laden…</span></div>
-        <div><small>Je ziet enkel de datums die bij jouw ploeg-week horen.</small></div>
-        <div style="margin-top:.5rem">
-          <label for="rosterFile">Roster upload (optioneel, JSON): </label>
-          <input id="rosterFile" type="file" accept="application/json">
-          <button id="loadSampleRoster">Laad voorbeeld</button>
-        </div>
-        <div style="margin-top:.5rem">
-          <button id="saveAvail">Beschikbaarheid opslaan</button>
-          <button id="generateSchedule">Genereer planning (force)</button>
-          <button id="exportSchedule">Export CSV</button>
-        </div>
-        <p style="margin-top:.5rem"><em>Opmerking:</em> gebruikers mogen beschikbaarheden invullen tot 15 februari. Na 15 februari wordt er automatisch een planning gemaakt. Als administrator kun je handmatig op "Genereer planning" klikken.</p>
-      </div>
-
-      <div id="dateList" class="card">
-        <h3>Beschikbaarheid per datum</h3>
-        <div id="datesContainer">Laden…</div>
-      </div>
-
-      <div id="scheduleCard" class="card" style="margin-top:1rem">
-        <h3>Gegenereerde planning</h3>
-        <div id="scheduleContainer">Nog geen planning.</div>
-      </div>
-
-      <div id="swapCard" class="card" style="margin-top:1rem">
-        <h3>Omruil-aanvragen</h3>
-        <div id="swapsContainer">Geen omruil-aanvragen.</div>
-      </div>
-
-    </section>
-
-    <div id="wespenList" style="margin-top:2rem">Laden…</div>
-  </main>
-
-  <footer>
-    <div class="small">Versie 1.1 — Laatste update: <span id="today"></span></div>
-  </footer>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  // Toon huidige datum in footer
-  document.getElementById("today").textContent = new Date().toLocaleDateString("nl-BE", {
-    weekday:"long", year:"numeric", month:"long", day:"numeric"
-  });
-
-  // Basale info (originele wespenlogica)
-  const excelUrl = "/brandweerherentals/data/wespen.xlsx";
-
-  async function loadExcel(url){
-    try{
-      const resp = await fetch(url);
-      if(!resp.ok) throw new Error("Excel bestand niet gevonden");
-      const arrayBuffer = await resp.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      return XLSX.utils.sheet_to_json(sheet, { header:1 });
-    }catch(e){
-      console.warn("Geen excel beschikbaar:", e);
-      return null;
-    }
-  }
-
-  function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  (async function(){
-    // Laad bestaande wespenlijst (blijft zoals vroeger)
-    const output = document.getElementById("wespenList");
-    try{
-      const data = await loadExcel(excelUrl);
-      if(!data){ output.innerHTML = "<p>Geen excel gevonden om weer te geven.</p>"; return; }
-      const next = (function parseExcelData(data){
-        const today = new Date(); today.setHours(0,0,0,0);
-        for(const row of data){
-          if(!row || row.length<2) continue;
-          let date = new Date(row[0]);
-          if(isNaN(date.getTime())){
-            date = new Date(Date.parse(row[0].replace(/(\d+)\s+([a-z]+)\s+(\d{4})/i, "$2 $1, $3")));
-          }
-          if(date >= today){
-            const names = row.slice(2,6);
-            while(names.length < 4) names.push("");
-            return { raw: row[0], ploegcode: row[1], names };
-          }
-        }
-        return null;
-      })(data);
-
-      if(!next){
-        output.innerHTML = "<p>Geen toekomstige ploegdagen meer.</p>";
-        return;
-      }
-
-      output.innerHTML = `
-        <div class="agenda-item">
-          <div class="agenda-title">Ploegcode: ${escapeHtml(next.ploegcode)}</div>
-          <div class="agenda-datetime">${escapeHtml(next.raw)}</div>
-          <div class="agenda-desc">
-            <table class="wespen-table">
-              <tr><td class="col-head">Ploeg 1 :</td><td>${escapeHtml(next.names[0])}</td></tr>
-              <tr><td class="col-head">Ploeg 1 :</td><td>${escapeHtml(next.names[1])}</td></tr>
-              <tr><td class="col-head">Ploeg 2 :</td><td>${escapeHtml(next.names[2])}</td></tr>
-              <tr><td class="col-head">Ploeg 2 :</td><td>${escapeHtml(next.names[3])}</td></tr>
-            </table>
-          </div>
-        </div>
-      `;
-    }catch(err){
-      console.error(err);
-      output.innerHTML = "<p>Kon Excel niet laden of parsen.</p>";
-    }
-  })();
-});
+const firebaseConfig = {
+  databaseURL: document.querySelector('meta[name="firebase-db"]').content
+};
+firebase.initializeApp(firebaseConfig);
 </script>
 
-<!-- Voeg planning logic toe -->
 <script src="/brandweerherentals/planning.js"></script>
-
-<!-- Header.js zorgt voor greeting, datetime & ploeg -->
-<script src="/brandweerherentals/header.js"></script>
+</body>
+</html>
