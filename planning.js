@@ -71,15 +71,16 @@ async function laadDagen(){
   const currentTeam = await getUserTeam();
   await updateHeader();
 
-  const jaar = new Date().getFullYear();
-
   let beschikbaar = await firebase.database().ref("wespen/availability").get();
   beschikbaar = beschikbaar.val() || {};
 
   container.innerHTML="";
 
-  const start = new Date(jaar, 0, 1);
-  const eind = new Date(jaar, 11, 31);
+  const jaar = new Date().getFullYear();
+
+  // 👉 Toon ALLE dagen van het jaar (januari → december)
+  const start = new Date(jaar, 0, 1);   // 1 januari
+  const eind = new Date(jaar, 11, 31);  // 31 december
 
   for(let d = new Date(start); d <= eind; d.setDate(d.getDate()+1)){
 
@@ -88,7 +89,7 @@ async function laadDagen(){
     // Alleen dinsdag (2) en zaterdag (6)
     if(dow !== 2 && dow !== 6) continue;
 
-    // Alleen dagen van de ploeg van week van de gebruiker
+    // Alleen dagen waarop de ploeg van de gebruiker van week is
     if(getPloegVanWeek(d) !== currentTeam) continue;
 
     const dagKey = d.toISOString().split("T")[0];
