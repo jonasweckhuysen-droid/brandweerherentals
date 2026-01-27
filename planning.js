@@ -1,9 +1,12 @@
 /************ PLOEG LOGICA ************/
 const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
+
+// B1 is ploeg van week vanaf vrijdag 23/01/2026 12u tot vrijdag 30/01/2026 12u
 const REF_DATE = new Date("2026-01-23T12:00:00");
 
 function getPloegVanWeek(d){
-  const weken = Math.floor((d - REF_DATE) / (7 * 24 * 60 * 60 * 1000));
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const weken = Math.floor((d - REF_DATE) / weekMs);
   return PLOEG_CYCLE[(weken % 6 + 6) % 6];
 }
 
@@ -15,7 +18,7 @@ async function getUserTeam() {
   const snap = await firebase.database().ref("users/" + currentUser).get();
   if (!snap.exists()) return null;
 
-  const team = snap.val().roles;
+  const team = snap.val().roles; // bv "A2"
   localStorage.setItem("userTeam", team);
   return team;
 }
@@ -34,7 +37,7 @@ async function updateHeader(){
     return;
   }
 
-  const currentTeam = await getUserTeam();
+  await getUserTeam(); // zorgt dat userTeam in localStorage staat
   const now = new Date();
 
   document.getElementById("greeting").textContent = `Welkom, ${currentUser}`;
@@ -51,7 +54,7 @@ async function updateHeader(){
     "Ploeg van week: " + getPloegVanWeek(now);
 }
 
-/************ FEESTDAGEN ************/
+/************ FEESTDAGEN (nu niet gebruikt in filtering) ************/
 const FEESTDAGEN = ["01-01","01-05","21-07","15-08","01-11","11-11","25-12"];
 function isFeestdag(d){
   const key = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}`;
@@ -59,6 +62,8 @@ function isFeestdag(d){
 }
 
 /************ LADEN DAGEN ************/
+// Toon ALLE dinsdagen en donderdagen van het jaar
+// waarop de ploeg van week gelijk is aan de ploeg van de ingelogde gebruiker
 async function laadDagen(){
   const container = document.getElementById("dagenContainer");
   container.innerHTML="Laden…";
@@ -80,8 +85,8 @@ async function laadDagen(){
 
     const dow = d.getDay();
 
-    // Alleen dinsdag (2) en zaterdag (6)
-    if(dow !== 2 && dow !== 6) continue;
+    // Alleen dinsdag (2) en donderdag (4)
+    if(dow !== 2 && dow !== 4) continue;
 
     // Alleen dagen van de ploeg van week van de gebruiker
     if(getPloegVanWeek(d) !== currentTeam) continue;
