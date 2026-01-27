@@ -7,13 +7,11 @@
 
 <link rel="stylesheet" href="/brandweerherentals/style.css">
 
-<meta name="firebase-db" content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
+<meta name="firebase-db"
+      content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
 
-<!-- Deze meta's worden server-side gezet -->
-<!--
-<meta name="wespen-username" content="jan">
-<meta name="wespen-team" content="A1">
--->
+<!-- server-side ingevuld -->
+<!-- <meta name="wespen-username" content="jan"> -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -22,16 +20,17 @@
 <body>
 <div class="container">
 
-<header>
+<header class="card">
   <h1>Wespenverdelging – Planning</h1>
   <p>
-    Gebruiker: <strong id="currentUser"></strong> |
-    Ploeg: <strong id="currentTeam"></strong>
+    Gebruiker: <strong id="currentUser"></strong><br>
+    Ploeg van week: <strong id="currentTeam"></strong>
   </p>
 </header>
 
 <section class="card">
-  <h2>Beschikbaarheid (tot 15 februari)</h2>
+  <h2>Beschikbaarheid</h2>
+  <p><small>Invullen mogelijk tot 15 februari</small></p>
   <div id="datesContainer">Laden…</div>
 </section>
 
@@ -49,10 +48,9 @@
 </div>
 
 <script>
-const firebaseConfig = {
+firebase.initializeApp({
   databaseURL: document.querySelector('meta[name="firebase-db"]').content
-};
-firebase.initializeApp(firebaseConfig);
+});
 </script>
 
 <script src="/brandweerherentals/planning.js"></script>
