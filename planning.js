@@ -1,21 +1,15 @@
 /************ PLOEG LOGICA ************/
 
-// Jouw cyclus:
-// Week 1: A1
-// Week 2: B1
-// Week 3: C1
-// Week 4: A2
-// Week 5: B2
-// Week 6: C2
 const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
 
 // B1-week start op vrijdag 23/01/2026 om 12:00
 const REF_DATE = new Date("2026-01-23T12:00:00");
+const BASE_INDEX = 1; // 0=A1, 1=B1, 2=C1, 3=A2, 4=B2, 5=C2
 
 function getPloegVanWeek(d){
   const weekMs = 7 * 24 * 60 * 60 * 1000;
   const weken = Math.floor((d - REF_DATE) / weekMs);
-  return PLOEG_CYCLE[(weken % 6 + 6) % 6];
+  return PLOEG_CYCLE[(BASE_INDEX + weken % 6 + 6) % 6];
 }
 
 /************ GEBRUIKERSTEAM LADEN ************/
@@ -84,8 +78,8 @@ async function laadDagen(){
 
     const dow = d.getDay();
 
-    // Alleen dinsdag (2) en donderdag (4)
-    if(dow !== 2 && dow !== 4) continue;
+    // Alleen dinsdag (2) en zaterdag (6)
+    if(dow !== 2 && dow !== 6) continue;
 
     // Alleen dagen van de ploeg van week van de gebruiker
     if(getPloegVanWeek(d) !== currentTeam) continue;
