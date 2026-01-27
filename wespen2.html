@@ -10,24 +10,26 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- Geef ingelogde gebruiker door via meta -->
+<meta name="wespen-username" content="">
+<meta name="wespen-team" content="">
 </head>
 
 <body>
 
 <div class="container">
 
-<!-- HEADER -->
-    <header id="appHeader">
-      <div class="header-left">
-        <img src="logo.png" class="header-logo">
-      </div>
-
-      <div class="header-right">
-        <div id="greeting" class="header-greeting"></div>
-        <div id="datetime" class="header-datetime"></div>
-        <div id="ploegOfWeek" class="header-ploeg"></div>
-      </div>
-    </header>
+<header id="appHeader">
+  <div class="header-left">
+    <img src="logo.png" class="header-logo">
+  </div>
+  <div class="header-right">
+    <div id="greeting" class="header-greeting">Welkom…</div>
+    <div id="datetime" class="header-datetime"></div>
+    <div id="ploegOfWeek" class="header-ploeg"></div>
+  </div>
+</header>
 
 <div class="content">
 
@@ -36,7 +38,7 @@
 </a>
 
 <h2>Beschikbare dagen voor jouw ploeg van week</h2>
-<div id="dagenContainer"></div>
+<div id="dagenContainer">Laden…</div>
 
 <br>
 <button id="generatePlanning" class="btn-actie">
@@ -44,7 +46,7 @@
 </button>
 
 <h2>Gegenereerde planning</h2>
-<div id="planningContainer"></div>
+<div id="planningContainer">Laden…</div>
 
 </div>
 </div>
