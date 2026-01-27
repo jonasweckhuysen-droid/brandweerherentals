@@ -3,48 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wespenplanning</title>
-
+<title>Brandweer Herentals — Wespen Verdelging & Planning</title>
 <link rel="stylesheet" href="/brandweerherentals/style.css">
-
-<meta name="firebase-db"
-content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
-
-<meta name="wespen-username" content="">
-<meta name="wespen-team" content="">
-
+<meta name="firebase-db" content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="/brandweerherentals/header.js"></script>
 </head>
-
 <body>
+
 <div class="container">
+  <header>
+    <div id="greeting">Welkom …</div>
+    <div id="datetime">…</div>
+    <div id="ploegOfWeek">…</div>
+  </header>
 
-<h2>🐝 Wespenplanning</h2>
+  <main>
+    <section>
+      <h2>Beschikbaarheid invullen</h2>
+      <div id="planningControls">
+        <button id="saveAvail">Opslaan</button>
+        <button id="generateSchedule">Genereer planning</button>
+      </div>
 
-<div class="card">
-  <p><b>Gebruiker:</b> <span id="currentUser"></span></p>
-  <p><b>Ploeg:</b> <span id="currentTeam"></span></p>
-</div>
+      <div id="datesContainer" style="margin-top:1rem; border:1px solid #ccc; padding:1rem;">
+        Laden…
+      </div>
+    </section>
 
-<div class="card">
-  <h3>Beschikbaarheden</h3>
-  <div id="datesContainer"></div>
-  <button id="saveAvail">Opslaan</button>
-</div>
+    <section>
+      <h2>Gegenereerde planning</h2>
+      <div id="scheduleContainer" style="margin-top:1rem; border:1px solid #ccc; padding:1rem;">Nog geen planning</div>
+    </section>
 
-<div class="card">
-  <h3>Planning</h3>
-  <div id="scheduleContainer"></div>
-</div>
-
-<div class="card">
-  <h3>Omruil-aanvragen</h3>
-  <div id="swapsContainer"></div>
-</div>
-
+    <section>
+      <h2>Omruil-aanvragen</h2>
+      <div id="swapsContainer" style="margin-top:1rem; border:1px solid #ccc; padding:1rem;">Geen omruil-aanvragen</div>
+    </section>
+  </main>
 </div>
 
 <script src="/brandweerherentals/planning.js"></script>
+
 </body>
 </html>
