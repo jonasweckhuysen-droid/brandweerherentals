@@ -1,7 +1,5 @@
+<script>
 /************ FIREBASE ************/
-firebase.initializeApp({
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-});
 const db = firebase.database();
 
 /************ INGelogde GEBRUIKER ************/
@@ -33,7 +31,9 @@ async function updateHeader(){
 
   const now = new Date();
   document.getElementById("greeting").textContent = `Welkom, ${currentUser}!`;
-  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE", {weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE", {
+    weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"
+  });
   document.getElementById("ploegOfWeek").textContent = "Ploeg van week: " + getPloegVanWeek(now);
 }
 
@@ -71,8 +71,9 @@ async function laadDagen(){
       const kaart = document.createElement("div");
       kaart.className="dag-kaart";
 
-      // check of gebruiker al beschikbaar is
-      const alOpgegeven = Object.values(beschikbaar).some(e=>e.userKey===currentUser && e.datum.startsWith(dagKey));
+      const alOpgegeven = Object.values(beschikbaar).some(e =>
+        e.userKey===currentUser && e.datum.startsWith(dagKey)
+      );
 
       kaart.innerHTML = `
         <div class="dag-header">${datum.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"})}</div>
@@ -103,9 +104,10 @@ function opgeven(datumISO, kaart){
       datum: datumISO,
       timestamp: Date.now()
     }).then(()=>{
-      kaart.querySelector(".dag-inhoud").innerHTML = `<div class="ingevuld"><i class="fa-solid fa-circle-check"></i> Beschikbaar opgegeven</div>`;
-    }).catch(e=>console.error(e));
-  }).catch(e=>console.error(e));
+      kaart.querySelector(".dag-inhoud").innerHTML =
+        `<div class="ingevuld"><i class="fa-solid fa-circle-check"></i> Beschikbaar opgegeven</div>`;
+    });
+  });
 }
 
 /************ AUTOMATISCHE PLANNING ************/
@@ -121,7 +123,7 @@ function maakWespenPlanning(){
 
     Object.keys(perDag).forEach(dagKey=>{
       const kandidaten = perDag[dagKey].sort((a,b)=>(a.wespenCount||0)-(b.wespenCount||0));
-      const selected = kandidaten.slice(0,2); // altijd 2 personen
+      const selected = kandidaten.slice(0,2);
       db.ref("wespen/planning/"+dagKey).set({
         datum: dagKey,
         users: selected.map(u=>u.naam)
@@ -131,7 +133,7 @@ function maakWespenPlanning(){
 
     alert("✅ Wespenplanning aangemaakt");
     laadPlanning();
-  }).catch(e=>console.error(e));
+  });
 }
 
 /************ LADEN PLANNING ************/
@@ -159,3 +161,4 @@ document.addEventListener("DOMContentLoaded", async()=>{
   await laadPlanning();
   document.getElementById("generatePlanning").onclick = maakWespenPlanning;
 });
+</script>
