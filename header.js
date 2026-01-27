@@ -1,13 +1,12 @@
 (function () {
 
   const NAME_KEY = "userName";
-  const TEAM_KEY = "userTeam"; // optioneel, indien je dit opslaat
 
   const TEAM_CYCLE = ["A1", "B1", "C1", "A2", "B2", "C2"];
 
-  // 👉 REFERENTIE: 1 januari = A2, shift elke vrijdag 12u
-  const REFERENCE = new Date("2026-01-02T12:00:00"); 
-  // 2 jan 2026 = vrijdag 12u → startpunt
+  // 🔑 REFERENTIE:
+  // Vrijdag 23 januari 2026 om 12:00 → ploeg B1
+  const REFERENCE_DATE = new Date("2026-01-23T12:00:00");
 
   window.addEventListener("DOMContentLoaded", initHeader);
 
@@ -15,7 +14,7 @@
     restoreUser();
     updateDateTime();
     updatePloegVanWeek();
-    injectMeta();
+    injectMetaTags();
     setInterval(updateDateTime, 1000);
   }
 
@@ -30,7 +29,6 @@
       greet.textContent = `Welkom, ${user}!`;
     }
 
-    // beschikbaar maken voor andere scripts
     window.currentUser = user;
   }
 
@@ -55,12 +53,16 @@
      PLOEG VAN WEEK
   ----------------------------- */
   function getPloegVanWeek(date = new Date()) {
+
     const diffWeeks = Math.floor(
-      (date - REFERENCE) / (7 * 24 * 60 * 60 * 1000)
+      (date - REFERENCE_DATE) / (7 * 24 * 60 * 60 * 1000)
     );
 
+    const startIndex = TEAM_CYCLE.indexOf("B1");
+
     return TEAM_CYCLE[
-      ((TEAM_CYCLE.indexOf("A2") + diffWeeks) % TEAM_CYCLE.length + 6) % 6
+      ((startIndex + diffWeeks) % TEAM_CYCLE.length + TEAM_CYCLE.length)
+      % TEAM_CYCLE.length
     ];
   }
 
@@ -72,25 +74,18 @@
       ploegEl.textContent = "Ploeg van week: " + ploeg;
     }
 
-    // globaal beschikbaar maken
     window.ploegVanWeek = ploeg;
   }
 
   /* -----------------------------
-     META TAGS VOOR PLANNING
+     META TAGS (voor planning.js)
   ----------------------------- */
-  function injectMeta() {
-
+  function injectMetaTags() {
     const user = localStorage.getItem(NAME_KEY);
     const ploeg = window.ploegVanWeek;
 
-    if (user) {
-      setMeta("wespen-username", user);
-    }
-
-    if (ploeg) {
-      setMeta("wespen-team", ploeg);
-    }
+    if (user) setMeta("wespen-username", user);
+    if (ploeg) setMeta("wespen-team", ploeg);
   }
 
   function setMeta(name, content) {
