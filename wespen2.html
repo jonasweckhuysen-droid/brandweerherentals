@@ -8,24 +8,40 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+    authDomain: "post-herentals.firebaseapp.com",
+    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "post-herentals",
+    storageBucket: "post-herentals.appspot.com",
+    messagingSenderId: "762725561089",
+    appId: "1:762725561089:web:38c46cc8cf44d624252100",
+    measurementId: "G-C2FWECFEQX"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+</script>
 </head>
 
 <body>
 
 <div class="container">
 
-<header id="appHeader">
-  <div class="header-left">
-    <img src="logo.png" class="header-logo">
-  </div>
-  <div class="header-right">
-    <div id="greeting" class="header-greeting">Welkom…</div>
-    <div id="datetime" class="header-datetime">Tijd…</div>
-    <div id="ploegOfWeek" class="header-ploeg">Ploeg van week…</div>
-  </div>
-</header>
+<!-- HEADER wordt automatisch ingeladen -->
+<div id="headerContainer"></div>
+
+<script>
+  fetch("header.html")
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById("headerContainer").innerHTML = html;
+    });
+</script>
 
 <div class="content">
 
@@ -47,6 +63,6 @@
 </div>
 </div>
 
-<script src="wespen.js"></script>
+<script src="planning.js"></script>
 </body>
 </html>
