@@ -28,6 +28,7 @@ async function initUserTeam() {
   if (!userTeam) {
     const snap = await db.ref("users/"+userKey).get();
     if (!snap.exists()) { alert("Gebruiker niet gevonden"); return; }
+    console.log("Gevonden rol:", snap.val().roles);
     userTeam = snap.val().roles;
     localStorage.setItem("userTeam", userTeam);
   }
@@ -79,7 +80,7 @@ function opgeven(datumISO, kaart) {
     const user = snap.val();
     db.ref("wespen/availability").push({
       userKey,
-      naam: user.displayName,
+      naam: user.displayName || userKey,
       ploeg: user.roles,
       datum: datumISO,
       timestamp: Date.now()
@@ -104,7 +105,7 @@ function maakWespenPlanning() {
 
     Object.keys(perDag).forEach(dagKey=>{
       const kandidaten = perDag[dagKey].sort((a,b)=>(a.wespenCount||0)-(b.wespenCount||0));
-      const selected = kandidaten.slice(0,2);
+      const selected = kandidaten.slice(0,2); // altijd 2 personen
       db.ref("wespen/planning/"+dagKey).set({
         datum: dagKey,
         users: selected.map(u=>u.naam)
@@ -117,26 +118,25 @@ function maakWespenPlanning() {
 }
 
 /************ PLANNING LADEN ************/
-function laadPlanning() {
+async function laadPlanning() {
   const container = document.getElementById("planningContainer");
   container.innerHTML="Laden…";
-  db.ref("wespen/planning").get().then(snap=>{
-    const data = snap.val()||{};
-    container.innerHTML="";
-    Object.keys(data).sort().forEach(dag=>{
-      const p = data[dag];
-      const div = document.createElement("div");
-      div.style.marginBottom="0.5rem";
-      div.innerHTML=`<b>${dag}</b> → ${p.users.join(", ")}`;
-      container.appendChild(div);
-    });
-    if(container.innerHTML==="") container.innerHTML="<em>Geen planning beschikbaar.</em>";
+  const snap = await db.ref("wespen/planning").get();
+  const data = snap.val()||{};
+  container.innerHTML="";
+  Object.keys(data).sort().forEach(dag=>{
+    const p = data[dag];
+    const div = document.createElement("div");
+    div.style.marginBottom="0.5rem";
+    div.innerHTML=`<b>${dag}</b> → ${p.users.join(", ")}`;
+    container.appendChild(div);
   });
+  if(container.innerHTML==="") container.innerHTML="<em>Geen planning beschikbaar.</em>";
 }
 
 /************ INIT ************/
 document.addEventListener("DOMContentLoaded", async()=>{
   await laadDagen();
-  laadPlanning();
-  document.getElementById("generatePlanning").onclick=maakWespenPlanning;
+  await laadPlanning();
+  document.getElementById("generatePlanning").onclick = maakWespenPlanning;
 });
