@@ -10,10 +10,6 @@ if(!currentUser){ alert("Niet ingelogd"); location.href="index.html"; }
 
 let currentTeam = localStorage.getItem("userTeam"); // A1,B1,C1,A2,B2,C2
 
-// zet meta tags zodat HTML toegang heeft
-document.querySelector("meta[name='wespen-username']").content = currentUser;
-document.querySelector("meta[name='wespen-team']").content = currentTeam || "";
-
 /************ HEADER LOGICA ************/
 const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
 const REF_DATE = new Date("2026-01-23T12:00:00"); // B1 op 27/01/2026
@@ -23,10 +19,21 @@ function getPloegVanWeek(d){
   return PLOEG_CYCLE[(weken%6+6)%6];
 }
 
-function updateHeader(){
-  document.getElementById("greeting").textContent = `Welkom, ${currentUser}!`;
+async function updateHeader(){
+  if(!currentTeam){
+    const snap = await db.ref("users/"+currentUser).get();
+    if(snap.exists()){
+      currentTeam = snap.val().roles;
+      localStorage.setItem("userTeam",currentTeam);
+    } else {
+      alert("Gebruiker niet gevonden");
+      return;
+    }
+  }
+
   const now = new Date();
-  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+  document.getElementById("greeting").textContent = `Welkom, ${currentUser}!`;
+  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE", {weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
   document.getElementById("ploegOfWeek").textContent = "Ploeg van week: " + getPloegVanWeek(now);
 }
 
@@ -37,44 +44,46 @@ function isFeestdag(d){
   return FEESTDAGEN.includes(key);
 }
 
-/************ HAAL USER TEAM OP ************/
-async function initUserTeam(){
-  if(!currentTeam){
-    const snap = await db.ref("users/"+currentUser).get();
-    if(!snap.exists()){ alert("Gebruiker niet gevonden"); return; }
-    currentTeam = snap.val().roles;
-    localStorage.setItem("userTeam", currentTeam);
-    document.querySelector("meta[name='wespen-team']").content = currentTeam;
-  }
-}
-
 /************ LADEN DAGEN ************/
 async function laadDagen(){
-  await initUserTeam();
   const container = document.getElementById("dagenContainer");
-  container.innerHTML = "";
+  container.innerHTML="Laden…";
 
   const jaar = new Date().getFullYear();
+  await updateHeader();
+
+  let beschikbaar = await db.ref("wespen/availability").get();
+  beschikbaar = beschikbaar.val() || {};
+
+  container.innerHTML="";
+
   for(let m=2;m<=10;m++){ // maart t/m november
     for(let d=1; d<=31; d++){
       const datum = new Date(jaar,m,d);
       if(datum.getMonth()!==m) continue;
       const dow = datum.getDay();
-      if(dow!==2 && dow!==6) continue; // di & za
+      if(dow!==2 && dow!==6) continue; // alleen di & za
       if(isFeestdag(datum)) continue;
       if(getPloegVanWeek(datum)!==currentTeam) continue;
 
+      const dagKey = datum.toISOString().split("T")[0];
+
       const kaart = document.createElement("div");
       kaart.className="dag-kaart";
+
+      // check of gebruiker al beschikbaar is
+      const alOpgegeven = Object.values(beschikbaar).some(e=>e.userKey===currentUser && e.datum.startsWith(dagKey));
+
       kaart.innerHTML = `
         <div class="dag-header">${datum.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"})}</div>
         <div class="dag-inhoud">
-          <button class="btn-ik-kan" data-datum="${datum.toISOString()}">
-            <i class="fa-solid fa-check"></i> Ik ben beschikbaar
+          <button class="btn-ik-kan" data-datum="${datum.toISOString()}" ${alOpgegeven?"disabled":""}>
+            <i class="fa-solid fa-check"></i> ${alOpgegeven?"Opgegeven":"Ik ben beschikbaar"}
           </button>
         </div>
       `;
-      kaart.querySelector("button").onclick = () => opgeven(datum.toISOString(), kaart);
+
+      kaart.querySelector("button").onclick = ()=>opgeven(datum.toISOString(), kaart);
       container.appendChild(kaart);
     }
   }
@@ -95,8 +104,8 @@ function opgeven(datumISO, kaart){
       timestamp: Date.now()
     }).then(()=>{
       kaart.querySelector(".dag-inhoud").innerHTML = `<div class="ingevuld"><i class="fa-solid fa-circle-check"></i> Beschikbaar opgegeven</div>`;
-    });
-  });
+    }).catch(e=>console.error(e));
+  }).catch(e=>console.error(e));
 }
 
 /************ AUTOMATISCHE PLANNING ************/
@@ -122,7 +131,7 @@ function maakWespenPlanning(){
 
     alert("✅ Wespenplanning aangemaakt");
     laadPlanning();
-  });
+  }).catch(e=>console.error(e));
 }
 
 /************ LADEN PLANNING ************/
@@ -144,7 +153,7 @@ async function laadPlanning(){
 
 /************ INIT ************/
 document.addEventListener("DOMContentLoaded", async()=>{
-  updateHeader();
+  await updateHeader();
   setInterval(updateHeader,1000);
   await laadDagen();
   await laadPlanning();
