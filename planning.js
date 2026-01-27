@@ -1,217 +1,246 @@
-(async () => {
+/*************************
+ * CONFIG
+ *************************/
+const firebaseConfig = {
+  databaseURL: document
+    .querySelector("meta[name='firebase-db']")
+    .content
+};
 
-  /* --------------------------------------------------
-     BASIS & USER
-  -------------------------------------------------- */
-  const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  const currentUser =
-    document.querySelector('meta[name="wespen-username"]').content;
+const currentUser =
+  document.querySelector("meta[name='wespen-username']").content;
+const currentTeam =
+  document.querySelector("meta[name='wespen-team']").content;
 
-  document.getElementById("currentUser").textContent = currentUser;
+document.getElementById("currentUser").textContent = currentUser;
+document.getElementById("currentTeam").textContent = currentTeam;
 
-  const userSnap = await db
-    .ref(`users/${currentUser}/roles`)
-    .get();
+const TEAMS = ["A1","B1","C1","A2","B2","C2"];
+const FEESTDAGEN = ["2026-05-01","2026-07-21","2026-08-15"];
+const YEAR = new Date().getFullYear();
 
-  if (!userSnap.exists()) {
-    alert("Gebruiker niet gevonden in Firebase");
-    return;
-  }
+/*************************
+ * PLOEG VAN WEEK
+ *************************/
+function ploegVanWeek(date){
+  const start = new Date(YEAR,0,1);
+  start.setHours(12,0,0,0);
 
-  const currentTeam = userSnap.val().ploeg;
-  const currentRole = userSnap.val().role;
+  const diffWeeks =
+    Math.floor((date - start) / (7*24*3600*1000));
 
-  document.getElementById("currentTeam").textContent = currentTeam;
+  const index = (TEAMS.indexOf("A2") + diffWeeks) % TEAMS.length;
+  return TEAMS[index];
+}
 
-  /* --------------------------------------------------
-     CONSTANTEN
-  -------------------------------------------------- */
-  const YEAR = new Date().getFullYear();
-  const DEADLINE = new Date(`${YEAR}-02-15T23:59:59`);
-  const REQUIRED_PER_DAY = 2;
+/*************************
+ * GELDIGE DATA
+ *************************/
+function geldigeDagen(){
+  const days = [];
+  for(let m=2;m<=10;m++){
+    for(let d=1;d<=31;d++){
+      const date = new Date(YEAR,m,d);
+      if(date.getMonth()!==m) continue;
 
-  const PLOEGEN = ["A1","B1","C1","A2","B2","C2"];
+      const dow = date.getDay();
+      const iso = date.toISOString().slice(0,10);
 
-  /* --------------------------------------------------
-     PLOEG ROTATIE
-  -------------------------------------------------- */
-  function getPloegForDate(date) {
-    const ref = new Date(date.getFullYear(), 0, 1, 12, 0, 0);
-    if (date < ref) {
-      return getPloegForDate(
-        new Date(date.getFullYear() - 1, 11, 31, 13)
-      );
+      if(dow!==2 && dow!==6) continue;
+      if(FEESTDAGEN.includes(iso)) continue;
+      if(ploegVanWeek(date)!==currentTeam) continue;
+
+      days.push(iso);
     }
-    const weeks =
-      Math.floor((date - ref) / (7 * 24 * 60 * 60 * 1000));
-    const startIndex = PLOEGEN.indexOf("A2");
-    return PLOEGEN[(startIndex + weeks) % PLOEGEN.length];
   }
+  return days;
+}
 
-  /* --------------------------------------------------
-     HELPERS
-  -------------------------------------------------- */
-  const afterDeadline = () => new Date() > DEADLINE;
-  const iso = d => d.toISOString().split("T")[0];
-  const allowedDay = d => d.getDay() === 2 || d.getDay() === 6;
+/*************************
+ * BESCHIKBAARHEDEN
+ *************************/
+async function loadAvailability(){
+  const dates = geldigeDagen();
+  const container = document.getElementById("datesContainer");
+  container.innerHTML = "";
 
-  /* --------------------------------------------------
-     GELDIGE DATUMS
-  -------------------------------------------------- */
-  async function getValidDates() {
-    const holidays =
-      (await db.ref("wespenPlanning/holidays").get()).val() || {};
+  const snap =
+    await db.ref(`wespenPlanning/availability/${currentUser}`).get();
+  const saved = snap.val() || {};
 
-    const dates = [];
-    let d = new Date(YEAR, 2, 1);
-    const end = new Date(YEAR, 10, 30);
+  dates.forEach(d=>{
+    const row = document.createElement("div");
+    row.innerHTML = `
+      <label>
+        <input type="checkbox" data-date="${d}"
+        ${saved[d] ? "checked":""}>
+        ${d}
+      </label>`;
+    container.appendChild(row);
+  });
+}
 
-    while (d <= end) {
-      if (
-        allowedDay(d) &&
-        !holidays[iso(d)] &&
-        getPloegForDate(d) === currentTeam
-      ) {
-        dates.push(iso(d));
-      }
-      d.setDate(d.getDate() + 1);
-    }
-    return dates;
-  }
+document.getElementById("saveAvail").onclick = async ()=>{
+  const boxes = document.querySelectorAll("input[data-date]");
+  const data = {};
+  boxes.forEach(b=>{
+    if(b.checked) data[b.dataset.date]=true;
+  });
+  await db.ref(`wespenPlanning/availability/${currentUser}`).set(data);
+  alert("Opgeslagen");
+};
 
-  /* --------------------------------------------------
-     BESCHIKBAARHEID
-  -------------------------------------------------- */
-  async function buildAvailability() {
-    const dates = await getValidDates();
-    const availability =
-      (await db.ref("wespenPlanning/availability").get()).val() || {};
+/*************************
+ * PLANNING GENEREREN
+ *************************/
+async function generatePlanning(){
 
-    const container = document.getElementById("datesContainer");
-    container.innerHTML = "";
+  const usersSnap = await db.ref("users").get();
+  const users = usersSnap.val();
 
-    dates.forEach(date => {
-      const row = document.createElement("div");
-      row.className = "availability-row";
+  const availSnap =
+    await db.ref("wespenPlanning/availability").get();
+  const avail = availSnap.val()||{};
 
-      const label = document.createElement("label");
-      label.textContent = date;
+  const counterSnap =
+    await db.ref("wespenPlanning/counters").get();
+  const counters = counterSnap.val()||{};
 
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.disabled = afterDeadline();
-      cb.checked = availability[date]?.[currentUser] === true;
+  const dates = geldigeDagen();
 
-      cb.onchange = () => {
-        db.ref(`wespenPlanning/availability/${date}/${currentUser}`)
-          .set(cb.checked);
-      };
+  for(const date of dates){
+    const candidates = [];
 
-      row.append(label, cb);
-      container.appendChild(row);
-    });
-  }
+    for(const u in users){
+      if(users[u].roles !== currentTeam) continue;
+      if(!avail[u]?.[date]) continue;
 
-  /* --------------------------------------------------
-     PLANNING GENEREREN (ADMIN)
-  -------------------------------------------------- */
-  async function generateSchedule() {
-
-    if (currentRole !== "admin") {
-      alert("Geen adminrechten");
-      return;
-    }
-
-    if (!afterDeadline()) {
-      alert("Planning kan pas na 15 februari");
-      return;
-    }
-
-    const availability =
-      (await db.ref("wespenPlanning/availability").get()).val() || {};
-
-    const countersRef = db.ref("wespenPlanning/counters");
-    const counters = (await countersRef.get()).val() || {};
-
-    for (const date in availability) {
-
-      const d = new Date(date);
-      if (getPloegForDate(d) !== currentTeam) continue;
-
-      const availableUsers = Object.entries(availability[date])
-        .filter(([_, ok]) => ok)
-        .map(([u]) => u)
-        .sort((a, b) => (counters[a] || 0) - (counters[b] || 0));
-
-      if (availableUsers.length < REQUIRED_PER_DAY) continue;
-
-      const selected = availableUsers.slice(0, REQUIRED_PER_DAY);
-
-      await db.ref(`wespenPlanning/schedule/${date}`).set({
-        team: currentTeam,
-        users: selected,
-        generated: true
-      });
-
-      selected.forEach(u => {
-        counters[u] = (counters[u] || 0) + 1;
+      candidates.push({
+        name:u,
+        count:counters[u]||0
       });
     }
 
-    await countersRef.set(counters);
-    loadSchedule();
-    alert("Planning gegenereerd");
-  }
+    candidates.sort((a,b)=>a.count-b.count);
 
-  /* --------------------------------------------------
-     PLANNING TONEN
-  -------------------------------------------------- */
-  async function loadSchedule() {
-    const schedule =
-      (await db.ref("wespenPlanning/schedule").get()).val() || {};
+    if(candidates.length<2) continue;
 
-    const box = document.getElementById("scheduleContainer");
-    box.innerHTML = "";
+    const selected = candidates.slice(0,2);
 
-    Object.entries(schedule).forEach(([date, data]) => {
-      if (data.team !== currentTeam) return;
+    await db.ref(`wespenPlanning/schedule/${date}`).set({
+      team: currentTeam,
+      users: selected.map(x=>x.name)
+    });
 
-      const line = document.createElement("div");
-      line.innerHTML = `
-        <strong>${date}</strong> :
-        ${data.users.join(" & ")}
-        <button>Omruil aanvragen</button>
-      `;
-
-      line.querySelector("button").onclick =
-        () => requestSwap(date);
-
-      box.appendChild(line);
+    selected.forEach(x=>{
+      counters[x.name]=(counters[x.name]||0)+1;
     });
   }
 
-  /* --------------------------------------------------
-     SWAP
-  -------------------------------------------------- */
-  function requestSwap(date) {
-    const id = "swap_" + Date.now();
-    db.ref(`wespenPlanning/swaps/${id}`).set({
-      date,
-      from: currentUser,
-      to: null,
-      status: "open"
-    });
-    alert("Omruil aangevraagd");
-  }
+  await db.ref("wespenPlanning/counters").set(counters);
+  loadSchedule();
+}
 
-  /* --------------------------------------------------
-     INIT
-  -------------------------------------------------- */
-  document.getElementById("generateSchedule")
-    .onclick = generateSchedule;
+/*************************
+ * PLANNING TONEN
+ *************************/
+async function loadSchedule(){
+  const snap =
+    await db.ref("wespenPlanning/schedule").get();
+  const data = snap.val()||{};
 
-  await buildAvailability();
+  const box = document.getElementById("scheduleContainer");
+  box.innerHTML="";
+
+  Object.entries(data).forEach(([date,s])=>{
+    if(s.team!==currentTeam) return;
+
+    const div=document.createElement("div");
+    div.innerHTML=`
+      <b>${date}</b> → ${s.users.join(", ")}
+      ${s.users.includes(currentUser)
+      ? `<button onclick="requestSwap('${date}')">Ruil</button>`
+      : ""}
+    `;
+    box.appendChild(div);
+  });
+}
+
+/*************************
+ * SWAPS
+ *************************/
+function requestSwap(date){
+  const id="swap_"+Date.now();
+  db.ref(`wespenPlanning/swaps/${id}`).set({
+    date,
+    from: currentUser,
+    team: currentTeam,
+    status:"open"
+  });
+}
+
+async function loadSwaps(){
+  const snap =
+    await db.ref("wespenPlanning/swaps").get();
+  const swaps=snap.val()||{};
+
+  const box=document.getElementById("swapsContainer");
+  box.innerHTML="";
+
+  Object.entries(swaps).forEach(([id,s])=>{
+    if(s.team!==currentTeam) return;
+    if(s.status!=="open") return;
+    if(s.from===currentUser) return;
+
+    const div=document.createElement("div");
+    div.innerHTML=`
+      ${s.date}: ${s.from}
+      <button onclick="acceptSwap('${id}')">Neem over</button>
+      <button onclick="rejectSwap('${id}')">Weiger</button>
+    `;
+    box.appendChild(div);
+  });
+}
+
+async function acceptSwap(id){
+  const ref=db.ref(`wespenPlanning/swaps/${id}`);
+  const snap=await ref.get();
+  if(!snap.exists()) return;
+
+  const s=snap.val();
+  const schedRef=db.ref(`wespenPlanning/schedule/${s.date}`);
+  const sched=(await schedRef.get()).val();
+
+  sched.users=sched.users.map(u=>u===s.from?currentUser:u);
+  await schedRef.set(sched);
+
+  await ref.update({
+    to: currentUser,
+    status:"done"
+  });
+
+  loadSchedule();
+  loadSwaps();
+}
+
+function rejectSwap(id){
+  db.ref(`wespenPlanning/swaps/${id}`).remove();
+  loadSwaps();
+}
+
+/*************************
+ * INIT
+ *************************/
+(async()=>{
+  await loadAvailability();
   await loadSchedule();
+  await loadSwaps();
 
+  const today=new Date();
+  if(today>new Date(YEAR,1,15)){
+    await generatePlanning();
+  }
 })();
