@@ -1,40 +1,49 @@
-<script>
-/************ FIREBASE ************/
-const db = firebase.database();
-
-/************ INGelogde GEBRUIKER ************/
-let currentUser = localStorage.getItem("userName");
-if(!currentUser){ alert("Niet ingelogd"); location.href="index.html"; }
-
-let currentTeam = localStorage.getItem("userTeam"); // A1,B1,C1,A2,B2,C2
-
 /************ HEADER LOGICA ************/
 const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
-const REF_DATE = new Date("2026-01-23T12:00:00"); // B1 op 27/01/2026
+const REF_DATE = new Date("2026-01-23T12:00:00");
 
 function getPloegVanWeek(d){
-  const weken = Math.floor((d - REF_DATE)/(7*24*60*60*1000));
-  return PLOEG_CYCLE[(weken%6+6)%6];
+  const weken = Math.floor((d - REF_DATE) / (7 * 24 * 60 * 60 * 1000));
+  return PLOEG_CYCLE[(weken % 6 + 6) % 6];
 }
 
 async function updateHeader(){
-  if(!currentTeam){
-    const snap = await db.ref("users/"+currentUser).get();
-    if(snap.exists()){
+  if (!document.getElementById("greeting")) {
+    setTimeout(updateHeader, 50);
+    return;
+  }
+
+  let currentUser = localStorage.getItem("userName");
+  let currentTeam = localStorage.getItem("userTeam");
+
+  if (!currentUser) {
+    alert("Niet ingelogd");
+    location.href = "index.html";
+    return;
+  }
+
+  if (!currentTeam) {
+    const snap = await firebase.database().ref("users/" + currentUser).get();
+    if (snap.exists()) {
       currentTeam = snap.val().roles;
-      localStorage.setItem("userTeam",currentTeam);
-    } else {
-      alert("Gebruiker niet gevonden");
-      return;
+      localStorage.setItem("userTeam", currentTeam);
     }
   }
 
   const now = new Date();
-  document.getElementById("greeting").textContent = `Welkom, ${currentUser}!`;
-  document.getElementById("datetime").textContent = now.toLocaleString("nl-BE", {
-    weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"
-  });
-  document.getElementById("ploegOfWeek").textContent = "Ploeg van week: " + getPloegVanWeek(now);
+
+  document.getElementById("greeting").textContent = `Welkom, ${currentUser}`;
+  document.getElementById("datetime").textContent =
+    now.toLocaleString("nl-BE", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+  document.getElementById("ploegOfWeek").textContent =
+    "Ploeg van week: " + getPloegVanWeek(now);
 }
 
 /************ FEESTDAGEN ************/
@@ -52,18 +61,23 @@ async function laadDagen(){
   const jaar = new Date().getFullYear();
   await updateHeader();
 
-  let beschikbaar = await db.ref("wespen/availability").get();
+  let beschikbaar = await firebase.database().ref("wespen/availability").get();
   beschikbaar = beschikbaar.val() || {};
 
   container.innerHTML="";
 
-  for(let m=2;m<=10;m++){ // maart t/m november
+  let currentTeam = localStorage.getItem("userTeam");
+
+  for(let m=2;m<=10;m++){
     for(let d=1; d<=31; d++){
       const datum = new Date(jaar,m,d);
       if(datum.getMonth()!==m) continue;
+
       const dow = datum.getDay();
-      if(dow!==2 && dow!==6) continue; // alleen di & za
+      if(dow!==2 && dow!==6) continue;
+
       if(isFeestdag(datum)) continue;
+
       if(getPloegVanWeek(datum)!==currentTeam) continue;
 
       const dagKey = datum.toISOString().split("T")[0];
@@ -72,7 +86,8 @@ async function laadDagen(){
       kaart.className="dag-kaart";
 
       const alOpgegeven = Object.values(beschikbaar).some(e =>
-        e.userKey===currentUser && e.datum.startsWith(dagKey)
+        e.userKey===localStorage.getItem("userName") &&
+        e.datum.startsWith(dagKey)
       );
 
       kaart.innerHTML = `
@@ -89,17 +104,21 @@ async function laadDagen(){
     }
   }
 
-  if(container.innerHTML==="") container.innerHTML="<em>Geen dagen beschikbaar voor jouw ploeg van week.</em>";
+  if(container.innerHTML==="")
+    container.innerHTML="<em>Geen dagen beschikbaar voor jouw ploeg van week.</em>";
 }
 
 /************ BESCHIKBAARHEID OPSLAAN ************/
 function opgeven(datumISO, kaart){
-  db.ref("users/"+currentUser).get().then(snap=>{
+  const userKey = localStorage.getItem("userName");
+
+  firebase.database().ref("users/"+userKey).get().then(snap=>{
     if(!snap.exists()){ alert("Gebruiker niet gevonden"); return; }
     const user = snap.val();
-    db.ref("wespen/availability").push({
-      userKey: currentUser,
-      naam: user.displayName || currentUser,
+
+    firebase.database().ref("wespen/availability").push({
+      userKey: userKey,
+      naam: user.displayName || userKey,
       ploeg: user.roles,
       datum: datumISO,
       timestamp: Date.now()
@@ -112,9 +131,10 @@ function opgeven(datumISO, kaart){
 
 /************ AUTOMATISCHE PLANNING ************/
 function maakWespenPlanning(){
-  db.ref("wespen/availability").get().then(snap=>{
+  firebase.database().ref("wespen/availability").get().then(snap=>{
     const data = Object.values(snap.val()||{});
     const perDag = {};
+
     data.forEach(e=>{
       const dagKey = e.datum.split("T")[0];
       perDag[dagKey] ??= [];
@@ -124,14 +144,16 @@ function maakWespenPlanning(){
     Object.keys(perDag).forEach(dagKey=>{
       const kandidaten = perDag[dagKey].sort((a,b)=>(a.wespenCount||0)-(b.wespenCount||0));
       const selected = kandidaten.slice(0,2);
-      db.ref("wespen/planning/"+dagKey).set({
+
+      firebase.database().ref("wespen/planning/"+dagKey).set({
         datum: dagKey,
         users: selected.map(u=>u.naam)
       });
+
       selected.forEach(u=>u.wespenCount=(u.wespenCount||0)+1);
     });
 
-    alert("✅ Wespenplanning aangemaakt");
+    alert("Planning aangemaakt");
     laadPlanning();
   });
 }
@@ -140,9 +162,11 @@ function maakWespenPlanning(){
 async function laadPlanning(){
   const container = document.getElementById("planningContainer");
   container.innerHTML="Laden…";
-  const snap = await db.ref("wespen/planning").get();
+
+  const snap = await firebase.database().ref("wespen/planning").get();
   const data = snap.val()||{};
   container.innerHTML="";
+
   Object.keys(data).sort().forEach(dag=>{
     const p = data[dag];
     const div = document.createElement("div");
@@ -150,15 +174,16 @@ async function laadPlanning(){
     div.innerHTML=`<b>${dag}</b> → ${p.users.join(", ")}`;
     container.appendChild(div);
   });
-  if(container.innerHTML==="") container.innerHTML="<em>Geen planning beschikbaar.</em>";
+
+  if(container.innerHTML==="")
+    container.innerHTML="<em>Geen planning beschikbaar.</em>";
 }
 
 /************ INIT ************/
-document.addEventListener("DOMContentLoaded", async()=>{
+document.addEventListener("DOMContentLoaded", async () => {
+  setInterval(updateHeader, 1000);
   await updateHeader();
-  setInterval(updateHeader,1000);
   await laadDagen();
   await laadPlanning();
   document.getElementById("generatePlanning").onclick = maakWespenPlanning;
 });
-</script>
