@@ -8,10 +8,10 @@
 <link rel="stylesheet" href="/brandweerherentals/style.css">
 
 <meta name="firebase-db"
-      content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
+content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
 
-<!-- server-side ingevuld -->
-<!-- <meta name="wespen-username" content="jan"> -->
+<meta name="wespen-username" content="">
+<meta name="wespen-team" content="">
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -20,38 +20,30 @@
 <body>
 <div class="container">
 
-<header class="card">
-  <h1>Wespenverdelging – Planning</h1>
-  <p>
-    Gebruiker: <strong id="currentUser"></strong><br>
-    Ploeg van week: <strong id="currentTeam"></strong>
-  </p>
-</header>
+<h2>🐝 Wespenplanning</h2>
 
-<section class="card">
-  <h2>Beschikbaarheid</h2>
-  <p><small>Invullen mogelijk tot 15 februari</small></p>
-  <div id="datesContainer">Laden…</div>
-</section>
-
-<section class="card">
-  <h2>Planning</h2>
-  <button id="generateSchedule">Genereer planning (admin)</button>
-  <div id="scheduleContainer">Nog geen planning.</div>
-</section>
-
-<section class="card">
-  <h2>Omruil-aanvragen</h2>
-  <div id="swapsContainer">Geen aanvragen.</div>
-</section>
-
+<div class="card">
+  <p><b>Gebruiker:</b> <span id="currentUser"></span></p>
+  <p><b>Ploeg:</b> <span id="currentTeam"></span></p>
 </div>
 
-<script>
-firebase.initializeApp({
-  databaseURL: document.querySelector('meta[name="firebase-db"]').content
-});
-</script>
+<div class="card">
+  <h3>Beschikbaarheden</h3>
+  <div id="datesContainer"></div>
+  <button id="saveAvail">Opslaan</button>
+</div>
+
+<div class="card">
+  <h3>Planning</h3>
+  <div id="scheduleContainer"></div>
+</div>
+
+<div class="card">
+  <h3>Omruil-aanvragen</h3>
+  <div id="swapsContainer"></div>
+</div>
+
+</div>
 
 <script src="/brandweerherentals/planning.js"></script>
 </body>
