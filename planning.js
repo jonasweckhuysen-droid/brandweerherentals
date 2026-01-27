@@ -1,7 +1,15 @@
 /************ PLOEG LOGICA ************/
+
+// Jouw cyclus:
+// Week 1: A1
+// Week 2: B1
+// Week 3: C1
+// Week 4: A2
+// Week 5: B2
+// Week 6: C2
 const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
 
-// B1 is ploeg van week vanaf vrijdag 23/01/2026 12u tot vrijdag 30/01/2026 12u
+// B1-week start op vrijdag 23/01/2026 om 12:00
 const REF_DATE = new Date("2026-01-23T12:00:00");
 
 function getPloegVanWeek(d){
@@ -37,7 +45,7 @@ async function updateHeader(){
     return;
   }
 
-  await getUserTeam(); // zorgt dat userTeam in localStorage staat
+  await getUserTeam();
   const now = new Date();
 
   document.getElementById("greeting").textContent = `Welkom, ${currentUser}`;
@@ -54,16 +62,7 @@ async function updateHeader(){
     "Ploeg van week: " + getPloegVanWeek(now);
 }
 
-/************ FEESTDAGEN (nu niet gebruikt in filtering) ************/
-const FEESTDAGEN = ["01-01","01-05","21-07","15-08","01-11","11-11","25-12"];
-function isFeestdag(d){
-  const key = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}`;
-  return FEESTDAGEN.includes(key);
-}
-
 /************ LADEN DAGEN ************/
-// Toon ALLE dinsdagen en donderdagen van het jaar
-// waarop de ploeg van week gelijk is aan de ploeg van de ingelogde gebruiker
 async function laadDagen(){
   const container = document.getElementById("dagenContainer");
   container.innerHTML="Laden…";
