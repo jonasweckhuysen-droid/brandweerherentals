@@ -1,46 +1,63 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Wespenverdelging</title>
-<link rel="stylesheet" href="/brandweerherentals/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wespen Planning</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="/brandweerherentals/header.js"></script>
+<script src="header.js"></script>
 </head>
+
 <body>
 
 <div class="container">
-  <header>
-    <div id="greeting">Welkom …</div>
-    <div id="datetime">…</div>
-    <div id="ploegOfWeek">…</div>
-  </header>
 
-  <main>
-    <section>
-      <h2>Beschikbaarheid invullen</h2>
-      <div id="dagenContainer" style="border:1px solid #ccc; padding:1rem; margin-bottom:1rem;">
-        Laden…
-      </div>
-      <button id="generatePlanning" style="padding:0.5rem 1rem;">Genereer planning</button>
-    </section>
+<header id="appHeader">
+  <div class="header-left">
+    <img src="logo.png" class="header-logo">
+  </div>
+  <div class="header-right">
+    <div id="greeting" class="header-greeting">Welkom …</div>
+    <div id="ploegOfWeek" class="header-name">…</div>
+  </div>
+</header>
 
-    <section>
-      <h2>Gegenereerde planning</h2>
-      <div id="planningContainer" style="border:1px solid #ccc; padding:1rem; margin-top:1rem;">
-        Nog geen planning
-      </div>
-    </section>
-  </main>
+<div class="content">
+
+<a href="index.html" class="backlink">
+  <span class="arrow">←</span> Terug</a>
+
+<section>
+  <h2>Beschikbaarheid invullen</h2>
+  <div id="dagenContainer" class="card" style="padding:1rem; border:1px solid #ccc; margin-bottom:1rem;">
+    Laden…
+  </div>
+</section>
+
+<section>
+  <h2>Gegenereerde planning</h2>
+  <div id="planningContainer" class="card" style="padding:1rem; border:1px solid #ccc; margin-top:1rem;">
+    Nog geen planning
+  </div>
+</section>
+
+<button id="generatePlanning" class="btn" style="margin-top:1rem; padding:0.5rem 1rem;">
+  Genereer planning
+</button>
+
+</div>
 </div>
 
-<script src="/brandweerherentals/wespen.js"></script>
+<script src="wespen.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Inladen planning
+  // Laad planning
   function loadPlanning() {
     const container = document.getElementById("planningContainer");
     container.innerHTML = "Laden…";
@@ -51,19 +68,18 @@ document.addEventListener("DOMContentLoaded", () => {
       Object.keys(data).sort().forEach(dag => {
         const p = data[dag];
         const div = document.createElement("div");
+        div.style.marginBottom = "0.5rem";
         div.innerHTML = `<b>${dag}</b> → ${p.users.join(", ")}`;
         container.appendChild(div);
       });
     });
   }
 
-  // Genereer planning knop
   document.getElementById("generatePlanning").onclick = () => {
     maakWespenPlanning();
     setTimeout(loadPlanning, 500);
   };
 
-  // Eerst planning laden
   loadPlanning();
 });
 </script>
