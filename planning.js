@@ -1,34 +1,50 @@
-(() => {
+(async () => {
 
   /* --------------------------------------------------
-     BASIS
+     BASIS & USER
   -------------------------------------------------- */
   const db = firebase.database();
 
   const currentUser =
     document.querySelector('meta[name="wespen-username"]').content;
 
-  const currentTeam =
-    document.querySelector('meta[name="wespen-team"]').content;
-
   document.getElementById("currentUser").textContent = currentUser;
+
+  const userSnap = await db
+    .ref(`users/${currentUser}/roles`)
+    .get();
+
+  if (!userSnap.exists()) {
+    alert("Gebruiker niet gevonden in Firebase");
+    return;
+  }
+
+  const currentTeam = userSnap.val().ploeg;
+  const currentRole = userSnap.val().role;
+
   document.getElementById("currentTeam").textContent = currentTeam;
 
+  /* --------------------------------------------------
+     CONSTANTEN
+  -------------------------------------------------- */
   const YEAR = new Date().getFullYear();
   const DEADLINE = new Date(`${YEAR}-02-15T23:59:59`);
-  const REQUIRED = 2;
+  const REQUIRED_PER_DAY = 2;
 
   const PLOEGEN = ["A1","B1","C1","A2","B2","C2"];
 
   /* --------------------------------------------------
-     PLOEG BEREKENING
+     PLOEG ROTATIE
   -------------------------------------------------- */
   function getPloegForDate(date) {
     const ref = new Date(date.getFullYear(), 0, 1, 12, 0, 0);
     if (date < ref) {
-      return getPloegForDate(new Date(date.getFullYear() - 1, 11, 31, 13));
+      return getPloegForDate(
+        new Date(date.getFullYear() - 1, 11, 31, 13)
+      );
     }
-    const weeks = Math.floor((date - ref) / (7 * 24 * 60 * 60 * 1000));
+    const weeks =
+      Math.floor((date - ref) / (7 * 24 * 60 * 60 * 1000));
     const startIndex = PLOEGEN.indexOf("A2");
     return PLOEGEN[(startIndex + weeks) % PLOEGEN.length];
   }
@@ -69,7 +85,7 @@
   -------------------------------------------------- */
   async function buildAvailability() {
     const dates = await getValidDates();
-    const avail =
+    const availability =
       (await db.ref("wespenPlanning/availability").get()).val() || {};
 
     const container = document.getElementById("datesContainer");
@@ -85,7 +101,7 @@
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.disabled = afterDeadline();
-      cb.checked = avail[date]?.[currentUser] === true;
+      cb.checked = availability[date]?.[currentUser] === true;
 
       cb.onchange = () => {
         db.ref(`wespenPlanning/availability/${date}/${currentUser}`)
@@ -98,12 +114,17 @@
   }
 
   /* --------------------------------------------------
-     PLANNING GENEREREN (2 PERSONEN)
+     PLANNING GENEREREN (ADMIN)
   -------------------------------------------------- */
   async function generateSchedule() {
 
+    if (currentRole !== "admin") {
+      alert("Geen adminrechten");
+      return;
+    }
+
     if (!afterDeadline()) {
-      alert("Kan pas na 15 februari.");
+      alert("Planning kan pas na 15 februari");
       return;
     }
 
@@ -118,14 +139,14 @@
       const d = new Date(date);
       if (getPloegForDate(d) !== currentTeam) continue;
 
-      const users = Object.entries(availability[date])
+      const availableUsers = Object.entries(availability[date])
         .filter(([_, ok]) => ok)
         .map(([u]) => u)
         .sort((a, b) => (counters[a] || 0) - (counters[b] || 0));
 
-      if (users.length < REQUIRED) continue;
+      if (availableUsers.length < REQUIRED_PER_DAY) continue;
 
-      const selected = users.slice(0, REQUIRED);
+      const selected = availableUsers.slice(0, REQUIRED_PER_DAY);
 
       await db.ref(`wespenPlanning/schedule/${date}`).set({
         team: currentTeam,
@@ -147,31 +168,31 @@
      PLANNING TONEN
   -------------------------------------------------- */
   async function loadSchedule() {
-    const sched =
+    const schedule =
       (await db.ref("wespenPlanning/schedule").get()).val() || {};
 
     const box = document.getElementById("scheduleContainer");
     box.innerHTML = "";
 
-    Object.entries(sched).forEach(([date, data]) => {
+    Object.entries(schedule).forEach(([date, data]) => {
       if (data.team !== currentTeam) return;
 
-      const div = document.createElement("div");
-      div.innerHTML = `
+      const line = document.createElement("div");
+      line.innerHTML = `
         <strong>${date}</strong> :
         ${data.users.join(" & ")}
-        <button data-date="${date}">Omruil aanvragen</button>
+        <button>Omruil aanvragen</button>
       `;
 
-      div.querySelector("button").onclick =
+      line.querySelector("button").onclick =
         () => requestSwap(date);
 
-      box.appendChild(div);
+      box.appendChild(line);
     });
   }
 
   /* --------------------------------------------------
-     SWAPS
+     SWAP
   -------------------------------------------------- */
   function requestSwap(date) {
     const id = "swap_" + Date.now();
@@ -190,7 +211,7 @@
   document.getElementById("generateSchedule")
     .onclick = generateSchedule;
 
-  buildAvailability();
-  loadSchedule();
+  await buildAvailability();
+  await loadSchedule();
 
 })();
