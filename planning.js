@@ -1,214 +1,129 @@
-/*************************
- * CONFIG
- *************************/
+/************ FIREBASE ************/
+firebase.initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
 const db = firebase.database();
 
-const currentUser =
-  document.querySelector("meta[name='wespen-username']").content;
-const currentTeam =
-  document.querySelector("meta[name='wespen-team']").content;
-
-const YEAR = new Date().getFullYear();
-const FEESTDAGEN = ["2026-05-01","2026-07-21","2026-08-15"]; // Voeg aan naar wens
-
-/*************************
- * GELDIGE DATA
- *************************/
-function geldigeDagen() {
-  const days = [];
-  for (let m = 2; m <= 10; m++) { // maart t/m november
-    for (let d = 1; d <= 31; d++) {
-      const date = new Date(YEAR, m, d);
-      if (date.getMonth() !== m) continue;
-
-      const dow = date.getDay();
-      const iso = date.toISOString().slice(0, 10);
-
-      if (dow !== 2 && dow !== 6) continue; // alleen di & za
-      if (FEESTDAGEN.includes(iso)) continue;
-
-      // ✅ Gebruik exact dezelfde functie als header.js
-      if (window.getPloegVanWeek(date) !== currentTeam) continue;
-
-      days.push(iso);
-    }
-  }
-  return days;
+/************ INGelogde gebruiker ************/
+const userKey = localStorage.getItem("userName");
+if (!userKey) {
+  alert("Niet ingelogd");
+  location.href = "index.html";
 }
 
-/*************************
- * BESCHIKBAARHEDEN LADEN
- *************************/
-async function loadAvailability() {
-  const dates = geldigeDagen();
-  const container = document.getElementById("datesContainer");
-  container.innerHTML = "";
+/************ DATUMLOGICA ************/
+const vandaag = new Date();
+const huidigeDag = vandaag.getDate();
+const huidigeMaand = vandaag.getMonth();
+const huidigeJaar = vandaag.getFullYear();
 
-  const snap = await db.ref(`wespenPlanning/availability/${currentUser}`).get();
-  const saved = snap.val() || {};
+// vanaf 1 maart t/m november
+let startMaand = 2; // maart
+let eindMaand = 10;  // november
 
-  dates.forEach(d => {
-    const row = document.createElement("div");
-    row.innerHTML = `
-      <label>
-        <input type="checkbox" data-date="${d}" ${saved[d] ? "checked" : ""}>
-        ${d}
-      </label>
+/************ FEESTDAGEN ************/
+const feestdagen = ["01-01","01-05","21-07","15-08","01-11","11-11","25-12"];
+function isFeestdag(d) {
+  const key = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  return feestdagen.includes(key);
+}
+
+/************ PLOEG VAN WEEK ************/
+const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
+const REF_DATE = new Date("2026-01-23T12:00:00"); // 27/01/2026 is B1
+
+function getPloegVanWeek(d) {
+  const weken = Math.floor((d - REF_DATE) / (7*24*60*60*1000));
+  return PLOEG_CYCLE[(weken % 6 + 6) % 6];
+}
+
+/************ DAGEN OPBOUW ************/
+const dagenContainer = document.getElementById("dagenContainer");
+
+for (let m = startMaand; m <= eindMaand; m++) {
+  for (let d=1; d<=31; d++) {
+    const datum = new Date(huidigeJaar, m, d);
+    if (datum.getMonth() !== m) continue;
+
+    const dow = datum.getDay();
+    if (dow !== 2 && dow !== 6) continue; // alleen dinsdag & zaterdag
+    if (isFeestdag(datum)) continue;
+    if (getPloegVanWeek(datum) !== localStorage.getItem("userTeam")) continue;
+
+    const kaart = document.createElement("div");
+    kaart.className = "dag-kaart";
+    kaart.innerHTML = `
+      <div class="dag-header">
+        ${datum.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"})}
+      </div>
+      <div class="dag-inhoud">
+        <button class="btn-ik-kan" data-datum="${datum.toISOString()}">
+          <i class="fa-solid fa-check"></i> Ik ben beschikbaar
+        </button>
+      </div>
     `;
-    container.appendChild(row);
-  });
+    kaart.querySelector("button").onclick = () => opgeven(datum.toISOString(), kaart);
+    dagenContainer.appendChild(kaart);
+  }
 }
 
-document.getElementById("saveAvail").onclick = async () => {
-  const boxes = document.querySelectorAll("input[data-date]");
-  const data = {};
-  boxes.forEach(b => {
-    if (b.checked) data[b.dataset.date] = true;
-  });
-  await db.ref(`wespenPlanning/availability/${currentUser}`).set(data);
-  alert("Beschikbaarheid opgeslagen!");
-};
+/************ OPSLAAN BESCHIKBAARHEID ************/
+function opgeven(datumISO, kaart) {
+  db.ref("users/" + userKey).once("value", snap => {
+    if (!snap.exists()) { alert("Gebruiker niet gevonden"); return; }
+    const user = snap.val();
 
-/*************************
- * PLANNING GENEREREN
- *************************/
-async function generatePlanning() {
-  const usersSnap = await db.ref("users").get();
-  const users = usersSnap.val();
-
-  const availSnap = await db.ref("wespenPlanning/availability").get();
-  const avail = availSnap.val() || {};
-
-  const counterSnap = await db.ref("wespenPlanning/counters").get();
-  const counters = counterSnap.val() || {};
-
-  const dates = geldigeDagen();
-
-  for (const date of dates) {
-    const candidates = [];
-
-    for (const u in users) {
-      if (users[u].roles !== currentTeam) continue;
-      if (!avail[u]?.[date]) continue;
-
-      candidates.push({ name: u, count: counters[u] || 0 });
-    }
-
-    candidates.sort((a, b) => a.count - b.count);
-
-    if (candidates.length < 2) continue;
-
-    const selected = candidates.slice(0, 2);
-
-    await db.ref(`wespenPlanning/schedule/${date}`).set({
-      team: currentTeam,
-      users: selected.map(x => x.name)
+    db.ref("wespen/availability").push({
+      userKey,
+      naam: user.displayName,
+      ploeg: user.roles, // A1, B1 etc
+      datum: datumISO,
+      timestamp: Date.now()
     });
 
-    selected.forEach(x => {
-      counters[x.name] = (counters[x.name] || 0) + 1;
+    // visuele feedback
+    kaart.querySelector(".dag-inhoud").innerHTML = `
+      <div class="ingevuld">
+        <i class="fa-solid fa-circle-check"></i>
+        Beschikbaar opgegeven
+      </div>
+    `;
+  });
+}
+
+/************ AUTOMATISCHE PLANNING ************/
+function maakWespenPlanning() {
+  db.ref("wespen/availability").once("value", snap => {
+    const data = Object.values(snap.val() || {});
+    const perDag = {};
+
+    // per datum groeperen
+    data.forEach(e => {
+      const dagKey = e.datum.split("T")[0];
+      perDag[dagKey] ??= [];
+      perDag[dagKey].push(e);
     });
-  }
 
-  await db.ref(`wespenPlanning/counters`).set(counters);
-  loadSchedule();
-}
+    Object.keys(perDag).forEach(dagKey => {
+      const kandidaten = perDag[dagKey];
 
-/*************************
- * PLANNING TONEN
- *************************/
-async function loadSchedule() {
-  const snap = await db.ref("wespenPlanning/schedule").get();
-  const data = snap.val() || {};
+      // sorteer op minst aantal verdelgingen (counter)
+      kandidaten.sort((a,b) => (a.wespenCount||0) - (b.wespenCount||0));
 
-  const box = document.getElementById("scheduleContainer");
-  box.innerHTML = "";
+      // selecteer maximaal 2 personen
+      const selected = kandidaten.slice(0,2);
 
-  Object.entries(data).forEach(([date, s]) => {
-    if (s.team !== currentTeam) return;
+      db.ref(`wespen/planning/${dagKey}`).set({
+        datum: dagKey,
+        users: selected.map(u => u.naam)
+      });
 
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <b>${date}</b> → ${s.users.join(", ")}
-      ${s.users.includes(currentUser)
-        ? `<button onclick="requestSwap('${date}')">Ruil</button>`
-        : ""}
-    `;
-    box.appendChild(div);
+      // update teller
+      selected.forEach(u=>{
+        u.wespenCount = (u.wespenCount||0)+1;
+      });
+    });
+
+    alert("✅ Wespenplanning aangemaakt");
   });
 }
-
-/*************************
- * SWAPS
- *************************/
-function requestSwap(date) {
-  const id = "swap_" + Date.now();
-  db.ref(`wespenPlanning/swaps/${id}`).set({
-    date,
-    from: currentUser,
-    team: currentTeam,
-    status: "open",
-    createdAt: Date.now()
-  });
-}
-
-async function loadSwaps() {
-  const snap = await db.ref("wespenPlanning/swaps").get();
-  const swaps = snap.val() || {};
-
-  const box = document.getElementById("swapsContainer");
-  box.innerHTML = "";
-
-  Object.entries(swaps).forEach(([id, s]) => {
-    if (s.team !== currentTeam) return;
-    if (s.status !== "open") return;
-    if (s.from === currentUser) return;
-
-    const div = document.createElement("div");
-    div.innerHTML = `
-      ${s.date}: ${s.from}
-      <button onclick="acceptSwap('${id}')">Neem over</button>
-      <button onclick="rejectSwap('${id}')">Weiger</button>
-    `;
-    box.appendChild(div);
-  });
-}
-
-async function acceptSwap(id) {
-  const ref = db.ref(`wespenPlanning/swaps/${id}`);
-  const snap = await ref.get();
-  if (!snap.exists()) return;
-
-  const s = snap.val();
-  const schedRef = db.ref(`wespenPlanning/schedule/${s.date}`);
-  const schedSnap = await schedRef.get();
-  if (!schedSnap.exists()) return;
-
-  const sched = schedSnap.val();
-  sched.users = sched.users.map(u => u === s.from ? currentUser : u);
-  await schedRef.set(sched);
-
-  await ref.update({ to: currentUser, status: "done", handledAt: Date.now() });
-
-  loadSchedule();
-  loadSwaps();
-}
-
-function rejectSwap(id) {
-  db.ref(`wespenPlanning/swaps/${id}`).remove();
-  loadSwaps();
-}
-
-/*************************
- * INIT
- *************************/
-(async () => {
-  await loadAvailability();
-  await loadSchedule();
-  await loadSwaps();
-
-  const today = new Date();
-  if (today > new Date(YEAR, 1, 15)) { // 15 februari
-    await generatePlanning();
-  }
-})();
