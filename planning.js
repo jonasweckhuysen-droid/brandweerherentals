@@ -1,19 +1,10 @@
 /*************************************************
- * FIREBASE – SAFE INITIALISATIE (GEEN DUPLICATE)
+ * FIREBASE REFERENTIE (GEEN INIT!)
  *************************************************/
-const firebaseConfig = {
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-};
-
-// 👉 alleen initialiseren als hij nog niet bestaat
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
 const db = firebase.database();
 
 /*************************************************
- * HULPFUNCTIES – DATUM & PLOEG
+ * DATUM & PLOEG LOGICA
  *************************************************/
 function getWeekNumber(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -24,20 +15,19 @@ function getWeekNumber(date) {
 }
 
 function getCurrentPloeg(date = new Date()) {
-  const start = new Date("2026-01-02"); // referentie vrijdag
+  const start = new Date("2026-01-02"); // vrijdag referentie
   const ploegen = ["A1", "B1", "C1"];
   const diffWeeks = Math.floor((date - start) / (7 * 24 * 60 * 60 * 1000));
   return ploegen[((diffWeeks % 3) + 3) % 3];
 }
 
 /*************************************************
- * HEADER OPBOUW
+ * HEADER
  *************************************************/
 function renderHeader(userName, ploeg) {
   const header = document.getElementById("appHeader");
-
   const week = getWeekNumber(new Date());
-  const now = new Date().toLocaleTimeString("nl-BE", {
+  const time = new Date().toLocaleTimeString("nl-BE", {
     hour: "2-digit",
     minute: "2-digit"
   });
@@ -50,18 +40,20 @@ function renderHeader(userName, ploeg) {
       <div class="header-greeting">${userName}</div>
       <div class="header-name">
         Ploeg ${ploeg} – week ${week}<br>
-        <small>${now}</small>
+        <small>${time}</small>
       </div>
     </div>
   `;
 }
 
 /*************************************************
- * PLANNING FORM
+ * FORM
  *************************************************/
-function renderPlanningForm(container) {
+function renderForm() {
+  const container = document.getElementById("planningContainer");
+
   container.innerHTML = `
-    <h3>Beschikbaarheid doorgeven</h3>
+    <h3>Beschikbaarheid</h3>
 
     <label>Datum</label>
     <input type="date" id="datum">
@@ -72,33 +64,32 @@ function renderPlanningForm(container) {
     <label>Tot</label>
     <input type="time" id="tot">
 
-    <button id="saveBtn">Opslaan</button>
+    <button id="opslaan">Opslaan</button>
 
     <div id="status"></div>
   `;
 
-  document.getElementById("saveBtn").addEventListener("click", saveAvailability);
+  document.getElementById("opslaan").addEventListener("click", saveData);
 }
 
 /*************************************************
- * OPSLAAN IN FIREBASE
+ * OPSLAAN
  *************************************************/
-function saveAvailability() {
+function saveData() {
   const datum = document.getElementById("datum").value;
   const van = document.getElementById("van").value;
   const tot = document.getElementById("tot").value;
 
   if (!datum || !van || !tot) {
-    document.getElementById("status").innerText = "❌ Vul alles in";
+    document.getElementById("status").innerText = "❌ Alles invullen";
     return;
   }
 
-  const ref = db.ref("beschikbaarheid").push();
-  ref.set({
+  db.ref("beschikbaarheid").push({
     datum,
     van,
     tot,
-    timestamp: Date.now()
+    created: Date.now()
   });
 
   document.getElementById("status").innerText = "✅ Opgeslagen";
@@ -107,13 +98,10 @@ function saveAvailability() {
 /*************************************************
  * INIT
  *************************************************/
-window.addEventListener("load", async () => {
-  const container = document.getElementById("planningContainer");
-
-  // simulatie user (kan later auth worden)
-  const userName = "Gebruiker";
+window.addEventListener("load", () => {
+  const userName = "Gebruiker"; // later auth
   const ploeg = getCurrentPloeg();
 
   renderHeader(userName, ploeg);
-  renderPlanningForm(container);
+  renderForm();
 });
