@@ -1,104 +1,107 @@
-/************ PLOEG LOGICA ************/
+/************ FIREBASE INIT ************/
+firebase.initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+const db = firebase.database();
 
-// Jouw cyclus:
-// Week 1: A1
-// Week 2: B1
-// Week 3: C1
-// Week 4: A2
-// Week 5: B2
-// Week 6: C2
-const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
-
-// B1-week start op vrijdag 23/01/2026 om 12:00
-const REF_DATE = new Date("2026-01-23T12:00:00");
-const BASE_INDEX = 1; // 0=A1, 1=B1, 2=C1, 3=A2, 4=B2, 5=C2
-
-function getPloegVanWeek(d){
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
-  const weken = Math.floor((d - REF_DATE) / weekMs);
-  return PLOEG_CYCLE[(BASE_INDEX + (weken % 6) + 6) % 6];
+/************ GEBRUIKER ************/
+const currentUser = localStorage.getItem("userName");
+if (!currentUser) { 
+  alert("Niet ingelogd"); 
+  location.href = "index.html"; 
 }
 
-/************ GEBRUIKERSTEAM LADEN ************/
-async function getUserTeam() {
-  const currentUser = localStorage.getItem("userName");
-  if (!currentUser) return null;
+let userTeam = localStorage.getItem("userTeam"); // A1,B1,C1,A2,B2,C2
 
-  const snap = await firebase.database().ref("users/" + currentUser).get();
-  if (!snap.exists()) return null;
+/************ FEESTDAGEN ************/
+const FEESTDAGEN = ["01-01","01-05","21-07","15-08","01-11","11-11","25-12"];
+function isFeestdag(d){
+  const key = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  return FEESTDAGEN.includes(key);
+}
 
-  const team = snap.val().roles; // bv "A2"
-  localStorage.setItem("userTeam", team);
-  return team;
+/************ PLOEG VAN WEEK ************/
+const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
+const REF_DATE = new Date("2026-01-23T12:00:00"); // B1-week start
+const BASE_INDEX = 1; // B1
+function getPloegVanWeek(d){
+  const weekMs = 7*24*60*60*1000;
+  const weken = Math.floor((d - REF_DATE)/weekMs);
+  return PLOEG_CYCLE[(BASE_INDEX + ((weken%6 + 6)%6))];
+}
+
+/************ USER TEAM LADEN ************/
+async function getUserTeam(){
+  if(userTeam) return userTeam;
+
+  const snap = await db.ref("users/"+currentUser).get();
+  if(!snap.exists()) return null;
+
+  userTeam = snap.val().roles;
+  localStorage.setItem("userTeam", userTeam);
+  return userTeam;
 }
 
 /************ HEADER UPDATEN ************/
 async function updateHeader(){
-  if (!document.getElementById("greeting")) {
+  const greetingEl = document.getElementById("greeting");
+  const datetimeEl = document.getElementById("datetime");
+  const ploegEl = document.getElementById("ploegOfWeek");
+
+  if(!greetingEl || !datetimeEl || !ploegEl){
     setTimeout(updateHeader, 50);
     return;
   }
 
-  const currentUser = localStorage.getItem("userName");
-  if (!currentUser) {
-    alert("Niet ingelogd");
-    location.href = "index.html";
+  const team = await getUserTeam();
+  if(!team){
+    greetingEl.textContent = "Gebruiker niet gevonden";
     return;
   }
 
-  await getUserTeam();
   const now = new Date();
-
-  document.getElementById("greeting").textContent = `Welkom, ${currentUser}`;
-  document.getElementById("datetime").textContent =
-    now.toLocaleString("nl-BE", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-
-  document.getElementById("ploegOfWeek").textContent =
-    "Ploeg van week: " + getPloegVanWeek(now);
+  greetingEl.textContent = `Welkom, ${currentUser}`;
+  datetimeEl.textContent = now.toLocaleString("nl-BE", {
+    weekday:"short", day:"2-digit", month:"short",
+    hour:"2-digit", minute:"2-digit"
+  });
+  ploegEl.textContent = "Ploeg van week: " + getPloegVanWeek(now);
 }
 
-/************ LADEN DAGEN ************/
+/************ DAGEN LADEN ************/
 async function laadDagen(){
   const container = document.getElementById("dagenContainer");
   container.innerHTML="Laden…";
 
-  const currentTeam = await getUserTeam();
+  const team = await getUserTeam();
+  if(!team){
+    container.innerHTML="<em>Niet ingelogd of team niet gevonden.</em>";
+    return;
+  }
+
   await updateHeader();
 
-  let beschikbaar = await firebase.database().ref("wespen/availability").get();
+  let beschikbaar = await db.ref("wespen/availability").get();
   beschikbaar = beschikbaar.val() || {};
 
   container.innerHTML="";
 
   const jaar = new Date().getFullYear();
+  const start = new Date(jaar, 2, 1);   // maart
+  const eind   = new Date(jaar, 10, 30); // november
 
-  // 👉 Toon ALLE dagen van het jaar (januari → december)
-  const start = new Date(jaar, 0, 1);   // 1 januari
-  const eind = new Date(jaar, 11, 31);  // 31 december
-
-  for(let d = new Date(start); d <= eind; d.setDate(d.getDate()+1)){
-
+  for(let d=new Date(start); d<=eind; d.setDate(d.getDate()+1)){
     const dow = d.getDay();
-
-    // Alleen dinsdag (2) en zaterdag (6)
-    if(dow !== 2 && dow !== 6) continue;
-
-    // Alleen dagen waarop de ploeg van de gebruiker van week is
-    if(getPloegVanWeek(d) !== currentTeam) continue;
+    if(dow!==2 && dow!==6) continue; // alleen di & za
+    if(getPloegVanWeek(d)!==team) continue;
+    if(isFeestdag(d)) continue;
 
     const dagKey = d.toISOString().split("T")[0];
-
     const kaart = document.createElement("div");
     kaart.className="dag-kaart";
 
     const alOpgegeven = Object.values(beschikbaar).some(e =>
-      e.userKey === localStorage.getItem("userName") &&
+      e.userKey === currentUser &&
       e.datum.startsWith(dagKey)
     );
 
@@ -112,7 +115,6 @@ async function laadDagen(){
         </button>
       </div>
     `;
-
     kaart.querySelector("button").onclick = ()=>opgeven(d.toISOString(), kaart);
     container.appendChild(kaart);
   }
@@ -123,28 +125,27 @@ async function laadDagen(){
 
 /************ BESCHIKBAARHEID OPSLAAN ************/
 function opgeven(datumISO, kaart){
-  const userKey = localStorage.getItem("userName");
-
-  firebase.database().ref("users/"+userKey).get().then(snap=>{
+  db.ref("users/"+currentUser).get().then(snap=>{
     if(!snap.exists()){ alert("Gebruiker niet gevonden"); return; }
     const user = snap.val();
 
-    firebase.database().ref("wespen/availability").push({
-      userKey: userKey,
-      naam: user.displayName || userKey,
+    db.ref("wespen/availability").push({
+      userKey: currentUser,
+      naam: user.displayName || currentUser,
       ploeg: user.roles,
       datum: datumISO,
       timestamp: Date.now()
     }).then(()=>{
-      kaart.querySelector(".dag-inhoud").innerHTML =
-        `<div class="ingevuld"><i class="fa-solid fa-circle-check"></i> Beschikbaar opgegeven</div>`;
+      kaart.querySelector(".dag-inhoud").innerHTML = `
+        <div class="ingevuld"><i class="fa-solid fa-circle-check"></i> Beschikbaar opgegeven</div>
+      `;
     });
   });
 }
 
 /************ AUTOMATISCHE PLANNING ************/
 function maakWespenPlanning(){
-  firebase.database().ref("wespen/availability").get().then(snap=>{
+  db.ref("wespen/availability").get().then(snap=>{
     const data = Object.values(snap.val()||{});
     const perDag = {};
 
@@ -156,9 +157,9 @@ function maakWespenPlanning(){
 
     Object.keys(perDag).forEach(dagKey=>{
       const kandidaten = perDag[dagKey].sort((a,b)=>(a.wespenCount||0)-(b.wespenCount||0));
-      const selected = kandidaten.slice(0,2);
+      const selected = kandidaten.slice(0,2); // 2 personen per dag
 
-      firebase.database().ref("wespen/planning/"+dagKey).set({
+      db.ref("wespen/planning/"+dagKey).set({
         datum: dagKey,
         users: selected.map(u=>u.naam)
       });
@@ -166,17 +167,17 @@ function maakWespenPlanning(){
       selected.forEach(u=>u.wespenCount=(u.wespenCount||0)+1);
     });
 
-    alert("Planning aangemaakt");
+    alert("✅ Wespenplanning aangemaakt");
     laadPlanning();
   });
 }
 
-/************ LADEN PLANNING ************/
+/************ PLANNING LADEN ************/
 async function laadPlanning(){
   const container = document.getElementById("planningContainer");
   container.innerHTML="Laden…";
 
-  const snap = await firebase.database().ref("wespen/planning").get();
+  const snap = await db.ref("wespen/planning").get();
   const data = snap.val()||{};
   container.innerHTML="";
 
@@ -193,10 +194,12 @@ async function laadPlanning(){
 }
 
 /************ INIT ************/
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async()=>{
   setInterval(updateHeader, 1000);
   await updateHeader();
   await laadDagen();
   await laadPlanning();
-  document.getElementById("generatePlanning").onclick = maakWespenPlanning;
+
+  const generateBtn = document.getElementById("generatePlanning");
+  if(generateBtn) generateBtn.onclick = maakWespenPlanning;
 });
