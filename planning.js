@@ -1,4 +1,4 @@
-/************ HEADER LOGICA ************/
+/************ PLOEG LOGICA ************/
 const PLOEG_CYCLE = ["A1","B1","C1","A2","B2","C2"];
 const REF_DATE = new Date("2026-01-23T12:00:00");
 
@@ -7,29 +7,34 @@ function getPloegVanWeek(d){
   return PLOEG_CYCLE[(weken % 6 + 6) % 6];
 }
 
+/************ GEBRUIKERSTEAM LADEN ************/
+async function getUserTeam() {
+  const currentUser = localStorage.getItem("userName");
+  if (!currentUser) return null;
+
+  const snap = await firebase.database().ref("users/" + currentUser).get();
+  if (!snap.exists()) return null;
+
+  const team = snap.val().roles;
+  localStorage.setItem("userTeam", team);
+  return team;
+}
+
+/************ HEADER UPDATEN ************/
 async function updateHeader(){
   if (!document.getElementById("greeting")) {
     setTimeout(updateHeader, 50);
     return;
   }
 
-  let currentUser = localStorage.getItem("userName");
-  let currentTeam = localStorage.getItem("userTeam");
-
+  const currentUser = localStorage.getItem("userName");
   if (!currentUser) {
     alert("Niet ingelogd");
     location.href = "index.html";
     return;
   }
 
-  if (!currentTeam) {
-    const snap = await firebase.database().ref("users/" + currentUser).get();
-    if (snap.exists()) {
-      currentTeam = snap.val().roles;
-      localStorage.setItem("userTeam", currentTeam);
-    }
-  }
-
+  const currentTeam = await getUserTeam();
   const now = new Date();
 
   document.getElementById("greeting").textContent = `Welkom, ${currentUser}`;
@@ -58,50 +63,52 @@ async function laadDagen(){
   const container = document.getElementById("dagenContainer");
   container.innerHTML="Laden…";
 
-  const jaar = new Date().getFullYear();
   await updateHeader();
+
+  const currentTeam = await getUserTeam();
+  const jaar = new Date().getFullYear();
 
   let beschikbaar = await firebase.database().ref("wespen/availability").get();
   beschikbaar = beschikbaar.val() || {};
 
   container.innerHTML="";
 
-  let currentTeam = localStorage.getItem("userTeam");
+  const start = new Date(jaar, 0, 1);
+  const eind = new Date(jaar, 11, 31);
 
-  for(let m=2;m<=10;m++){
-    for(let d=1; d<=31; d++){
-      const datum = new Date(jaar,m,d);
-      if(datum.getMonth()!==m) continue;
+  for(let d = new Date(start); d <= eind; d.setDate(d.getDate()+1)){
 
-      const dow = datum.getDay();
-      if(dow!==2 && dow!==6) continue;
+    const dow = d.getDay();
 
-      if(isFeestdag(datum)) continue;
+    // Alleen dinsdag (2) en zaterdag (6)
+    if(dow !== 2 && dow !== 6) continue;
 
-      if(getPloegVanWeek(datum)!==currentTeam) continue;
+    // Alleen dagen van de ploeg van week van de gebruiker
+    if(getPloegVanWeek(d) !== currentTeam) continue;
 
-      const dagKey = datum.toISOString().split("T")[0];
+    const dagKey = d.toISOString().split("T")[0];
 
-      const kaart = document.createElement("div");
-      kaart.className="dag-kaart";
+    const kaart = document.createElement("div");
+    kaart.className="dag-kaart";
 
-      const alOpgegeven = Object.values(beschikbaar).some(e =>
-        e.userKey===localStorage.getItem("userName") &&
-        e.datum.startsWith(dagKey)
-      );
+    const alOpgegeven = Object.values(beschikbaar).some(e =>
+      e.userKey === localStorage.getItem("userName") &&
+      e.datum.startsWith(dagKey)
+    );
 
-      kaart.innerHTML = `
-        <div class="dag-header">${datum.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"})}</div>
-        <div class="dag-inhoud">
-          <button class="btn-ik-kan" data-datum="${datum.toISOString()}" ${alOpgegeven?"disabled":""}>
-            <i class="fa-solid fa-check"></i> ${alOpgegeven?"Opgegeven":"Ik ben beschikbaar"}
-          </button>
-        </div>
-      `;
+    kaart.innerHTML = `
+      <div class="dag-header">
+        ${d.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"})}
+      </div>
+      <div class="dag-inhoud">
+        <button class="btn-ik-kan" data-datum="${d.toISOString()}" ${alOpgegeven?"disabled":""}>
+          <i class="fa-solid fa-check"></i> ${alOpgegeven?"Opgegeven":"Ik ben beschikbaar"}
+        </button>
+      </div>
+    `;
 
-      kaart.querySelector("button").onclick = ()=>opgeven(datum.toISOString(), kaart);
-      container.appendChild(kaart);
-    }
+    kaart.querySelector("button").onclick = ()=>opgeven(d.toISOString(), kaart);
+    container.appendChild(kaart);
   }
 
   if(container.innerHTML==="")
