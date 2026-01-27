@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Wespen Verdelging & Planning</title>
+<title>Brandweer Herentals — Wespenverdelging</title>
 <link rel="stylesheet" href="/brandweerherentals/style.css">
-<meta name="firebase-db" content="https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="/brandweerherentals/header.js"></script>
@@ -22,29 +21,52 @@
   <main>
     <section>
       <h2>Beschikbaarheid invullen</h2>
-      <div id="planningControls">
-        <button id="saveAvail">Opslaan</button>
-        <button id="generateSchedule">Genereer planning</button>
-      </div>
-
-      <div id="datesContainer" style="margin-top:1rem; border:1px solid #ccc; padding:1rem;">
+      <div id="dagenContainer" style="border:1px solid #ccc; padding:1rem; margin-bottom:1rem;">
         Laden…
       </div>
+      <button id="generatePlanning" style="padding:0.5rem 1rem;">Genereer planning</button>
     </section>
 
     <section>
       <h2>Gegenereerde planning</h2>
-      <div id="scheduleContainer" style="margin-top:1rem; border:1px solid #ccc; padding:1rem;">Nog geen planning</div>
-    </section>
-
-    <section>
-      <h2>Omruil-aanvragen</h2>
-      <div id="swapsContainer" style="margin-top:1rem; border:1px solid #ccc; padding:1rem;">Geen omruil-aanvragen</div>
+      <div id="planningContainer" style="border:1px solid #ccc; padding:1rem; margin-top:1rem;">
+        Nog geen planning
+      </div>
     </section>
   </main>
 </div>
 
-<script src="/brandweerherentals/planning.js"></script>
+<script src="/brandweerherentals/wespen.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Inladen planning
+  function loadPlanning() {
+    const container = document.getElementById("planningContainer");
+    container.innerHTML = "Laden…";
+
+    db.ref("wespen/planning").get().then(snap => {
+      const data = snap.val() || {};
+      container.innerHTML = "";
+      Object.keys(data).sort().forEach(dag => {
+        const p = data[dag];
+        const div = document.createElement("div");
+        div.innerHTML = `<b>${dag}</b> → ${p.users.join(", ")}`;
+        container.appendChild(div);
+      });
+    });
+  }
+
+  // Genereer planning knop
+  document.getElementById("generatePlanning").onclick = () => {
+    maakWespenPlanning();
+    setTimeout(loadPlanning, 500);
+  };
+
+  // Eerst planning laden
+  loadPlanning();
+});
+</script>
 
 </body>
 </html>
