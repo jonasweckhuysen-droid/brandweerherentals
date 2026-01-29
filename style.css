@@ -529,4 +529,47 @@ button#opslaan {
   border: none;
   border-radius: 6px;
 }
+.dagen-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dag-card {
+  flex: 1 1 calc(50% - 10px);
+  background: #f9f9f9;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dag-card input {
+  display: none;
+}
+
+.dag-card span {
+  display: block;
+  color: #333;
+}
+
+.dag-card input:checked + span {
+  background: #c71f1f;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.btn-actie {
+  margin-top: 16px;
+  padding: 12px;
+  width: 100%;
+  background: #c71f1f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+}
 
