@@ -31,7 +31,7 @@ function getDienstDagenForPloeg(ploeg) {
     if (dienstPloeg === ploeg) {
       const dinsdag = new Date(monday.getTime() + 1 * 24 * 60 * 60 * 1000);
       const zaterdag = new Date(monday.getTime() + 5 * 24 * 60 * 60 * 1000);
-      dienstDagen.push(dinsdag, zaterdag);
+      dienstDagen.push({ week, dagen: [dinsdag, zaterdag] });
     }
   }
   return dienstDagen;
@@ -40,7 +40,7 @@ function getDienstDagenForPloeg(ploeg) {
 function renderHeader(userName, ploeg) {
   const header = document.getElementById("appHeader");
   const dienstPloeg = getDienstPloeg();
-  const week = new Date().getWeekNumber?.() || "";
+  const week = getWeekNumber(new Date());
   const time = new Date().toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" });
 
   header.innerHTML = `
@@ -58,21 +58,29 @@ function renderHeader(userName, ploeg) {
 
 function renderDagen(ploeg) {
   const container = document.getElementById("dagenContainer");
-  const dagen = getDienstDagenForPloeg(ploeg);
+  const dienstDagen = getDienstDagenForPloeg(ploeg);
 
-  let html = `<h3>Selecteer je beschikbare dagen</h3><div class="dagen-lijst">`;
-  dagen.forEach(d => {
-    const iso = d.toISOString().split("T")[0];
-    html += `<label><input type="checkbox" value="${iso}"> ${d.toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" })}</label><br>`;
+  let html = `<h3>Selecteer je beschikbare dagen</h3><div class="dagen-grid">`;
+  dienstDagen.forEach(d => {
+    d.dagen.forEach(day => {
+      const iso = day.toISOString().split("T")[0];
+      const label = day.toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
+      html += `
+        <label class="dag-card">
+          <input type="checkbox" value="${iso}">
+          <span>${label}</span>
+        </label>
+      `;
+    });
   });
-  html += `</div><button id="opslaan">Opslaan</button><div id="status"></div>`;
+  html += `</div><button id="opslaan" class="btn-actie">Opslaan</button><div id="status"></div>`;
 
   container.innerHTML = html;
   document.getElementById("opslaan").addEventListener("click", saveData);
 }
 
 function saveData() {
-  const checked = Array.from(document.querySelectorAll(".dagen-lijst input:checked")).map(el => el.value);
+  const checked = Array.from(document.querySelectorAll(".dag-card input:checked")).map(el => el.value);
   if (checked.length === 0) {
     document.getElementById("status").innerText = "❌ Selecteer minstens één dag";
     return;
@@ -94,4 +102,3 @@ window.addEventListener("load", () => {
     renderDagen(ploeg);
   });
 });
-
