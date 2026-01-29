@@ -1,12 +1,22 @@
+/*************************************************
+ * FIREBASE REFERENTIE
+ *************************************************/
 const db = firebase.database();
-const ploegen = ["B1", "C1", "A2", "B2", "C2", "A1"];
-const startDate = new Date("2026-01-23T12:00:00"); // referentie vrijdag 12u
 
-function getDienstPloeg(date = new Date()) {
-  const diffWeeks = Math.floor((date - startDate) / (7 * 24 * 60 * 60 * 1000));
-  return ploegen[((diffWeeks % ploegen.length) + ploegen.length) % ploegen.length];
+/*************************************************
+ * WEEKNUMMER
+ *************************************************/
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
+/*************************************************
+ * PLOEG OPHALEN UIT FIREBASE
+ *************************************************/
 function fetchUserPloeg(userName) {
   return db.ref("users/" + userName + "/roles").once("value")
     .then(snapshot => {
@@ -19,6 +29,20 @@ function fetchUserPloeg(userName) {
     });
 }
 
+/*************************************************
+ * ROTATIE LOGICA
+ *************************************************/
+const ploegen = ["B1", "C1", "A2", "B2", "C2", "A1"];
+const startDate = new Date("2026-01-23T12:00:00"); // referentie vrijdag 12u
+
+function getDienstPloeg(date = new Date()) {
+  const diffWeeks = Math.floor((date - startDate) / (7 * 24 * 60 * 60 * 1000));
+  return ploegen[((diffWeeks % ploegen.length) + ploegen.length) % ploegen.length];
+}
+
+/*************************************************
+ * DAGEN VOOR EEN PLOEG
+ *************************************************/
 function getDienstDagenForPloeg(ploeg) {
   const dienstDagen = [];
   const year = new Date().getFullYear();
@@ -37,6 +61,9 @@ function getDienstDagenForPloeg(ploeg) {
   return dienstDagen;
 }
 
+/*************************************************
+ * HEADER
+ *************************************************/
 function renderHeader(userName, ploeg) {
   const header = document.getElementById("appHeader");
   const dienstPloeg = getDienstPloeg();
@@ -56,6 +83,9 @@ function renderHeader(userName, ploeg) {
   `;
 }
 
+/*************************************************
+ * DAGEN RENDEREN
+ *************************************************/
 function renderDagen(ploeg) {
   const container = document.getElementById("dagenContainer");
   const dienstDagen = getDienstDagenForPloeg(ploeg);
@@ -79,18 +109,69 @@ function renderDagen(ploeg) {
   document.getElementById("opslaan").addEventListener("click", saveData);
 }
 
+/*************************************************
+ * OPSLAAN
+ *************************************************/
 function saveData() {
-  const checked = Array.from(document.querySelectorAll(".dag-card input:checked")).map(el => el.value);
-  if (checked.length === 0) {
-    document.getElementById("status").innerText = "❌ Selecteer minstens één dag";
-    return;
-  }
-  checked.forEach(datum => {
-    db.ref("beschikbaarheid").push({ datum, created: Date.now() });
+  const userName = localStorage.getItem("userName");
+  fetchUserPloeg(userName).then(ploeg => {
+    const checked = Array.from(document.querySelectorAll(".dag-card input:checked")).map(el => el.value);
+    if (checked.length === 0) {
+      document.getElementById("status").innerText = "❌ Selecteer minstens één dag";
+      return;
+    }
+    checked.forEach(datum => {
+      db.ref("beschikbaarheid").push({
+        datum,
+        user: userName,
+        ploeg,
+        created: Date.now()
+      });
+    });
+    document.getElementById("status").innerText = "✅ Opgeslagen";
   });
-  document.getElementById("status").innerText = "✅ Opgeslagen";
 }
 
+/*************************************************
+ * PLANNING GENEREREN
+ *************************************************/
+function generatePlanning(ploeg) {
+  const container = document.getElementById("planningContainer");
+  container.innerHTML = "⏳ Planning wordt geladen...";
+
+  db.ref("beschikbaarheid").once("value").then(snapshot => {
+    if (!snapshot.exists()) {
+      container.innerHTML = "Geen beschikbaarheden gevonden.";
+      return;
+    }
+
+    const data = snapshot.val();
+    const planning = {};
+
+    Object.values(data).forEach(entry => {
+      const datum = entry.datum;
+      const user = entry.user || "Onbekend";
+      const userPloeg = entry.ploeg || "?";
+
+      if (userPloeg !== ploeg) return;
+
+      if (!planning[datum]) planning[datum] = [];
+      planning[datum].push(user);
+    });
+
+    let html = `<h3>Planning voor ploeg ${ploeg}</h3><table class="planning-table"><tr><th>Datum</th><th>Beschikbaar</th></tr>`;
+    Object.keys(planning).sort().forEach(datum => {
+      html += `<tr><td>${datum}</td><td>${planning[datum].join(", ")}</td></tr>`;
+    });
+    html += "</table>";
+
+    container.innerHTML = html;
+  });
+}
+
+/*************************************************
+ * INIT
+ *************************************************/
 window.addEventListener("load", () => {
   const userName = localStorage.getItem("userName");
   if (!userName) {
@@ -100,5 +181,10 @@ window.addEventListener("load", () => {
   fetchUserPloeg(userName).then(ploeg => {
     renderHeader(userName, ploeg);
     renderDagen(ploeg);
+
+    const btn = document.getElementById("generatePlanning");
+    if (btn) {
+      btn.addEventListener("click", () => generatePlanning(ploeg));
+    }
   });
 });
