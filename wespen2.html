@@ -33,13 +33,13 @@
 <div class="container">
 
 <!-- HEADER wordt automatisch ingeladen -->
-<div id="headerContainer"></div>
+<div id="appHeader"></div>
 
 <script>
   fetch("header.html")
     .then(r => r.text())
     .then(html => {
-      document.getElementById("headerContainer").innerHTML = html;
+      document.getElementById("appHeader").innerHTML = html;
     });
 </script>
 
