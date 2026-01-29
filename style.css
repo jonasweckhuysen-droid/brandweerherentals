@@ -509,3 +509,24 @@
   transform: scale(0.97);
   box-shadow: 0 4px 8px rgba(195,0,0,0.25);
 }
+
+.dagen-lijst label {
+  display: inline-block;
+  background: #f0f0f0;
+  margin: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dagen-lijst input {
+  margin-right: 8px;
+}
+button#opslaan {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: #c71f1f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+}
+
