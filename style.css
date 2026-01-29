@@ -588,4 +588,76 @@ button#opslaan {
 .planning-table td {
   background: #f9f9f9;
 }
+/* --- DAGEN GRID --- */
+.dagen-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+  margin-top:12px;
+}
 
+.dag-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.10);
+  background:#fff;
+  cursor:pointer;
+  transition: transform .08s ease, box-shadow .15s ease, border-color .15s ease;
+  user-select:none;
+}
+
+.dag-card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+.dag-card input{
+  /* checkbox verbergen maar wel toegankelijk */
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+}
+
+.dag-card span{
+  font-weight:600;
+  color:#111827;
+}
+
+/* Badge rechts: standaard verborgen */
+.dag-card .status-badge{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.2px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(199,31,31,.10);
+  color:#c71f1f;
+  border:1px solid rgba(199,31,31,.25);
+  display:none;
+}
+
+/* Wanneer checkbox checked: kaart “active” */
+.dag-card.is-checked{
+  border-color: rgba(199,31,31,.45);
+  box-shadow: 0 10px 26px rgba(199,31,31,.12);
+  background: linear-gradient(0deg, rgba(199,31,31,.06), rgba(199,31,31,.02));
+}
+
+.dag-card.is-checked .status-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* Optioneel: check-icoon */
+.dag-card .status-badge::before{
+  content:"✓";
+  font-weight:900;
+}
+``
