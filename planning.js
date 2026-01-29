@@ -1,10 +1,10 @@
 /*************************************************
- * FIREBASE REFERENTIE (GEEN INIT!)
+ * FIREBASE REFERENTIE
  *************************************************/
 const db = firebase.database();
 
 /*************************************************
- * DATUM & PLOEG LOGICA
+ * WEEKNUMMER
  *************************************************/
 function getWeekNumber(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -14,36 +14,48 @@ function getWeekNumber(date) {
   return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
-function getCurrentPloeg(date = new Date()) {
-  const start = new Date("2026-01-02"); // vrijdag referentie
-  const ploegen = ["A1", "B1", "C1"];
-  const diffWeeks = Math.floor((date - start) / (7 * 24 * 60 * 60 * 1000));
-  return ploegen[((diffWeeks % 3) + 3) % 3];
+/*************************************************
+ * PLOEG OPHALEN UIT FIREBASE
+ *************************************************/
+function fetchUserPloeg(userName) {
+  return db.ref("users/" + userName + "/roles").once("value")
+    .then(snapshot => {
+      if (snapshot.exists()) {
+        const roles = snapshot.val();
+        const keys = Object.keys(roles);
+        const lastKey = keys[keys.length - 1];
+        return roles[lastKey]; // laatste item is ploeg
+      } else {
+        return null;
+      }
+    });
 }
 
 /*************************************************
  * HEADER
  *************************************************/
-function renderHeader(userName, ploeg) {
-  const header = document.getElementById("appHeader");
-  const week = getWeekNumber(new Date());
-  const time = new Date().toLocaleTimeString("nl-BE", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+function renderHeader(userName) {
+  fetchUserPloeg(userName).then(ploeg => {
+    const header = document.getElementById("appHeader");
+    const week = getWeekNumber(new Date());
+    const time = new Date().toLocaleTimeString("nl-BE", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
 
-  header.innerHTML = `
-    <div class="header-left">
-      <img src="logo.png" class="header-logo">
-    </div>
-    <div class="header-right">
-      <div class="header-greeting">${userName}</div>
-      <div class="header-name">
-        Ploeg ${ploeg} – week ${week}<br>
-        <small>${time}</small>
+    header.innerHTML = `
+      <div class="header-left">
+        <img src="logo.png" class="header-logo">
       </div>
-    </div>
-  `;
+      <div class="header-right">
+        <div class="header-greeting">${userName}</div>
+        <div class="header-name">
+          Ploeg ${ploeg || "?"} – week ${week}<br>
+          <small>${time}</small>
+        </div>
+      </div>
+    `;
+  });
 }
 
 /*************************************************
@@ -99,9 +111,12 @@ function saveData() {
  * INIT
  *************************************************/
 window.addEventListener("load", () => {
-  const userName = "Gebruiker"; // later auth
-  const ploeg = getCurrentPloeg();
+  const userName = localStorage.getItem("userName");
+  if (!userName) {
+    alert("Geen gebruiker gevonden, log eerst in via index.html");
+    return;
+  }
 
-  renderHeader(userName, ploeg);
+  renderHeader(userName);
   renderForm();
 });
