@@ -1,81 +1,84 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wespenverdelging Planning</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wespenverdelging Planning</title>
 
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-<!-- Favicon -->
-<link rel="icon" href="logo.png">
+  <link rel="icon" href="logo.png" />
 
-<!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
-    authDomain: "post-herentals.firebaseapp.com",
-    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "post-herentals",
-    storageBucket: "post-herentals.appspot.com",
-    messagingSenderId: "762725561089",
-    appId: "1:762725561089:web:38c46cc8cf44d624252100",
-    measurementId: "G-C2FWECFEQX"
-  };
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+      authDomain: "post-herentals.firebaseapp.com",
+      databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "post-herentals",
+      storageBucket: "post-herentals.appspot.com",
+      messagingSenderId: "762725561089",
+      appId: "1:762725561089:web:38c46cc8cf44d624252100",
+      measurementId: "G-C2FWECFEQX"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 
-  firebase.initializeApp(firebaseConfig);
-</script>
-
-<style>
-  /* Knop standaard verbergen, enkel tonen via JS voor admins */
-  #generatePlanning { display: none; }
-</style>
+  <style>
+    /* Knop standaard verbergen, enkel tonen via JS voor admins */
+    #generatePlanning { display: none; }
+  </style>
 </head>
 
 <body>
-<div class="container">
+  <div class="container">
 
-<!-- HEADER -->
-<header id="appHeader"></header>
+    <!-- HEADER (wordt gevuld door header.js) -->
+    <!-- Als je in een submap zit: data-base="../" -->
+    <header id="appHeader" data-base="./"></header>
 
-<div class="content">
+    <div class="content">
+      <a href="index.html" class="backlink">
+        <span class="arrow">←</span> Terug
+      </a>
 
-<a href="index.html" class="backlink">
-  <span class="arrow">←</span> Terug
-</a>
+      <h2 id="beschikbareTitel">Beschikbare dagen voor jouw ploeg</h2>
+      <div id="dagenContainer">Laden…</div>
 
-<h2 id="beschikbareTitel">Beschikbare dagen voor jouw ploeg</h2>
-<div id="dagenContainer">Laden…</div>
+      <br />
+      <button id="generatePlanning" class="btn-actie">
+        <i class="fa-solid fa-calendar-plus"></i> Genereer planning
+      </button>
 
-<br>
-<button id="generatePlanning" class="btn-actie">
-  <i class="fa-solid fa-calendar-plus"></i> Genereer planning
-</button>
+      <h2>Gegenereerde planning</h2>
+      <div id="planningContainer">Laden…</div>
+    </div>
+  </div>
 
-<h2>Gegenereerde planning</h2>
-<div id="planningContainer">Laden…</div>
+  <script src="planning.js"></script>
 
-</div>
-</div>
+  <!-- ✅ BELANGRIJK: header loader (zoals in je voorbeeld) -->
+  <script src="header.js"></script>
 
-<script src="planning.js"></script>
-<script>
-  // Optioneel: dynamisch weeknummer in titel zetten
-  document.addEventListener("DOMContentLoaded", () => {
-    const week = (function getWeekNumber(date) {
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    })(new Date());
-    const titel = document.getElementById("beschikbareTitel");
-    if (titel) titel.textContent = `Beschikbare dagen voor jouw ploeg (week ${week})`;
-  });
-</script>
+  <script>
+    // Optioneel: dynamisch weeknummer in titel zetten
+    document.addEventListener("DOMContentLoaded", () => {
+      const week = (function getWeekNumber(date) {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      })(new Date());
+
+      const titel = document.getElementById("beschikbareTitel");
+      if (titel) titel.textContent = `Beschikbare dagen voor jouw ploeg (week ${week})`;
+    });
+  </script>
 </body>
 </html>
+``
