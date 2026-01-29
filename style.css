@@ -572,4 +572,20 @@ button#opslaan {
   border-radius: 8px;
   font-size: 16px;
 }
+.planning-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+.planning-table th, .planning-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+.planning-table th {
+  background: #c71f1f;
+  color: #fff;
+}
+.planning-table td {
+  background: #f9f9f9;
+}
 
