@@ -32,16 +32,17 @@
 
 <div class="container">
 
-<!-- HEADER wordt automatisch ingeladen -->
-<div id="appHeader"></div>
+<header>
+  <div class="header-left">
+    <img src="logo.png">
+  </div>
+  <div class="header-right">
+    <div id="greeting"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
+</header>
 
-<script>
-  fetch("header.html")
-    .then(r => r.text())
-    .then(html => {
-      document.getElementById("appHeader").innerHTML = html;
-    });
-</script>
 
 <div class="content">
 
@@ -64,5 +65,7 @@
 </div>
 
 <script src="planning.js"></script>
+<script src="/brandweerherentals/header.js"></script>
+
 </body>
 </html>
