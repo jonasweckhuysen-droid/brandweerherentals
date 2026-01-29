@@ -151,9 +151,10 @@ function renderDagen(ploeg) {
     });
 
     html += `
-      <label class="dag-card">
+      <label class="dag-card" data-date="${iso}">
         <input type="checkbox" value="${iso}">
         <span>${label}</span>
+        <em class="status-badge">Opgegeven</em>
       </label>
     `;
   });
@@ -163,6 +164,22 @@ function renderDagen(ploeg) {
     <div id="status"></div>`;
 
   container.innerHTML = html;
+
+  // ✅ Live UI toggle: zodra je klikt → badge “Opgegeven” + highlight
+  container.querySelectorAll(".dag-card input").forEach(cb => {
+    const card = cb.closest(".dag-card");
+
+    const sync = () => {
+      card.classList.toggle("is-checked", cb.checked);
+    };
+
+    // Init state
+    sync();
+
+    // Update on change
+    cb.addEventListener("change", sync);
+  });
+
   document.getElementById("opslaan").addEventListener("click", saveData);
 }
 
