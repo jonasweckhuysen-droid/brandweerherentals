@@ -4,6 +4,22 @@
 const db = firebase.database();
 
 /*************************************************
+ * HELPERS (DATUM)
+ *************************************************/
+// Maak een lokale ISO datum (YYYY-MM-DD) zonder UTC-shifts
+function toISODateLocal(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// Parse "YYYY-MM-DD" veilig als lokale datum (op 12:00 om timezone/DST issues te vermijden)
+function parseLocalISODate(iso) {
+  return new Date(`${iso}T12:00:00`);
+}
+
+/*************************************************
  * WEEKNUMMER
  *************************************************/
 function getWeekNumber(date) {
@@ -20,22 +36,26 @@ function getWeekNumber(date) {
 function fetchUserPloeg(userName) {
   return db.ref("users/" + userName + "/roles").once("value")
     .then(snapshot => {
-      if (snapshot.exists()) {
-        const roles = snapshot.val();
-        const keys = Object.keys(roles);
-        return roles[keys[keys.length - 1]]; // laatste item is ploeg
+      if (!snapshot.exists()) return null;
+
+      const roles = snapshot.val();
+
+      // Kan array of object zijn afhankelijk van opslag
+      if (Array.isArray(roles)) {
+        return roles[roles.length - 1] || null; // laatste item is ploeg
       }
-      return null;
+
+      const values = Object.values(roles);
+      return values[values.length - 1] || null; // laatste item is ploeg
     });
 }
 
 function fetchUserRoles(userName) {
   return db.ref("users/" + userName + "/roles").once("value")
     .then(snapshot => {
-      if (snapshot.exists()) {
-        return Object.values(snapshot.val());
-      }
-      return [];
+      if (!snapshot.exists()) return [];
+      const roles = snapshot.val();
+      return Array.isArray(roles) ? roles : Object.values(roles);
     });
 }
 
@@ -43,31 +63,41 @@ function fetchUserRoles(userName) {
  * ROTATIE LOGICA
  *************************************************/
 const ploegen = ["B1", "C1", "A2", "B2", "C2", "A1"];
-const startDate = new Date("2026-01-23T12:00:00"); // referentie vrijdag 12u
+const startDate = new Date("2026-01-23T12:00:00"); // referentie vrijdag 12u (lokaal)
+const weekMs = 7 * 24 * 60 * 60 * 1000;
 
 function getDienstPloeg(date = new Date()) {
-  const diffWeeks = Math.floor((date - startDate) / (7 * 24 * 60 * 60 * 1000));
+  const diffWeeks = Math.floor((date - startDate) / weekMs);
   return ploegen[((diffWeeks % ploegen.length) + ploegen.length) % ploegen.length];
 }
 
 /*************************************************
  * DAGEN VOOR EEN PLOEG
+ * (dienstblok: vrijdag 12u -> volgende vrijdag 12u)
+ * => relevante dagen in dat blok: zaterdag (+1) en dinsdag (+4)
  *************************************************/
 function getDienstDagenForPloeg(ploeg) {
   const dienstDagen = [];
   const year = new Date().getFullYear();
 
-  for (let i = 0; i < 52; i++) {
-    const blockStart = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+  // buffer iets groter dan 52 (soms 53 weken + overlap naar volgend jaar)
+  for (let i = 0; i < 60; i++) {
+    const blockStart = new Date(startDate.getTime() + i * weekMs);
     const dienstPloeg = ploegen[i % ploegen.length];
 
     if (dienstPloeg === ploeg) {
-      const dinsdag = new Date(blockStart.getTime() + 4 * 24 * 60 * 60 * 1000);
-      const zaterdag = new Date(blockStart.getTime() + 8 * 24 * 60 * 60 * 1000);
-      if (dinsdag.getFullYear() === year) dienstDagen.push(dinsdag);
+      // ✅ FIX: zaterdag is +1 dag (niet +8!)
+      const zaterdag = new Date(blockStart.getTime() + 1 * 24 * 60 * 60 * 1000);
+      const dinsdag  = new Date(blockStart.getTime() + 4 * 24 * 60 * 60 * 1000);
+
       if (zaterdag.getFullYear() === year) dienstDagen.push(zaterdag);
+      if (dinsdag.getFullYear() === year)  dienstDagen.push(dinsdag);
     }
   }
+
+  // ✅ FIX: altijd chronologisch sorteren (za 7 feb vóór di 10 feb)
+  dienstDagen.sort((a, b) => a - b);
+
   return dienstDagen;
 }
 
@@ -98,12 +128,22 @@ function renderHeader(userName, ploeg) {
  *************************************************/
 function renderDagen(ploeg) {
   const container = document.getElementById("dagenContainer");
+
+  // Alle dienstmomenten voor deze ploeg (jaar)
   const dagen = getDienstDagenForPloeg(ploeg);
 
   let html = `<h3>Selecteer je beschikbare dagen</h3><div class="dagen-grid">`;
+
   dagen.forEach(day => {
-    const iso = day.toISOString().split("T")[0];
-    const label = day.toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
+    // ✅ FIX: lokale ISO datum (geen UTC-shift)
+    const iso = toISODateLocal(day);
+
+    const label = day.toLocaleDateString("nl-BE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    });
+
     html += `
       <label class="dag-card">
         <input type="checkbox" value="${iso}">
@@ -111,6 +151,7 @@ function renderDagen(ploeg) {
       </label>
     `;
   });
+
   html += `</div><button id="opslaan" class="btn-actie">Opslaan</button><div id="status"></div>`;
 
   container.innerHTML = html;
@@ -122,12 +163,15 @@ function renderDagen(ploeg) {
  *************************************************/
 function saveData() {
   const userName = localStorage.getItem("userName");
+
   fetchUserPloeg(userName).then(ploeg => {
     const checked = Array.from(document.querySelectorAll(".dag-card input:checked")).map(el => el.value);
+
     if (checked.length === 0) {
       document.getElementById("status").innerText = "❌ Selecteer minstens één dag";
       return;
     }
+
     checked.forEach(datum => {
       db.ref("beschikbaarheid").push({
         datum,
@@ -136,6 +180,7 @@ function saveData() {
         created: Date.now()
       });
     });
+
     document.getElementById("status").innerText = "✅ Opgeslagen";
   });
 }
@@ -162,7 +207,8 @@ function generatePlanning() {
       const user = entry.user;
       const ploeg = entry.ploeg;
 
-      const day = new Date(datum).getDay(); // 2 = dinsdag, 6 = zaterdag
+      // ✅ FIX: veilig parsen als lokale dag (anders kan getDay() fout zijn)
+      const day = parseLocalISODate(datum).getDay(); // 2 = dinsdag, 6 = zaterdag
       if (day !== 2 && day !== 6) return;
 
       if (!planning[datum]) planning[datum] = {};
@@ -172,13 +218,15 @@ function generatePlanning() {
       if (!shifts[user]) shifts[user] = 0;
     });
 
-    let html = `<h3>Gegenereerde planning</h3><table class="planning-table"><tr><th>Datum</th><th>Ingezet</th></tr>`;
+    let html = `<h3>Gegenereerde planning</h3>
+      <table class="planning-table">
+        <tr><th>Datum</th><th>Ingezet</th></tr>`;
 
     Object.keys(planning).sort().forEach(datum => {
-      const ploegen = Object.keys(planning[datum]);
+      const ploegKeys = Object.keys(planning[datum]);
       let assigned = [];
 
-      ploegen.slice(0, 2).forEach(ploeg => {
+      ploegKeys.slice(0, 2).forEach(ploeg => {
         const kandidaten = planning[datum][ploeg].sort((a, b) => shifts[a] - shifts[b]);
         const gekozen = kandidaten.slice(0, 2);
         gekozen.forEach(u => shifts[u]++);
@@ -188,7 +236,7 @@ function generatePlanning() {
       html += `<tr><td>${datum}</td><td>${assigned.join(", ")}</td></tr>`;
     });
 
-    html += "</table>";
+    html += `</table>`;
     container.innerHTML = html;
   });
 }
@@ -198,10 +246,12 @@ function generatePlanning() {
  *************************************************/
 window.addEventListener("load", () => {
   const userName = localStorage.getItem("userName");
+
   if (!userName) {
     alert("Geen gebruiker gevonden, log eerst in via index.html");
     return;
   }
+
   fetchUserPloeg(userName).then(ploeg => {
     renderHeader(userName, ploeg);
     renderDagen(ploeg);
@@ -217,3 +267,4 @@ window.addEventListener("load", () => {
     });
   });
 });
+``
