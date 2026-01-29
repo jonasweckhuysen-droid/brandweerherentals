@@ -1,7 +1,22 @@
+/*************************************************
+ * FIREBASE REFERENTIE
+ *************************************************/
 const db = firebase.database();
-const ploegen = ["B1", "C1", "A2", "B2", "C2", "A1"];
-const startDate = new Date("2026-01-23T12:00:00"); // vrijdag 23 jan 12u
 
+/*************************************************
+ * WEEKNUMMER
+ *************************************************/
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+/*************************************************
+ * PLOEG OPHALEN UIT FIREBASE
+ *************************************************/
 function fetchUserPloeg(userName) {
   return db.ref("users/" + userName + "/roles").once("value")
     .then(snapshot => {
@@ -18,17 +33,30 @@ function fetchUserRoles(userName) {
   return db.ref("users/" + userName + "/roles").once("value")
     .then(snapshot => {
       if (snapshot.exists()) {
-        return Object.values(snapshot.val()); // alle rollen incl. ploeg
+        return Object.values(snapshot.val());
       }
       return [];
     });
 }
 
+/*************************************************
+ * ROTATIE LOGICA
+ *************************************************/
+const ploegen = ["B1", "C1", "A2", "B2", "C2", "A1"];
+const startDate = new Date("2026-01-23T12:00:00"); // referentie vrijdag 12u
+
+function getDienstPloeg(date = new Date()) {
+  const diffWeeks = Math.floor((date - startDate) / (7 * 24 * 60 * 60 * 1000));
+  return ploegen[((diffWeeks % ploegen.length) + ploegen.length) % ploegen.length];
+}
+
+/*************************************************
+ * DAGEN VOOR EEN PLOEG
+ *************************************************/
 function getDienstDagenForPloeg(ploeg) {
   const dienstDagen = [];
   const year = new Date().getFullYear();
 
-  // loop over 52 rotatieblokken
   for (let i = 0; i < 52; i++) {
     const blockStart = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
     const dienstPloeg = ploegen[i % ploegen.length];
@@ -43,8 +71,12 @@ function getDienstDagenForPloeg(ploeg) {
   return dienstDagen;
 }
 
+/*************************************************
+ * HEADER
+ *************************************************/
 function renderHeader(userName, ploeg) {
   const header = document.getElementById("appHeader");
+  const dienstPloeg = getDienstPloeg();
   const week = getWeekNumber(new Date());
   const time = new Date().toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit" });
 
@@ -54,13 +86,16 @@ function renderHeader(userName, ploeg) {
       <div class="header-greeting">${userName}</div>
       <div class="header-name">
         Jouw ploeg: ${ploeg}<br>
-        Week ${week}<br>
+        Huidige dienstploeg: ${dienstPloeg} – week ${week}<br>
         <small>${time}</small>
       </div>
     </div>
   `;
 }
 
+/*************************************************
+ * DAGEN RENDEREN
+ *************************************************/
 function renderDagen(ploeg) {
   const container = document.getElementById("dagenContainer");
   const dagen = getDienstDagenForPloeg(ploeg);
@@ -82,6 +117,9 @@ function renderDagen(ploeg) {
   document.getElementById("opslaan").addEventListener("click", saveData);
 }
 
+/*************************************************
+ * OPSLAAN
+ *************************************************/
 function saveData() {
   const userName = localStorage.getItem("userName");
   fetchUserPloeg(userName).then(ploeg => {
@@ -102,7 +140,10 @@ function saveData() {
   });
 }
 
-function generatePlanning(ploeg) {
+/*************************************************
+ * PLANNING GENEREREN (ADMIN)
+ *************************************************/
+function generatePlanning() {
   const container = document.getElementById("planningContainer");
   container.innerHTML = "⏳ Planning wordt geladen...";
 
@@ -114,25 +155,47 @@ function generatePlanning(ploeg) {
 
     const data = snapshot.val();
     const planning = {};
+    const shifts = {};
 
     Object.values(data).forEach(entry => {
-      if (entry.ploeg !== ploeg) return;
       const datum = entry.datum;
-      const user = entry.user || "Onbekend";
-      if (!planning[datum]) planning[datum] = [];
-      planning[datum].push(user);
+      const user = entry.user;
+      const ploeg = entry.ploeg;
+
+      const day = new Date(datum).getDay(); // 2 = dinsdag, 6 = zaterdag
+      if (day !== 2 && day !== 6) return;
+
+      if (!planning[datum]) planning[datum] = {};
+      if (!planning[datum][ploeg]) planning[datum][ploeg] = [];
+      planning[datum][ploeg].push(user);
+
+      if (!shifts[user]) shifts[user] = 0;
     });
 
-    let html = `<h3>Planning voor ploeg ${ploeg}</h3><table class="planning-table"><tr><th>Datum</th><th>Beschikbaar</th></tr>`;
+    let html = `<h3>Gegenereerde planning</h3><table class="planning-table"><tr><th>Datum</th><th>Ingezet</th></tr>`;
+
     Object.keys(planning).sort().forEach(datum => {
-      html += `<tr><td>${datum}</td><td>${planning[datum].join(", ")}</td></tr>`;
-    });
-    html += "</table>";
+      const ploegen = Object.keys(planning[datum]);
+      let assigned = [];
 
+      ploegen.slice(0, 2).forEach(ploeg => {
+        const kandidaten = planning[datum][ploeg].sort((a, b) => shifts[a] - shifts[b]);
+        const gekozen = kandidaten.slice(0, 2);
+        gekozen.forEach(u => shifts[u]++);
+        assigned = assigned.concat(gekozen.map(u => `${u} (${ploeg})`));
+      });
+
+      html += `<tr><td>${datum}</td><td>${assigned.join(", ")}</td></tr>`;
+    });
+
+    html += "</table>";
     container.innerHTML = html;
   });
 }
 
+/*************************************************
+ * INIT
+ *************************************************/
 window.addEventListener("load", () => {
   const userName = localStorage.getItem("userName");
   if (!userName) {
@@ -143,17 +206,13 @@ window.addEventListener("load", () => {
     renderHeader(userName, ploeg);
     renderDagen(ploeg);
 
-    // check of user admin is
     fetchUserRoles(userName).then(roles => {
+      const btn = document.getElementById("generatePlanning");
       if (roles.includes("admin")) {
-        const btn = document.getElementById("generatePlanning");
-        if (btn) {
-          btn.style.display = "block";
-          btn.addEventListener("click", () => generatePlanning(ploeg));
-        }
+        btn.style.display = "block";
+        btn.addEventListener("click", generatePlanning);
       } else {
-        const btn = document.getElementById("generatePlanning");
-        if (btn) btn.style.display = "none";
+        btn.style.display = "none";
       }
     });
   });
