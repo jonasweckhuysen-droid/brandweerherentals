@@ -47,20 +47,22 @@
 <!-- ================== Firebase Init ================== -->
 <script>
   // Firebase init (één keer)
-  firebase.initializeApp({
+  const firebaseConfig = {
     databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-  });
+  };
+  firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
   // Admin check (voorbeeld: pas aan volgens je auth)
   const isAdmin = true; // true = admin, false = niet-admin
   const btn = document.getElementById("maakPlanningBtn");
+
   if (!isAdmin) {
     btn.style.display = "none";
   } else {
     btn.addEventListener("click", () => {
-      // functie om planning te maken
-      alert("Planning wordt gemaakt..."); // tijdelijk, vervang door maakPlanning()
+      // Hier kun je de functie implementeren die een nieuwe planning maakt
+      alert("Planning maken functie wordt hier aangeroepen!");
     });
   }
 </script>
@@ -69,29 +71,33 @@
 <script>
 const container = document.getElementById("planningContainer");
 
+// Luister naar data in Firebase
 db.ref("permanenties/planning").on("value", snapshot => {
   container.innerHTML = ""; // leegmaken
 
   const data = snapshot.val() ?? {};
+  console.log("Firebase data:", data); // Debug: check wat er binnenkomt
 
   if (Object.keys(data).length === 0) {
     container.innerHTML = "<p>Geen planning gevonden.</p>";
     return;
   }
 
-  // Pak eerste node (laatste maand)
-  const maandKey = Object.keys(data)[0];
+  // Pak eerste node (meest recente maand)
+  const maandKeys = Object.keys(data).sort((a,b)=>b.localeCompare(a)); // sorteer om laatste eerst
+  const maandKey = maandKeys[0];
   const maand = data[maandKey] ?? {};
 
-  Object.keys(maand).forEach(dagKey => {
+  Object.keys(maand).sort().forEach(dagKey => {
     const dag = maand[dagKey];
     if (!dag || !dag.datum || !dag.ploeg) return;
 
     const kaart = document.createElement("div");
     kaart.className = "planning-kaart";
 
+    // Datum formatteren
     const d = new Date(dag.datum);
-    const datumTekst = isNaN(d) ? "-" : d.toLocaleDateString("nl-BE", {
+    const datumTekst = isNaN(d) ? dag.datum : d.toLocaleDateString("nl-BE", {
       weekday: "long",
       day: "numeric",
       month: "long"
@@ -130,6 +136,25 @@ db.ref("permanenties/planning").on("value", snapshot => {
     container.appendChild(kaart);
   });
 });
+
+// Optioneel: fallback voor hardcoded voorbeeld
+// Verwijder dit als Firebase data correct staat
+if (!db) {
+  const fallbackData = {
+    "2026-02": {
+      "2026-02-10": {
+        datum: "2026-02-10",
+        ploeg: {
+          chauffeur: "Jan",
+          bevelvoerder: "Piet",
+          brandweermannen: ["Tom", "Klaas"],
+          stagiair: "Joris"
+        }
+      }
+    }
+  };
+  console.log("Fallback data:", fallbackData);
+}
 </script>
 
 </body>
