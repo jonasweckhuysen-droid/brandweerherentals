@@ -37,26 +37,45 @@
   </div>
 </div>
 
+<!-- Modal voor nieuwe planning -->
+<div id="planningModal" class="overlay" style="display:none;">
+  <div class="overlay-content">
+    <h2>Nieuwe Planning</h2>
+    <label>Datum: <input type="date" id="planningDatum"></label>
+
+    <label>Chauffeur: <input type="text" id="chauffeur" placeholder="Naam"></label>
+    <label>Bevelvoerder: <input type="text" id="bevelvoerder" placeholder="Naam"></label>
+    <label>Brandweermannen (komma gescheiden): <input type="text" id="brandweermannen" placeholder="Tom,Klaas"></label>
+    <label>Stagiair: <input type="text" id="stagiair" placeholder="Naam"></label>
+
+    <div style="margin-top: 12px;">
+      <button id="opslaanPlanning" class="btn-actie">Opslaan</button>
+      <button id="annuleerPlanning" class="btn-actie" style="background:#888;">Annuleren</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // Firebase init
-  const firebaseConfig = {
+  firebase.initializeApp({
     databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-  };
-  firebase.initializeApp(firebaseConfig);
+  });
   const db = firebase.database();
 
   const container = document.getElementById("planningContainer");
   const btn = document.getElementById("maakPlanningBtn");
+  const modal = document.getElementById("planningModal");
+  const opslaanBtn = document.getElementById("opslaanPlanning");
+  const annuleerBtn = document.getElementById("annuleerPlanning");
 
   const isAdmin = true;
   if (!isAdmin) btn.style.display = "none";
 
-  // Functie: Planning ophalen en weergeven
+  // Functie: laad planning
   function laadPlanning() {
     db.ref("permanenties/planning").on("value", snapshot => {
       container.innerHTML = "";
       const data = snapshot.val() ?? {};
-
       if (Object.keys(data).length === 0) {
         container.innerHTML = "<p>Geen planning gevonden.</p>";
         return;
@@ -105,33 +124,46 @@
             <b>${dag.ploeg.stagiair ?? "-"}</b>
           </div>
         `;
-
         container.appendChild(kaart);
       });
     });
   }
 
-  // Planning direct laden bij openen
+  // Initial laad
   laadPlanning();
 
-  // Knop: Nieuwe planning toevoegen
+  // Knop: nieuwe planning modal openen
   if (isAdmin) {
-    btn.addEventListener("click", async () => {
-      const vandaag = new Date();
-      const jaarMaand = `${vandaag.getFullYear()}-${String(vandaag.getMonth()+1).padStart(2,'0')}`;
-      const dagKey = `${vandaag.getFullYear()}-${String(vandaag.getMonth()+1).padStart(2,'0')}-${String(vandaag.getDate()).padStart(2,'0')}`;
+    btn.addEventListener("click", () => {
+      modal.style.display = "flex";
+      document.getElementById("planningDatum").valueAsDate = new Date();
+    });
+
+    annuleerBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    // Opslaan nieuwe planning
+    opslaanBtn.addEventListener("click", async () => {
+      const datum = document.getElementById("planningDatum").value;
+      const chauffeur = document.getElementById("chauffeur").value.trim();
+      const bevelvoerder = document.getElementById("bevelvoerder").value.trim();
+      const brandweermannen = document.getElementById("brandweermannen").value.split(",").map(s=>s.trim()).filter(s=>s);
+      const stagiair = document.getElementById("stagiair").value.trim();
+
+      if (!datum) { alert("Kies een datum!"); return; }
+
+      const jaarMaand = datum.slice(0,7); // yyyy-mm
+      const dagKey = datum;
 
       const nieuweDag = {
         datum: dagKey,
-        ploeg: {
-          chauffeur: "Jan",
-          bevelvoerder: "Piet",
-          brandweermannen: ["Tom","Klaas"],
-          stagiair: "Joris"
-        }
+        ploeg: { chauffeur, bevelvoerder, brandweermannen, stagiair }
       };
 
       await db.ref(`permanenties/planning/${jaarMaand}/${dagKey}`).set(nieuweDag);
+
+      modal.style.display = "none";
       alert("Planning succesvol aangemaakt!");
     });
   }
