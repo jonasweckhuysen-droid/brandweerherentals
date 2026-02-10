@@ -1,61 +1,63 @@
-/***********************
+/*************************
  * Firebase init
- ***********************/
+ *************************/
 firebase.initializeApp({
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 });
 
 const db = firebase.database();
-
-/***********************
- * DOM
- ***********************/
 const container = document.getElementById("planningContainer");
 
-
-/***********************
+/*************************
  * Planning laden
- ***********************/
+ *************************/
 db.ref("permanenties/planning")
   .limitToLast(1)
-  .once("value")
-  .then(snapshot => {
+  .on("value", snapshot => {
 
-    // Geen planning gevonden
-    if (!snapshot.exists()) {
+    container.innerHTML = ""; // reset
+
+    const data = snapshot.val();
+
+    // 🔴 ABSOLUTE NULL CHECK
+    if (!data || typeof data !== "object") {
       container.innerHTML = `
         <div class="geen-planning">
-          Geen planning beschikbaar.
+          Geen planning gevonden.
         </div>
       `;
       return;
     }
 
-    // Laatste maand ophalen
-    const laatsteMaand = Object.values(snapshot.val())[0];
-
-    // Safety check
-    if (!laatsteMaand) {
+    // Laatste maand veilig ophalen
+    const maanden = Object.values(data);
+    if (maanden.length === 0) {
       container.innerHTML = `
         <div class="geen-planning">
-          Planningstructuur ongeldig.
+          Geen planning gevonden.
         </div>
       `;
       return;
     }
+
+    const laatsteMaand = maanden[0];
 
     // Elke dag renderen
-    Object.values(laatsteMaand).forEach(dag => {
+    Object.values(laatsteMaand || {}).forEach(dag => {
 
       if (!dag || !dag.datum || !dag.ploeg) return;
 
       const kaart = document.createElement("div");
       kaart.className = "planning-kaart";
 
-      const datumTekst = new Date(dag.datum).toLocaleDateString(
-        "nl-BE",
-        { weekday: "long", day: "numeric", month: "long" }
-      );
+      const datum = new Date(dag.datum);
+      const datumTekst = isNaN(datum)
+        ? "-"
+        : datum.toLocaleDateString("nl-BE", {
+            weekday: "long",
+            day: "numeric",
+            month: "long"
+          });
 
       kaart.innerHTML = `
         <div class="planning-datum">${datumTekst}</div>
@@ -89,12 +91,11 @@ db.ref("permanenties/planning")
 
       container.appendChild(kaart);
     });
-  })
-  .catch(error => {
-    console.error("Fout bij laden planning:", error);
+  }, error => {
+    console.error("Firebase fout:", error);
     container.innerHTML = `
       <div class="geen-planning">
-        Fout bij laden van de planning.
+        Fout bij laden van planning.
       </div>
     `;
   });
