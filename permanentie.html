@@ -8,15 +8,12 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-
 <body>
 
 <div class="container">
-
   <header id="appHeader">
     <div class="header-left">
       <img src="logo.png" class="header-logo">
@@ -28,133 +25,116 @@
   </header>
 
   <div class="content">
-
     <a href="permanentieopgave.html" class="backlink">
       <span class="arrow">←</span> Terug
     </a>
 
-    <!-- Knop om planning te maken -->
     <div style="margin: 1em 0;">
       <button id="maakPlanningBtn" class="btn">Planning maken</button>
     </div>
 
-    <!-- Hier komt de planning -->
     <div id="planningContainer"></div>
-
   </div>
 </div>
 
-<!-- ================== Firebase Init ================== -->
 <script>
-  // Firebase init (één keer)
+  // Firebase init
   const firebaseConfig = {
     databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // Admin check (voorbeeld: pas aan volgens je auth)
-  const isAdmin = true; // true = admin, false = niet-admin
+  const container = document.getElementById("planningContainer");
   const btn = document.getElementById("maakPlanningBtn");
 
-  if (!isAdmin) {
-    btn.style.display = "none";
-  } else {
-    btn.addEventListener("click", () => {
-      // Hier kun je de functie implementeren die een nieuwe planning maakt
-      alert("Planning maken functie wordt hier aangeroepen!");
+  const isAdmin = true;
+  if (!isAdmin) btn.style.display = "none";
+
+  // Functie: Planning ophalen en weergeven
+  function laadPlanning() {
+    db.ref("permanenties/planning").on("value", snapshot => {
+      container.innerHTML = "";
+      const data = snapshot.val() ?? {};
+
+      if (Object.keys(data).length === 0) {
+        container.innerHTML = "<p>Geen planning gevonden.</p>";
+        return;
+      }
+
+      const maandKeys = Object.keys(data).sort((a,b)=>b.localeCompare(a));
+      const maandKey = maandKeys[0];
+      const maand = data[maandKey] ?? {};
+
+      Object.keys(maand).sort().forEach(dagKey => {
+        const dag = maand[dagKey];
+        if (!dag || !dag.datum || !dag.ploeg) return;
+
+        const kaart = document.createElement("div");
+        kaart.className = "planning-kaart";
+
+        const d = new Date(dag.datum);
+        const datumTekst = isNaN(d) ? dag.datum : d.toLocaleDateString("nl-BE", {
+          weekday: "long",
+          day: "numeric",
+          month: "long"
+        });
+
+        kaart.innerHTML = `
+          <div class="planning-datum">${datumTekst}</div>
+          <div class="planning-rij">
+            <i class="fa-solid fa-truck"></i>
+            <span>Chauffeur</span>
+            <b>${dag.ploeg.chauffeur ?? "-"}</b>
+          </div>
+          <div class="planning-rij">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>Bevelvoerder</span>
+            <b>${dag.ploeg.bevelvoerder ?? "-"}</b>
+          </div>
+          ${(dag.ploeg.brandweermannen ?? []).map(n => `
+            <div class="planning-rij">
+              <i class="fa-solid fa-fire"></i>
+              <span>Brandweerman</span>
+              <b>${n}</b>
+            </div>
+          `).join("")}
+          <div class="planning-rij">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Stagiair</span>
+            <b>${dag.ploeg.stagiair ?? "-"}</b>
+          </div>
+        `;
+
+        container.appendChild(kaart);
+      });
     });
   }
-</script>
 
-<!-- ================== Planning uitlezen ================== -->
-<script>
-const container = document.getElementById("planningContainer");
+  // Planning direct laden bij openen
+  laadPlanning();
 
-// Luister naar data in Firebase
-db.ref("permanenties/planning").on("value", snapshot => {
-  container.innerHTML = ""; // leegmaken
+  // Knop: Nieuwe planning toevoegen
+  if (isAdmin) {
+    btn.addEventListener("click", async () => {
+      const vandaag = new Date();
+      const jaarMaand = `${vandaag.getFullYear()}-${String(vandaag.getMonth()+1).padStart(2,'0')}`;
+      const dagKey = `${vandaag.getFullYear()}-${String(vandaag.getMonth()+1).padStart(2,'0')}-${String(vandaag.getDate()).padStart(2,'0')}`;
 
-  const data = snapshot.val() ?? {};
-  console.log("Firebase data:", data); // Debug: check wat er binnenkomt
-
-  if (Object.keys(data).length === 0) {
-    container.innerHTML = "<p>Geen planning gevonden.</p>";
-    return;
-  }
-
-  // Pak eerste node (meest recente maand)
-  const maandKeys = Object.keys(data).sort((a,b)=>b.localeCompare(a)); // sorteer om laatste eerst
-  const maandKey = maandKeys[0];
-  const maand = data[maandKey] ?? {};
-
-  Object.keys(maand).sort().forEach(dagKey => {
-    const dag = maand[dagKey];
-    if (!dag || !dag.datum || !dag.ploeg) return;
-
-    const kaart = document.createElement("div");
-    kaart.className = "planning-kaart";
-
-    // Datum formatteren
-    const d = new Date(dag.datum);
-    const datumTekst = isNaN(d) ? dag.datum : d.toLocaleDateString("nl-BE", {
-      weekday: "long",
-      day: "numeric",
-      month: "long"
-    });
-
-    kaart.innerHTML = `
-      <div class="planning-datum">${datumTekst}</div>
-
-      <div class="planning-rij">
-        <i class="fa-solid fa-truck"></i>
-        <span>Chauffeur</span>
-        <b>${dag.ploeg.chauffeur ?? "-"}</b>
-      </div>
-
-      <div class="planning-rij">
-        <i class="fa-solid fa-user-tie"></i>
-        <span>Bevelvoerder</span>
-        <b>${dag.ploeg.bevelvoerder ?? "-"}</b>
-      </div>
-
-      ${(dag.ploeg.brandweermannen ?? []).map(n => `
-        <div class="planning-rij">
-          <i class="fa-solid fa-fire"></i>
-          <span>Brandweerman</span>
-          <b>${n}</b>
-        </div>
-      `).join("")}
-
-      <div class="planning-rij">
-        <i class="fa-solid fa-graduation-cap"></i>
-        <span>Stagiair</span>
-        <b>${dag.ploeg.stagiair ?? "-"}</b>
-      </div>
-    `;
-
-    container.appendChild(kaart);
-  });
-});
-
-// Optioneel: fallback voor hardcoded voorbeeld
-// Verwijder dit als Firebase data correct staat
-if (!db) {
-  const fallbackData = {
-    "2026-02": {
-      "2026-02-10": {
-        datum: "2026-02-10",
+      const nieuweDag = {
+        datum: dagKey,
         ploeg: {
           chauffeur: "Jan",
           bevelvoerder: "Piet",
-          brandweermannen: ["Tom", "Klaas"],
+          brandweermannen: ["Tom","Klaas"],
           stagiair: "Joris"
         }
-      }
-    }
-  };
-  console.log("Fallback data:", fallbackData);
-}
+      };
+
+      await db.ref(`permanenties/planning/${jaarMaand}/${dagKey}`).set(nieuweDag);
+      alert("Planning succesvol aangemaakt!");
+    });
+  }
 </script>
 
 </body>
