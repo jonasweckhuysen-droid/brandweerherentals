@@ -12,73 +12,23 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-/* Overlay modal */
-.overlay {
-  position: fixed;
-  top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.65);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 9999;
-}
-.overlay-content {
-  background: var(--light, #fff);
-  border-radius: 18px;
-  width: 90%;
-  max-width: 400px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.overlay-content h2 {
-  margin:0 0 12px 0;
-  color: var(--red-dark, #8f1515);
-  text-align: center;
-}
-.overlay-content label {
-  display: flex;
-  flex-direction: column;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 8px;
-}
-.overlay-content input[type="text"],
-.overlay-content input[type="date"] {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 2px solid var(--red, #c71f1f);
-  font-size: 1rem;
-  margin-top: 4px;
-}
+body { font-family: Arial, sans-serif; background:#f8f8f8; margin:0; }
+.container { max-width: 900px; margin: 2em auto; background:white; border-radius:18px; padding:16px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+.header-logo { height:50px; }
+.header-left, .header-right { display:inline-block; vertical-align:middle; }
+.header-right { margin-left:16px; }
+.header-greeting { font-size:1rem; color:#555; }
+.header-name { font-size:1.5rem; font-weight:bold; color:#c71f1f; }
+.backlink { display:inline-block; margin-bottom:12px; text-decoration:none; color:#555; }
+.backlink .arrow { margin-right:4px; }
 
-/* Knoppen modal */
-.btn-actie {
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s ease;
-}
-#opslaanPlanning {
-  background: var(--red, #c71f1f);
-  color: white;
-  margin-bottom: 4px;
-}
-#opslaanPlanning:hover {
-  background: var(--red-dark, #8f1515);
-  transform: translateY(-2px);
-}
-#annuleerPlanning {
-  background: #aaa;
-  color: white;
-}
-#annuleerPlanning:hover {
-  background: #888;
-  transform: translateY(-2px);
-}
+.btn { padding:10px 16px; background:#c71f1f; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
+.btn:hover { background:#8f1515; }
+
+.planning-kaart { background:#fff0f0; border-radius:16px; padding:12px; margin-bottom:12px; box-shadow:0 3px 10px rgba(0,0,0,0.05);}
+.planning-datum { font-weight:bold; margin-bottom:8px; color:#c71f1f; }
+.planning-rij { display:flex; align-items:center; margin:4px 0; }
+.planning-rij i { margin-right:8px; color:#c71f1f; width:20px; text-align:center; }
 </style>
 </head>
 <body>
@@ -95,130 +45,110 @@
   </header>
 
   <div class="content">
-    <a href="permanentieopgave.html" class="backlink">
-      <span class="arrow">←</span> Terug
-    </a>
+    <a href="permanentieopgave.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
-    <div style="margin: 1em 0;">
+    <!-- Knop: alleen admin kan planning maken -->
+    <div style="margin:1em 0;">
       <button id="maakPlanningBtn" class="btn">Planning maken</button>
     </div>
 
+    <!-- Planning wordt hier weergegeven -->
     <div id="planningContainer"></div>
   </div>
 </div>
 
-<!-- Modal voor nieuwe planning -->
-<div id="planningModal" class="overlay" style="display:none;">
-  <div class="overlay-content">
-    <h2>Nieuwe Planning</h2>
-    <label><i class="fa-solid fa-calendar-days"></i> Datum
-      <input type="date" id="planningDatum">
-    </label>
-
-    <label><i class="fa-solid fa-truck"></i> Chauffeur
-      <input type="text" id="chauffeur" placeholder="Naam">
-    </label>
-
-    <label><i class="fa-solid fa-user-tie"></i> Bevelvoerder
-      <input type="text" id="bevelvoerder" placeholder="Naam">
-    </label>
-
-    <label><i class="fa-solid fa-fire"></i> Brandweermannen (komma gescheiden)
-      <input type="text" id="brandweermannen" placeholder="Tom,Klaas">
-    </label>
-
-    <label><i class="fa-solid fa-graduation-cap"></i> Stagiair
-      <input type="text" id="stagiair" placeholder="Naam">
-    </label>
-
-    <button id="opslaanPlanning" class="btn-actie">Opslaan</button>
-    <button id="annuleerPlanning" class="btn-actie">Annuleren</button>
-  </div>
-</div>
-
 <script>
-  firebase.initializeApp({
-    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+firebase.initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+const db = firebase.database();
+
+const container = document.getElementById("planningContainer");
+const btn = document.getElementById("maakPlanningBtn");
+
+const isAdmin = true; // admin of niet
+if (!isAdmin) btn.style.display = "none";
+
+/**
+ * 1️⃣ Functie om planning weer te geven
+ */
+function bekijkPlanning() {
+  db.ref("permanenties/planning").on("value", snapshot => {
+    container.innerHTML = "";
+    const data = snapshot.val() ?? {};
+
+    if (!data || Object.keys(data).length===0) {
+      container.innerHTML = "<p>Geen planning gevonden.</p>";
+      return;
+    }
+
+    // pak laatste maand
+    const maandKeys = Object.keys(data).sort((a,b)=>b.localeCompare(a));
+    const maandKey = maandKeys[0];
+    const maand = data[maandKey] ?? {};
+
+    Object.keys(maand).sort().forEach(dagKey=>{
+      const dag = maand[dagKey];
+      if (!dag || !dag.datum || !dag.ploeg) return;
+
+      const kaart = document.createElement("div");
+      kaart.className = "planning-kaart";
+
+      const d = new Date(dag.datum);
+      const datumTekst = isNaN(d) ? dag.datum : d.toLocaleDateString("nl-BE",{weekday:"long", day:"numeric", month:"long"});
+
+      kaart.innerHTML = `
+        <div class="planning-datum">${datumTekst}</div>
+        <div class="planning-rij"><i class="fa-solid fa-truck"></i> Chauffeur: <b>${dag.ploeg.chauffeur ?? "-"}</b></div>
+        <div class="planning-rij"><i class="fa-solid fa-user-tie"></i> Bevelvoerder: <b>${dag.ploeg.bevelvoerder ?? "-"}</b></div>
+        ${(dag.ploeg.brandweermannen??[]).map(n=>`<div class="planning-rij"><i class="fa-solid fa-fire"></i> Brandweerman: <b>${n}</b></div>`).join("")}
+        <div class="planning-rij"><i class="fa-solid fa-graduation-cap"></i> Stagiair: <b>${dag.ploeg.stagiair ?? "-"}</b></div>
+      `;
+      container.appendChild(kaart);
+    });
   });
-  const db = firebase.database();
+}
 
-  const container = document.getElementById("planningContainer");
-  const btn = document.getElementById("maakPlanningBtn");
-  const modal = document.getElementById("planningModal");
-  const opslaanBtn = document.getElementById("opslaanPlanning");
-  const annuleerBtn = document.getElementById("annuleerPlanning");
+/**
+ * 2️⃣ Functie om planning automatisch te maken op basis van beschikbaarheden
+ */
+async function maakPlanning() {
+  const beschikbaarhedenSnap = await db.ref("permanenties/beschikbaarheid").get();
+  const beschikbaarheden = beschikbaarhedenSnap.val() ?? {};
 
-  const isAdmin = true;
-  if (!isAdmin) btn.style.display = "none";
+  // simpele logica: neem eerste beschikbare persoon per rol
+  const vandaag = new Date();
+  const datumStr = vandaag.toISOString().slice(0,10);
+  const jaarMaand = datumStr.slice(0,7);
 
-  function laadPlanning() {
-    db.ref("permanenties/planning").on("value", snapshot => {
-      container.innerHTML = "";
-      const data = snapshot.val() ?? {};
-      if (Object.keys(data).length === 0) {
-        container.innerHTML = "<p>Geen planning gevonden.</p>";
-        return;
-      }
+  // voorbeeld: selecteer willekeurig 1 chauffeur, 1 bevelvoerder, 2 brandweermannen, 1 stagiair
+  const chauffeurs = Object.entries(beschikbaarheden).filter(([uid,data])=>data.roles?.includes("chauffeur")).map(([uid,data])=>data.naam);
+  const bevelvoerders = Object.entries(beschikbaarheden).filter(([uid,data])=>data.roles?.includes("bevelvoerder")).map(([uid,data])=>data.naam);
+  const brandweermannen = Object.entries(beschikbaarheden).filter(([uid,data])=>data.roles?.includes("brandweerman")).map(([uid,data])=>data.naam).slice(0,2);
+  const stagiairs = Object.entries(beschikbaarheden).filter(([uid,data])=>data.roles?.includes("stagiair")).map(([uid,data])=>data.naam);
 
-      const maandKeys = Object.keys(data).sort((a,b)=>b.localeCompare(a));
-      const maandKey = maandKeys[0];
-      const maand = data[maandKey] ?? {};
+  const nieuweDag = {
+    datum: datumStr,
+    ploeg: {
+      chauffeur: chauffeurs[0]??"-",
+      bevelvoerder: bevelvoerders[0]??"-",
+      brandweermannen: brandweermannen,
+      stagiair: stagiairs[0]??"-"
+    }
+  };
 
-      Object.keys(maand).sort().forEach(dagKey => {
-        const dag = maand[dagKey];
-        if (!dag || !dag.datum || !dag.ploeg) return;
+  await db.ref(`permanenties/planning/${jaarMaand}/${datumStr}`).set(nieuweDag);
+  alert("Planning succesvol aangemaakt!");
+  bekijkPlanning();
+}
 
-        const kaart = document.createElement("div");
-        kaart.className = "planning-kaart";
+// laad planning voor iedereen
+bekijkPlanning();
 
-        const d = new Date(dag.datum);
-        const datumTekst = isNaN(d) ? dag.datum : d.toLocaleDateString("nl-BE", {
-          weekday: "long",
-          day: "numeric",
-          month: "long"
-        });
-
-        kaart.innerHTML = `
-          <div class="planning-datum">${datumTekst}</div>
-          <div class="planning-rij"><i class="fa-solid fa-truck"></i> <span>Chauffeur</span> <b>${dag.ploeg.chauffeur ?? "-"}</b></div>
-          <div class="planning-rij"><i class="fa-solid fa-user-tie"></i> <span>Bevelvoerder</span> <b>${dag.ploeg.bevelvoerder ?? "-"}</b></div>
-          ${(dag.ploeg.brandweermannen ?? []).map(n => `<div class="planning-rij"><i class="fa-solid fa-fire"></i> <span>Brandweerman</span> <b>${n}</b></div>`).join("")}
-          <div class="planning-rij"><i class="fa-solid fa-graduation-cap"></i> <span>Stagiair</span> <b>${dag.ploeg.stagiair ?? "-"}</b></div>
-        `;
-        container.appendChild(kaart);
-      });
-    });
-  }
-
-  laadPlanning();
-
-  if (isAdmin) {
-    btn.addEventListener("click", () => {
-      modal.style.display = "flex";
-      document.getElementById("planningDatum").valueAsDate = new Date();
-    });
-
-    annuleerBtn.addEventListener("click", () => modal.style.display = "none");
-
-    opslaanBtn.addEventListener("click", async () => {
-      const datum = document.getElementById("planningDatum").value;
-      const chauffeur = document.getElementById("chauffeur").value.trim();
-      const bevelvoerder = document.getElementById("bevelvoerder").value.trim();
-      const brandweermannen = document.getElementById("brandweermannen").value.split(",").map(s=>s.trim()).filter(s=>s);
-      const stagiair = document.getElementById("stagiair").value.trim();
-
-      if (!datum) { alert("Kies een datum!"); return; }
-
-      const jaarMaand = datum.slice(0,7);
-      const dagKey = datum;
-      const nieuweDag = { datum: dagKey, ploeg: { chauffeur, bevelvoerder, brandweermannen, stagiair }};
-
-      await db.ref(`permanenties/planning/${jaarMaand}/${dagKey}`).set(nieuweDag);
-
-      modal.style.display = "none";
-      alert("Planning succesvol aangemaakt!");
-    });
-  }
+// admin knop
+if(isAdmin){
+  btn.addEventListener("click", ()=>{ maakPlanning(); });
+}
 </script>
 </body>
 </html>
