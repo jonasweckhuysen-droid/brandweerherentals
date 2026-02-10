@@ -12,6 +12,7 @@ const db = firebase.database();
  ***********************/
 const container = document.getElementById("planningContainer");
 
+
 /***********************
  * Planning laden
  ***********************/
