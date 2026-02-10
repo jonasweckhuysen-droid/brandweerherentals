@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -16,34 +17,120 @@
 
 <div class="container">
 
-<header id="appHeader">
-  <div class="header-left">
-    <img src="logo.png" class="header-logo">
+  <header id="appHeader">
+    <div class="header-left">
+      <img src="logo.png" class="header-logo">
+    </div>
+    <div class="header-right">
+      <div class="header-greeting">Permanentie</div>
+      <div class="header-name">Planning</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <a href="permanentieopgave.html" class="backlink">
+      <span class="arrow">←</span> Terug
+    </a>
+
+    <!-- Knop om planning te maken -->
+    <div style="margin: 1em 0;">
+      <button id="maakPlanningBtn" class="btn">Planning maken</button>
+    </div>
+
+    <!-- Hier komt de planning -->
+    <div id="planningContainer"></div>
+
   </div>
-  <div class="header-right">
-    <div class="header-greeting">Permanentie</div>
-    <div class="header-name">Planning</div>
-  </div>
-</header>
-
-<div class="content">
-
-<a href="permanentieopgave.html" class="backlink">
-  <span class="arrow">←</span> Terug
-</a>
-
-<!-- Knop om planning te maken -->
-<div style="margin: 1em 0;">
-  <button id="maakPlanningBtn" class="btn">Planning maken</button>
 </div>
 
-<div id="planningContainer"></div>
+<!-- ================== Firebase Init ================== -->
+<script>
+  // Firebase init (één keer)
+  firebase.initializeApp({
+    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+  });
+  const db = firebase.database();
 
-</div>
-</div>
+  // Admin check (voorbeeld: pas aan volgens je auth)
+  const isAdmin = true; // true = admin, false = niet-admin
+  const btn = document.getElementById("maakPlanningBtn");
+  if (!isAdmin) {
+    btn.style.display = "none";
+  } else {
+    btn.addEventListener("click", () => {
+      // functie om planning te maken
+      alert("Planning wordt gemaakt..."); // tijdelijk, vervang door maakPlanning()
+    });
+  }
+</script>
 
-<script src="planningMaker.js"></script> <!-- JS met maakPlanning functie -->
-<script src="permanentie.js"></script>   <!-- JS die planning uitleest -->
+<!-- ================== Planning uitlezen ================== -->
+<script>
+const container = document.getElementById("planningContainer");
+
+db.ref("permanenties/planning").on("value", snapshot => {
+  container.innerHTML = ""; // leegmaken
+
+  const data = snapshot.val() ?? {};
+
+  if (Object.keys(data).length === 0) {
+    container.innerHTML = "<p>Geen planning gevonden.</p>";
+    return;
+  }
+
+  // Pak eerste node (laatste maand)
+  const maandKey = Object.keys(data)[0];
+  const maand = data[maandKey] ?? {};
+
+  Object.keys(maand).forEach(dagKey => {
+    const dag = maand[dagKey];
+    if (!dag || !dag.datum || !dag.ploeg) return;
+
+    const kaart = document.createElement("div");
+    kaart.className = "planning-kaart";
+
+    const d = new Date(dag.datum);
+    const datumTekst = isNaN(d) ? "-" : d.toLocaleDateString("nl-BE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    });
+
+    kaart.innerHTML = `
+      <div class="planning-datum">${datumTekst}</div>
+
+      <div class="planning-rij">
+        <i class="fa-solid fa-truck"></i>
+        <span>Chauffeur</span>
+        <b>${dag.ploeg.chauffeur ?? "-"}</b>
+      </div>
+
+      <div class="planning-rij">
+        <i class="fa-solid fa-user-tie"></i>
+        <span>Bevelvoerder</span>
+        <b>${dag.ploeg.bevelvoerder ?? "-"}</b>
+      </div>
+
+      ${(dag.ploeg.brandweermannen ?? []).map(n => `
+        <div class="planning-rij">
+          <i class="fa-solid fa-fire"></i>
+          <span>Brandweerman</span>
+          <b>${n}</b>
+        </div>
+      `).join("")}
+
+      <div class="planning-rij">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Stagiair</span>
+        <b>${dag.ploeg.stagiair ?? "-"}</b>
+      </div>
+    `;
+
+    container.appendChild(kaart);
+  });
+});
+</script>
 
 </body>
 </html>
