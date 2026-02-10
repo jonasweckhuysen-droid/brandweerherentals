@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Permanentie Planning</title>
+<title>Permanentie Maandplanning</title>
 
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -40,19 +40,17 @@ body { font-family: Arial, sans-serif; background:#f8f8f8; margin:0; }
     </div>
     <div class="header-right">
       <div class="header-greeting">Permanentie</div>
-      <div class="header-name">Planning</div>
+      <div class="header-name">Maandplanning</div>
     </div>
   </header>
 
   <div class="content">
     <a href="permanentieopgave.html" class="backlink"><span class="arrow">←</span> Terug</a>
 
-    <!-- Knop: alleen admin kan planning maken -->
     <div style="margin:1em 0;">
       <button id="maakPlanningBtn" class="btn">Planning maken</button>
     </div>
 
-    <!-- Planning wordt hier weergegeven -->
     <div id="planningContainer"></div>
   </div>
 </div>
@@ -65,123 +63,112 @@ const db = firebase.database();
 
 const container = document.getElementById("planningContainer");
 const btn = document.getElementById("maakPlanningBtn");
+const isAdmin = true;
+if(!isAdmin) btn.style.display = "none";
 
-const isAdmin = true; // admin of niet
-if (!isAdmin) btn.style.display = "none";
-
-/**
- * Helper: kies random uit array, met teller-voorkeur
- */
-function kiesRandomGebruiker(users) {
-  if(users.length === 0) return null;
-  // Sorteer op aantal keer ingepland (min eerst)
-  users.sort((a,b)=> (a.count??0) - (b.count??0));
+/** Kies random gebruiker met teller-check */
+function kiesRandomGebruiker(users){
+  if(users.length===0) return null;
+  users.sort((a,b)=>(a.count??0)-(b.count??0));
   const minCount = users[0].count??0;
-  const minUsers = users.filter(u=> (u.count??0)===minCount);
-  // Kies random uit deze
-  const keuze = minUsers[Math.floor(Math.random()*minUsers.length)];
-  return keuze;
+  const minUsers = users.filter(u=>(u.count??0)===minCount);
+  return minUsers[Math.floor(Math.random()*minUsers.length)];
 }
 
-/**
- * 1️⃣ Functie om planning weer te geven
- */
-function bekijkPlanning() {
-  db.ref("permanenties/planning").on("value", snapshot => {
-    container.innerHTML = "";
-    const data = snapshot.val() ?? {};
-
-    if (!data || Object.keys(data).length===0) {
-      container.innerHTML = "<p>Geen planning gevonden.</p>";
+/** Bekijk planning */
+function bekijkPlanning(){
+  db.ref("permanenties/planning").on("value", snapshot=>{
+    container.innerHTML="";
+    const data = snapshot.val()??{};
+    if(!data || Object.keys(data).length===0){
+      container.innerHTML="<p>Geen planning gevonden.</p>";
       return;
     }
-
     const maandKeys = Object.keys(data).sort((a,b)=>b.localeCompare(a));
     const maandKey = maandKeys[0];
-    const maand = data[maandKey] ?? {};
+    const maand = data[maandKey]??{};
 
     Object.keys(maand).sort().forEach(dagKey=>{
       const dag = maand[dagKey];
-      if (!dag || !dag.datum || !dag.ploeg) return;
+      if(!dag||!dag.datum||!dag.ploeg) return;
 
       const kaart = document.createElement("div");
-      kaart.className = "planning-kaart";
-
+      kaart.className="planning-kaart";
       const d = new Date(dag.datum);
-      const datumTekst = isNaN(d) ? dag.datum : d.toLocaleDateString("nl-BE",{weekday:"long", day:"numeric", month:"long"});
+      const datumTekst = isNaN(d)?dag.datum:d.toLocaleDateString("nl-BE",{weekday:"long", day:"numeric", month:"long"});
 
-      kaart.innerHTML = `
+      kaart.innerHTML=`
         <div class="planning-datum">${datumTekst}</div>
-        <div class="planning-rij"><i class="fa-solid fa-truck"></i> Chauffeur: <b>${dag.ploeg.chauffeur ?? "-"}</b></div>
-        <div class="planning-rij"><i class="fa-solid fa-user-tie"></i> Bevelvoerder: <b>${dag.ploeg.bevelvoerder ?? "-"}</b></div>
+        <div class="planning-rij"><i class="fa-solid fa-user-tie"></i> Bevelvoerder: <b>${dag.ploeg.bevelvoerder??"-"}</b></div>
+        <div class="planning-rij"><i class="fa-solid fa-truck"></i> Chauffeur: <b>${dag.ploeg.chauffeur??"-"}</b></div>
         ${(dag.ploeg.brandweermannen??[]).map(n=>`<div class="planning-rij"><i class="fa-solid fa-fire"></i> Brandweerman: <b>${n}</b></div>`).join("")}
-        <div class="planning-rij"><i class="fa-solid fa-graduation-cap"></i> Stagiair: <b>${dag.ploeg.stagiair ?? "-"}</b></div>
+        <div class="planning-rij"><i class="fa-solid fa-graduation-cap"></i> Stagiair: <b>${dag.ploeg.stagiair??"-"}</b></div>
       `;
       container.appendChild(kaart);
     });
   });
 }
 
-/**
- * 2️⃣ Functie om planning automatisch te maken op basis van beschikbaarheden
- */
-async function maakPlanning() {
-  const beschikbaarhedenSnap = await db.ref("permanenties/beschikbaarheid").get();
-  const beschikbaarheden = beschikbaarhedenSnap.val() ?? {};
+/** Maak maandplanning */
+async function maakMaandPlanning(){
+  const beschikbaarSnap = await db.ref("permanenties/beschikbaarheid").get();
+  const beschikbaarheden = beschikbaarSnap.val()??{};
 
-  // verzamel per rol met teller
+  // Gebruikers per rol
   const rolUsers = {chauffeur:[], bevelvoerder:[], brandweerman:[], stagiair:[]};
-  for(const [uid, data] of Object.entries(beschikbaarheden)){
-    const roles = data.roles ?? [];
+  for(const [uid,data] of Object.entries(beschikbaarheden)){
+    const roles = data.roles??[];
     roles.forEach(r=>{
-      rolUsers[r] = rolUsers[r] ?? [];
-      rolUsers[r].push({naam:data.naam, count:data.count ?? 0});
+      rolUsers[r] = rolUsers[r]??[];
+      rolUsers[r].push({naam:data.naam, count:data.count??0});
     });
   }
 
-  if(Object.values(rolUsers).some(arr=>arr.length===0)){
+  if(rolUsers.chauffeur.length===0 || rolUsers.bevelvoerder.length===0 || rolUsers.brandweerman.length<4){
     alert("Niet genoeg beschikbaarheden voor alle rollen!");
     return;
   }
 
-  // Plan voor de komende 7 dagen als voorbeeld
   const vandaag = new Date();
-  for(let i=0;i<7;i++){
-    const datum = new Date(vandaag);
-    datum.setDate(vandaag.getDate()+i);
+  const maand = vandaag.getMonth();
+  const jaar = vandaag.getFullYear();
+  const dagenInMaand = new Date(jaar, maand+1, 0).getDate();
+
+  for(let dag=1; dag<=dagenInMaand; dag++){
+    const datum = new Date(jaar, maand, dag);
     const datumStr = datum.toISOString().slice(0,10);
     const jaarMaand = datumStr.slice(0,7);
 
-    // Kies random gebruikers per rol, rekening houdend met teller
-    const gekozenChauffeur = kiesRandomGebruiker(rolUsers.chauffeur);
+    // Kies Bevelvoerder & Chauffeur
     const gekozenBevelvoerder = kiesRandomGebruiker(rolUsers.bevelvoerder);
+    const gekozenChauffeur = kiesRandomGebruiker(rolUsers.chauffeur);
 
-    // brandweermannen: max 2 per dag, geen duplicaten
+    // Kies 4 Brandweermannen
     const tempBW = [...rolUsers.brandweerman];
     const gekozenBW = [];
-    while(gekozenBW.length<2 && tempBW.length>0){
+    while(gekozenBW.length<4 && tempBW.length>0){
       const bw = kiesRandomGebruiker(tempBW);
       gekozenBW.push(bw.naam);
-      // verwijder uit tempBW zodat niet dubbel
       tempBW.splice(tempBW.findIndex(u=>u.naam===bw.naam),1);
     }
 
-    const gekozenStagiair = kiesRandomGebruiker(rolUsers.stagiair);
+    // Kies Stagiair (optioneel)
+    let gekozenStagiair = null;
+    if(rolUsers.stagiair.length>0 && Math.random()>0.5){
+      gekozenStagiair = kiesRandomGebruiker(rolUsers.stagiair);
+    }
 
     // Update tellers
-    if(gekozenChauffeur) gekozenChauffeur.count++;
     if(gekozenBevelvoerder) gekozenBevelvoerder.count++;
-    rolUsers.brandweerman.forEach(u=>{
-      if(gekozenBW.includes(u.naam)) u.count++;
-    });
+    if(gekozenChauffeur) gekozenChauffeur.count++;
+    rolUsers.brandweerman.forEach(u=>{ if(gekozenBW.includes(u.naam)) u.count++; });
     if(gekozenStagiair) gekozenStagiair.count++;
 
-    // Nieuwe dag opslaan
     const nieuweDag = {
       datum: datumStr,
       ploeg:{
-        chauffeur: gekozenChauffeur?.naam??"-",
         bevelvoerder: gekozenBevelvoerder?.naam??"-",
+        chauffeur: gekozenChauffeur?.naam??"-",
         brandweermannen: gekozenBW,
         stagiair: gekozenStagiair?.naam??"-"
       }
@@ -190,16 +177,16 @@ async function maakPlanning() {
     await db.ref(`permanenties/planning/${jaarMaand}/${datumStr}`).set(nieuweDag);
   }
 
-  alert("Planning voor 7 dagen succesvol aangemaakt!");
+  alert(`Planning voor ${dagenInMaand} dagen succesvol aangemaakt!`);
   bekijkPlanning();
 }
 
-// laad planning voor iedereen
+// laad planning
 bekijkPlanning();
 
 // admin knop
 if(isAdmin){
-  btn.addEventListener("click", ()=>{ maakPlanning(); });
+  btn.addEventListener("click", ()=>{ maakMaandPlanning(); });
 }
 </script>
 </body>
