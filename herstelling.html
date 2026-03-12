@@ -9,33 +9,42 @@
 <script src="/brandweerherentals/header.js" defer></script>
 
 <style>
-
 .container{
-max-width:900px;
-margin:auto;
+  max-width:900px;
+  margin:auto;
 }
 
 .page-content{
-padding:20px;
+  padding:20px;
 }
 
 .card{
-background:#f7f7f7;
-padding:18px;
-margin-bottom:15px;
-border-radius:12px;
-box-shadow:0 2px 6px rgba(0,0,0,.15);
+  background:#f7f7f7;
+  padding:18px;
+  margin-bottom:15px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
 }
 
 .card h3{
-margin-top:0;
-color:#c71f1f;
+  margin-top:0;
+  color:#c71f1f;
 }
 
 .label{
-font-weight:bold;
+  font-weight:bold;
 }
 
+.afgewerkt-link {
+  display:inline-block;
+  background:#28a745;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:600;
+  margin-bottom:16px;
+}
 </style>
 
 </head>
@@ -61,6 +70,9 @@ font-weight:bold;
 <div class="page-content">
 
 <h2>Herstellingen pager / zender</h2>
+
+<!-- Link naar de afgewerkt pagina -->
+<a href="/brandweerherentals/afgewerkt.html" class="afgewerkt-link">Bekijk afgewerkte meldingen</a>
 
 <div id="lijst"></div>
 
@@ -103,7 +115,6 @@ lijst.appendChild(card);
 });
 
 });
-
 </script>
 
 </body>
