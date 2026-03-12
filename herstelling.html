@@ -58,6 +58,24 @@
   margin-bottom: 16px;
 }
 
+header#appHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #c71f1f;
+  border-radius: 18px 18px 0 0;
+  color: #fff;
+}
+
+header#appHeader img {
+  height: 60px;
+}
+
+header#appHeader .header-right div {
+  margin: 2px 0;
+}
+
 @media(max-width:600px){
   .card {
     padding: 14px;
@@ -77,7 +95,6 @@
 
 <div class="container">
 
-<!-- HEADER zoals index -->
 <header id="appHeader">
   <div class="header-left">
     <img src="/brandweerherentals/icons/logo.png" class="header-logo">
@@ -118,9 +135,9 @@ fetch(sheetURL)
   const headers = rows.shift();
   const lijst = document.getElementById("lijst");
 
-  const idxMelder = headers.findIndex(h => h.toLowerCase().includes("melder"));
+  const idxMelder = headers.findIndex(h => h.toLowerCase().includes("naam"));
   const idxDatum = headers.findIndex(h => h.toLowerCase().includes("datum"));
-  const idxProbleem = headers.findIndex(h => h.toLowerCase().includes("probleem"));
+  const idxProbleem = headers.findIndex(h => h.toLowerCase().includes("omschrijving"));
   const idxStatus = headers.findIndex(h => h.toLowerCase().includes("status"));
 
   rows.reverse().forEach(row => {
@@ -146,7 +163,6 @@ fetch(sheetURL)
     select.addEventListener("change", e => {
       const nieuweStatus = e.target.value;
 
-      // Verstuur update naar Google Apps Script
       fetch(scriptURL, {
         method: "POST",
         body: JSON.stringify({
@@ -159,7 +175,7 @@ fetch(sheetURL)
       })
       .then(resp => {
         if(nieuweStatus === "Afgewerkt") {
-          card.remove(); // verwijder van deze pagina
+          card.remove();
         }
       })
       .catch(err => console.error("Fout bij status update:", err));
