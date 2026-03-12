@@ -122,7 +122,7 @@ header#appHeader .header-right div {
 const scriptURL = "https://script.google.com/macros/s/AKfycbxKA6NPe6rkvZBTOHzlyc-KeMjE-gu_R9H4EcMwuu70pBK93RnthSqiIBeerDz1IuI/exec";
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqQMZ94AbWY9wyDpMoLN-lKUMCWKJjlZ3UwoPw3XtC8oAcMQI7Sd4ouzKL7_0-60iflppKdpPR0h3k/pub?output=csv";
 
-// robuuste CSV parser die ook cellen tussen quotes intact houdt
+// eenvoudige CSV parser voor quotes
 function parseCSV(text) {
   const rows = [];
   const lines = text.split("\n");
@@ -132,11 +132,8 @@ function parseCSV(text) {
     const row = [];
     let match;
     while (match = regex.exec(line)) {
-      if (match[1] !== undefined) {
-        row.push(match[1].replace(/""/g, '"'));
-      } else if (match[2] !== undefined) {
-        row.push(match[2]);
-      }
+      if (match[1] !== undefined) row.push(match[1].replace(/""/g,'"'));
+      else if (match[2] !== undefined) row.push(match[2]);
     }
     rows.push(row);
   });
@@ -190,9 +187,7 @@ fetch(sheetURL)
         headers: { "Content-Type": "application/json" }
       })
       .then(resp => {
-        if(nieuweStatus === "Afgewerkt") {
-          card.remove();
-        }
+        if(nieuweStatus === "Afgewerkt") card.remove();
       })
       .catch(err => console.error("Fout bij status update:", err));
     });
