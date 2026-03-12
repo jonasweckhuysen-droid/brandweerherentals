@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+<meta charset="UTF-8">
+<title>Herstellingen pager / zender</title>
+
+<link rel="stylesheet" href="/brandweerherentals/style.css">
+<script src="/brandweerherentals/header.js" defer></script>
+
+<style>
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.page-content{
+padding:20px;
+}
+
+.card{
+background:#f7f7f7;
+padding:18px;
+margin-bottom:15px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.card h3{
+margin-top:0;
+color:#c71f1f;
+}
+
+.label{
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<header id="appHeader">
+
+<div class="header-left">
+<img src="/brandweerherentals/icons/logo.png" class="header-logo">
+</div>
+
+<div class="header-right">
+<div id="greeting"></div>
+<div id="datetime"></div>
+<div id="ploegOfWeek"></div>
+</div>
+
+</header>
+
+<div class="page-content">
+
+<h2>Herstellingen pager / zender</h2>
+
+<div id="lijst"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqQMZ94AbWY9wyDpMoLN-lKUMCWKJjlZ3UwoPw3XtC8oAcMQI7Sd4ouzKL7_0-60iflppKdpPR0h3k/pub?output=csv";
+
+fetch(sheetURL)
+.then(res => res.text())
+.then(data => {
+
+const rows = data.split("\n").map(r => r.split(","));
+const headers = rows.shift();
+
+const lijst = document.getElementById("lijst");
+
+rows.reverse().forEach(row => {
+
+if(row.length < 3) return;
+
+const card = document.createElement("div");
+card.className="card";
+
+card.innerHTML = `
+
+<h3>${row[1] || "Herstelling"}</h3>
+
+<p><span class="label">Melder:</span> ${row[0]}</p>
+<p><span class="label">Datum:</span> ${row[2]}</p>
+<p><span class="label">Probleem:</span> ${row[3]}</p>
+
+`;
+
+lijst.appendChild(card);
+
+});
+
+});
+
+</script>
+
+</body>
+</html>
