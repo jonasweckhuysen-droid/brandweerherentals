@@ -87,27 +87,41 @@ footer button{
 </footer>  </div>  <script>  
 // ================= LINKS =================  
 const links = {  
-  agenda:{title:"Agenda",icon:"📅",desc:"Belangrijke data",url:"/brandweerherentals/agenda.html",roles:[]},  
-  verdi:{title:"Verdi",icon:"📟",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},  
-  abiweb:{title:"Abiweb",icon:"📚",desc:"Oefeningen",url:"https://abiweb.brandweerzonekempen.be/",roles:[]},  
-  defect:{title:"Defectmelding",icon:"🔧",desc:"Meld defecten",url:"/brandweerherentals/defectmelding.html",roles:[]},  
-  order:{title:"Bestelling",icon:"📦",desc:"Materiaal",url:"https://forms.cloud.microsoft/e/GjHr1Kym0w",roles:[]},  
-  
-  chauffeur:{title:"Chauffeur",icon:"🚒",desc:"Chauffeur info",url:"/brandweerherentals/chauffeur.html",roles:["chauffeur"]},  
-  ambulance:{title:"Ambulance",icon:"🚑",desc:"Ambulancier info",url:"https://dgh.brandweerzonekempen.be",roles:["ambulancier"]},  
-  duiker:{title:"Duikers",icon:"🤿",desc:"Duikteam",url:"/brandweerherentals/duiker.html",roles:["duiker"]},  
-  
-  logistiek:{title:"Logistiek",icon:"🛒",desc:"Transport",url:"https://form.jotform.com/230682691731055",roles:["chauffeur"]},  
-  
-  vehicle:{title:"Voertuigreservatie",icon:"🚒",desc:"Reservatie",url:"/brandweerherentals/voertuigen.html",roles:[]},  
-  
-  permanentie:{title:"Permanentie",icon:"🕒",desc:"Planning",url:"/brandweerherentals/permanentieopgave.html",roles:[]},  
-  wespen:{title:"Wespen",icon:"🐝",desc:"Ploeg van dienst",url:"/brandweerherentals/wespen2.html",roles:[]},  
-  vlam:{title:"Vlam",icon:"🔥",desc:"Intranet",url:"https://vlam.brandweerzonekempen.be",roles:[]},  
-  wegenwerken:{title:"Wegenwerken",icon:"🚧",desc:"Actuele info",url:"/brandweerherentals/wegenwerken.html",roles:[]},  
-  
-  admin:{title:"Admin",icon:"🛠️",desc:"Beheer",url:"/brandweerherentals/admin.html",roles:["admin"]}  
-};  
+const pages = {
+
+  abiweb:{title:"Abiweb",icon:"📚",desc:"Oefeningen",url:"https://abiweb.brandweerzonekempen.be/",roles:[]},
+
+  admin:{title:"Admin",icon:"🛠️",desc:"Beheer",url:"/brandweerherentals/admin.html",roles:["admin"]},
+
+  agenda:{title:"Agenda",icon:"📅",desc:"Belangrijke data",url:"/brandweerherentals/agenda.html",roles:[]},
+
+  ambulance:{title:"Ambulance",icon:"🚑",desc:"Ambulancier info",url:"https://dgh.brandweerzonekempen.be",roles:["ambulancier"]},
+
+  chauffeur:{title:"Chauffeur",icon:"🚒",desc:"Chauffeur info",url:"/brandweerherentals/chauffeur.html",roles:["chauffeur"]},
+
+  defect:{title:"Defectmelding",icon:"🔧",desc:"Meld defecten",url:"/brandweerherentals/defectmelding.html",roles:[]},
+
+  duiker:{title:"Duikers",icon:"🤿",desc:"Duikteam",url:"/brandweerherentals/duiker.html",roles:["duiker"]},
+
+  herstellingen:{title:"Herstellingen",icon:"📟",desc:"Pager / zender overzicht",url:"/brandweerherentals/herstellingen.html",roles:["admin"]},
+
+  logistiek:{title:"Logistiek",icon:"🛒",desc:"Transport",url:"https://form.jotform.com/230682691731055",roles:["chauffeur"]},
+
+  order:{title:"Bestelling",icon:"📦",desc:"Materiaal",url:"https://forms.cloud.microsoft/e/GjHr1Kym0w",roles:[]},
+
+  permanentie:{title:"Permanentie",icon:"🕒",desc:"Planning",url:"/brandweerherentals/permanentieopgave.html",roles:[]},
+
+  vehicle:{title:"Voertuigreservatie",icon:"🚒",desc:"Reservatie",url:"/brandweerherentals/voertuigen.html",roles:[]},
+
+  verdi:{title:"Verdi",icon:"📟",desc:"Oproepen",url:"https://kempen.verdi.cloud/",roles:[]},
+
+  vlam:{title:"Vlam",icon:"🔥",desc:"Intranet",url:"https://vlam.brandweerzonekempen.be",roles:[]},
+
+  wegenwerken:{title:"Wegenwerken",icon:"🚧",desc:"Actuele info",url:"/brandweerherentals/wegenwerken.html",roles:[]},
+
+  wespen:{title:"Wespen",icon:"🐝",desc:"Ploeg van dienst",url:"/brandweerherentals/wespen2.html",roles:[]}
+
+};
   
 // ================= PERSONEEL =================  
 const personnel = {  
@@ -247,6 +261,7 @@ window.addEventListener("DOMContentLoaded",()=>{
 });  
 </script>  <script src="/brandweerherentals/header.js"></script>  </body>  
 </html>  
+
 
 
 
