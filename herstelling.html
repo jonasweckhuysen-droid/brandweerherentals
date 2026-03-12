@@ -39,6 +39,14 @@
   font-weight: 600;
 }
 
+.status-select {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
+
 .backlink {
   display: inline-block;
   background: #333;
@@ -92,6 +100,7 @@
 </div>
 
 <script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbxKA6NPe6rkvZBTOHzlyc-KeMjE-gu_R9H4EcMwuu70pBK93RnthSqiIBeerDz1IuI/exec";
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqQMZ94AbWY9wyDpMoLN-lKUMCWKJjlZ3UwoPw3XtC8oAcMQI7Sd4ouzKL7_0-60iflppKdpPR0h3k/pub?output=csv";
 
 function parseCSV(data) {
@@ -106,17 +115,16 @@ fetch(sheetURL)
 .then(res => res.text())
 .then(data => {
   const rows = parseCSV(data);
-  const headers = rows.shift(); // Header rij
+  const headers = rows.shift();
   const lijst = document.getElementById("lijst");
 
-  // indexen bepalen
   const idxMelder = headers.findIndex(h => h.toLowerCase().includes("melder"));
   const idxDatum = headers.findIndex(h => h.toLowerCase().includes("datum"));
   const idxProbleem = headers.findIndex(h => h.toLowerCase().includes("probleem"));
   const idxStatus = headers.findIndex(h => h.toLowerCase().includes("status"));
 
   rows.reverse().forEach(row => {
-    if(row[idxStatus]?.toLowerCase() === "afgewerkt") return; // niet tonen in deze pagina
+    if(row[idxStatus]?.toLowerCase() === "afgewerkt") return;
 
     const card = document.createElement("div");
     card.className = "card";
@@ -124,9 +132,38 @@ fetch(sheetURL)
       <h3>${row[idxProbleem] || "Herstelling"}</h3>
       <p><span class="label">Melder:</span> ${row[idxMelder] || "-"}</p>
       <p><span class="label">Datum:</span> ${row[idxDatum] || "-"}</p>
-      <p><span class="label">Status:</span> ${row[idxStatus] || "-"}</p>
+      <p><span class="label">Status:</span>
+        <select class="status-select">
+          <option value="Gemeld" ${row[idxStatus]==="Gemeld"?"selected":""}>Gemeld</option>
+          <option value="In behandeling" ${row[idxStatus]==="In behandeling"?"selected":""}>In behandeling</option>
+          <option value="Afgewerkt">Afgewerkt</option>
+        </select>
+      </p>
     `;
     lijst.appendChild(card);
+
+    const select = card.querySelector(".status-select");
+    select.addEventListener("change", e => {
+      const nieuweStatus = e.target.value;
+
+      // Verstuur update naar Google Apps Script
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify({
+          melder: row[idxMelder],
+          datum: row[idxDatum],
+          probleem: row[idxProbleem],
+          status: nieuweStatus
+        }),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(resp => {
+        if(nieuweStatus === "Afgewerkt") {
+          card.remove(); // verwijder van deze pagina
+        }
+      })
+      .catch(err => console.error("Fout bij status update:", err));
+    });
   });
 });
 </script>
