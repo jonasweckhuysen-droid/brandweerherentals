@@ -120,12 +120,25 @@ header#appHeader .header-right div {
 const scriptURL = "https://script.google.com/macros/s/AKfycbxKA6NPe6rkvZBTOHzlyc-KeMjE-gu_R9H4EcMwuu70pBK93RnthSqiIBeerDz1IuI/exec";
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqQMZ94AbWY9wyDpMoLN-lKUMCWKJjlZ3UwoPw3XtC8oAcMQI7Sd4ouzKL7_0-60iflppKdpPR0h3k/pub?output=csv";
 
-function parseCSV(data) {
-  const lines = data.trim().split("\n");
-  return lines.map(line => {
-    const match = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-    return match ? match.map(cell => cell.replace(/^"|"$/g, "")) : [];
+// robuuste CSV parser die ook cellen tussen quotes intact houdt
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split("\n");
+  const regex = /(?:,|\n|^)(?:"([^"]*(?:""[^"]*)*)"|([^",\n]*))/g;
+
+  lines.forEach(line => {
+    const row = [];
+    let match;
+    while (match = regex.exec(line)) {
+      if (match[1] !== undefined) {
+        row.push(match[1].replace(/""/g, '"'));
+      } else if (match[2] !== undefined) {
+        row.push(match[2]);
+      }
+    }
+    rows.push(row);
   });
+  return rows;
 }
 
 fetch(sheetURL)
@@ -145,6 +158,7 @@ fetch(sheetURL)
 
     const card = document.createElement("div");
     card.className = "card";
+
     card.innerHTML = `
       <h3>${row[idxProbleem] || "Herstelling"}</h3>
       <p><span class="label">Melder:</span> ${row[idxMelder] || "-"}</p>
