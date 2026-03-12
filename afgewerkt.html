@@ -1,55 +1,63 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brandweer Herentals — Afgewerkte Herstellingen</title>
+<title>Afgewerkte herstellingen</title>
 
 <link rel="stylesheet" href="/brandweerherentals/style.css">
+<script src="/brandweerherentals/header.js" defer></script>
 
 <style>
-.container { max-width: 900px; margin: 0 auto; padding-bottom:40px; }
-
-header#appHeader {
-  display:flex; justify-content:space-between; align-items:center;
-  background:#c71f1f; color:#fff; padding:12px 16px;
-  border-radius:18px 18px 0 0;
+.container{
+  max-width:900px;
+  margin:auto;
 }
 
-.page-content { padding:20px; }
+.page-content{
+  padding:20px;
+}
+
+.card{
+  background:#f7f7f7;
+  padding:18px;
+  margin-bottom:15px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.card h3{
+  margin-top:0;
+  color:#c71f1f;
+}
+
+.label{
+  font-weight:bold;
+}
 
 .backlink {
-  display:inline-block; color:#fff; background:#c71f1f;
-  padding:6px 12px; border-radius:8px; text-decoration:none; font-weight:600;
+  display:inline-block;
+  background:#333;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:600;
   margin-bottom:16px;
 }
-
-.card {
-  background:#f7f7f7; border-radius:14px;
-  padding:16px; margin-bottom:16px;
-  box-shadow:0 3px 6px rgba(0,0,0,.12);
-}
-
-.card h3 { color:#c71f1f; margin-bottom:10px; }
-.card p { margin:4px 0; }
-.status-badge {
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:6px;
-  background:#28a745;
-  color:#fff;
-  font-size:0.8rem;
-  font-weight:600;
-}
 </style>
+
 </head>
 
 <body>
+
 <div class="container">
 
+<!-- HEADER zoals op de index -->
 <header id="appHeader">
   <div class="header-left">
-    <img src="/brandweerherentals/icons/logo.png" height="60">
+    <img src="/brandweerherentals/icons/logo.png" class="header-logo">
   </div>
   <div class="header-right">
     <div id="greeting"></div>
@@ -59,54 +67,51 @@ header#appHeader {
 </header>
 
 <div class="page-content">
-<a href="/brandweerherentals/" class="backlink">← Terug naar app</a>
-<div id="afgewerktContainer"></div>
+
+<h2>Afgewerkte herstellingen</h2>
+
+<!-- Terug link naar herstellingen -->
+<a href="/brandweerherentals/defectmelding.html" class="backlink">← Terug naar meldingen</a>
+
+<div id="lijst"></div>
+
 </div>
+
 </div>
 
-<script type="module">
-import { getDocs, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqQMZ94AbWY9wyDpMoLN-lKUMCWKJjlZ3UwoPw3XtC8oAcMQI7Sd4ouzKL7_0-60iflppKdpPR0h3k/pub?output=csv";
 
-// Firestore initialisatie
-const db = window.db;
+fetch(sheetURL)
+.then(res => res.text())
+.then(data => {
 
-const container = document.getElementById('afgewerktContainer');
+const rows = data.split("\n").map(r => r.split(","));
+const headers = rows.shift();
 
-async function loadAfgewerkt() {
-  container.innerHTML = "";
+const lijst = document.getElementById("lijst");
 
-  const snapshot = await getDocs(collection(db, "herstellingen"));
+// Alleen de afgewerkte meldingen tonen
+rows.reverse().forEach(row => {
+  if(row.length < 4) return;
+  if(row[4] !== "afgewerkt") return; // Status kolom controleren (kolom 5)
 
-  let count = 0;
+  const card = document.createElement("div");
+  card.className="card";
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
+  card.innerHTML = `
+<h3>${row[1] || "Herstelling"}</h3>
+<p><span class="label">Melder:</span> ${row[0]}</p>
+<p><span class="label">Datum:</span> ${row[2]}</p>
+<p><span class="label">Probleem:</span> ${row[3]}</p>
+<p><span class="label">Status:</span> ${row[4]}</p>
+  `;
 
-    // Filter op status "afgewerkt"
-    if (data.status !== "afgewerkt") return;
+  lijst.appendChild(card);
+});
 
-    count++;
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <h3>${data.naam}</h3>
-      <p><strong>Type:</strong> ${data.type}</p>
-      <p><strong>Datum melding:</strong> ${data.datum}</p>
-      <p><strong>Probleem:</strong> ${data.probleem}</p>
-      <p><span class="status-badge">${data.status}</span></p>
-    `;
-
-    container.appendChild(card);
-  });
-
-  if(count === 0){
-    container.innerHTML = "<p>Er zijn momenteel geen afgewerkte meldingen.</p>";
-  }
-}
-
-loadAfgewerkt();
+});
 </script>
+
 </body>
 </html>
