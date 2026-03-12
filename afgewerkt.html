@@ -10,41 +10,57 @@
 <script src="/brandweerherentals/header.js" defer></script>
 
 <style>
-.container{
-  max-width:900px;
-  margin:auto;
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 0 12px;
 }
 
-.page-content{
-  padding:20px;
+.page-content {
+  padding: 16px 0;
 }
 
-.card{
-  background:#f7f7f7;
-  padding:18px;
-  margin-bottom:15px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
+.card {
+  background: #f7f7f7;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+  word-wrap: break-word;
 }
 
-.card h3{
-  margin-top:0;
-  color:#c71f1f;
+.card h3 {
+  margin-top: 0;
+  color: #c71f1f;
+  font-size: 1.1rem;
 }
 
-.label{
-  font-weight:bold;
+.label {
+  font-weight: 600;
 }
 
 .backlink {
-  display:inline-block;
-  background:#333;
-  color:#fff;
-  padding:8px 14px;
-  border-radius:8px;
-  text-decoration:none;
-  font-weight:600;
-  margin-bottom:16px;
+  display: inline-block;
+  background: #333;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+@media(max-width:600px){
+  .card {
+    padding: 14px;
+  }
+  .card h3 {
+    font-size: 1rem;
+  }
+  .backlink {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
 }
 </style>
 
@@ -54,7 +70,7 @@
 
 <div class="container">
 
-<!-- HEADER zoals op de index -->
+<!-- HEADER zoals index -->
 <header id="appHeader">
   <div class="header-left">
     <img src="/brandweerherentals/icons/logo.png" class="header-logo">
@@ -69,47 +85,52 @@
 <div class="page-content">
 
 <h2>Afgewerkte herstellingen</h2>
-
-<!-- Terug link naar herstellingen -->
 <a href="/brandweerherentals/defectmelding.html" class="backlink">← Terug naar meldingen</a>
 
 <div id="lijst"></div>
 
 </div>
-
 </div>
 
 <script>
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqQMZ94AbWY9wyDpMoLN-lKUMCWKJjlZ3UwoPw3XtC8oAcMQI7Sd4ouzKL7_0-60iflppKdpPR0h3k/pub?output=csv";
 
+function parseCSV(data) {
+  // CSV naar array van arrays
+  const lines = data.trim().split("\n");
+  return lines.map(line => {
+    // Split, maar quotes behouden
+    const match = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+    return match ? match.map(cell => cell.replace(/^"|"$/g, "")) : [];
+  });
+}
+
 fetch(sheetURL)
 .then(res => res.text())
 .then(data => {
+  const rows = parseCSV(data);
+  const headers = rows.shift(); // Header rij
+  const lijst = document.getElementById("lijst");
 
-const rows = data.split("\n").map(r => r.split(","));
-const headers = rows.shift();
+  // indexen bepalen
+  const idxMelder = headers.findIndex(h => h.toLowerCase().includes("melder"));
+  const idxDatum = headers.findIndex(h => h.toLowerCase().includes("datum"));
+  const idxProbleem = headers.findIndex(h => h.toLowerCase().includes("probleem"));
+  const idxStatus = headers.findIndex(h => h.toLowerCase().includes("status"));
 
-const lijst = document.getElementById("lijst");
+  rows.reverse().forEach(row => {
+    if(row[idxStatus]?.toLowerCase() !== "afgewerkt") return;
 
-// Alleen de afgewerkte meldingen tonen
-rows.reverse().forEach(row => {
-  if(row.length < 4) return;
-  if(row[4] !== "afgewerkt") return; // Status kolom controleren (kolom 5)
-
-  const card = document.createElement("div");
-  card.className="card";
-
-  card.innerHTML = `
-<h3>${row[1] || "Herstelling"}</h3>
-<p><span class="label">Melder:</span> ${row[0]}</p>
-<p><span class="label">Datum:</span> ${row[2]}</p>
-<p><span class="label">Probleem:</span> ${row[3]}</p>
-<p><span class="label">Status:</span> ${row[4]}</p>
-  `;
-
-  lijst.appendChild(card);
-});
-
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>${row[idxProbleem] || "Herstelling"}</h3>
+      <p><span class="label">Melder:</span> ${row[idxMelder] || "-"}</p>
+      <p><span class="label">Datum:</span> ${row[idxDatum] || "-"}</p>
+      <p><span class="label">Status:</span> ${row[idxStatus] || "-"}</p>
+    `;
+    lijst.appendChild(card);
+  });
 });
 </script>
 
