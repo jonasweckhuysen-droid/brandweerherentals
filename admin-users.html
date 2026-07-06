@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Personeel beheer</title>
+  <link rel="stylesheet" href="style.css">
 
 <style>
 body{
@@ -12,14 +13,6 @@ body{
   background:#f4f4f4;
 }
 
-header{
-  background:#c71f1f;
-  color:#fff;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
 
 .container{
   max-width:1000px;
@@ -150,10 +143,27 @@ button{
 
 <body>
 
-<header>
-  <div>👥 Personeel</div>
-  <button onclick="back()">⬅ Back</button>
+<header id="appHeader">
+  <div class="header-left">
+    <img src="logo.png" alt="Logo" class="header-logo">
+  </div>
+
+  <div class="header-right">
+    <div id="greeting" class="header-name"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
 </header>
+  <main class="content">
+
+<a href="index.html" class="backlink">
+    <span class="arrow">←</span>
+    Terug
+</a>
+
+<h2>Beheer Users</h2>
+
+...
 
 <div class="container">
 
@@ -331,6 +341,7 @@ window.back = function(){
 };
 
 </script>
+  <script src="header.js"></script>
 
 </body>
 </html>
