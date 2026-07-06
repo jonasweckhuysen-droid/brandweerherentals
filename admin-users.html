@@ -100,9 +100,15 @@ button{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  remove,
+  set,
+  update
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* 🔥 JOUW FIREBASE */
 const firebaseConfig = {
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 };
@@ -111,29 +117,47 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let users = {};
+let editingId = null;
+
+/* ROLES */
+const ROLES = [
+  "brandweer",
+  "chauffeur",
+  "ambulancier",
+  "bevelvoerder",
+  "officier",
+  "duiker",
+  "gaspakdrager",
+  "stagiair",
+  "admin",
+  "ploeg"
+];
 
 const listEl = document.getElementById("list");
 const searchEl = document.getElementById("search");
 
 /* LIVE DATA */
-const usersRef = ref(db, "users");
-
-onValue(usersRef, (snapshot) => {
-  users = snapshot.val() || {};
+onValue(ref(db, "users"), (snap) => {
+  users = snap.val() || {};
   render();
 });
 
-/* RENDER LIST */
+/* RENDER */
 function render(){
   const search = searchEl.value.toLowerCase();
   listEl.innerHTML = "";
 
   Object.keys(users)
-    .filter(k => (users[k].displayName || "").toLowerCase().includes(search))
-    .sort((a,b)=> (users[a].displayName || "").localeCompare(users[b].displayName || ""))
+    .filter(id =>
+      (users[id].displayName || "").toLowerCase().includes(search)
+    )
+    .sort((a,b)=>
+      (users[a].displayName || "").localeCompare(users[b].displayName || "")
+    )
     .forEach(id => {
 
       const u = users[id];
+      const roles = formatRoles(u.roles);
 
       const div = document.createElement("div");
       div.className = "card";
@@ -141,13 +165,11 @@ function render(){
       div.innerHTML = `
         <div>
           <strong>${u.displayName}</strong>
-          <div class="roles">
-            ${(u.roles ? Object.keys(u.roles).join(" • ") : "Geen rollen")}
-          </div>
+          <div class="roles">${roles}</div>
         </div>
 
         <div class="actions">
-          <button onclick="editUser('${id}')">✏️</button>
+          <button onclick="openEdit('${id}')">✏️</button>
           <button class="delete" onclick="deleteUser('${id}')">🗑</button>
         </div>
       `;
@@ -156,25 +178,130 @@ function render(){
     });
 }
 
+/* FORMAT ROLES */
+function formatRoles(r){
+  if(!r) return "Geen rollen";
+
+  if(Array.isArray(r)){
+    return r.join(" • ");
+  }
+
+  if(typeof r === "object"){
+    return Object.keys(r).filter(k => r[k]).join(" • ");
+  }
+
+  return "Geen rollen";
+}
+
 /* DELETE */
 window.deleteUser = async function(id){
   if(!confirm("Verwijderen?")) return;
   await remove(ref(db, "users/" + id));
-}
+};
 
-/* PLACEHOLDERS (Stap 3) */
-window.editUser = function(id){
-  alert("Stap 3: hier komt edit popup voor " + users[id].displayName);
-}
-
+/* OPEN ADD */
 window.addUser = function(){
-  alert("Stap 3: nieuwe gebruiker toevoegen");
+  editingId = null;
+  openPopup({
+    displayName:"",
+    roles:{},
+    permanentieCount:0
+  });
+};
+
+/* OPEN EDIT */
+window.openEdit = function(id){
+  editingId = id;
+  openPopup(users[id]);
+};
+
+/* POPUP */
+function openPopup(data){
+
+  let popup = document.getElementById("popup");
+
+  if(!popup){
+    popup = document.createElement("div");
+    popup.id = "popup";
+    popup.style = `
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    `;
+
+    popup.innerHTML = `
+      <div style="background:#fff;padding:20px;border-radius:12px;width:350px">
+        <h3>Personeel</h3>
+
+        <input id="name" placeholder="Naam" style="width:100%;padding:10px;margin-bottom:10px">
+
+        <div id="rolesBox"></div>
+
+        <br>
+
+        <button id="saveBtn" style="width:100%">Opslaan</button>
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.onclick = (e) => {
+      if(e.target === popup) popup.remove();
+    };
+  }
+
+  document.getElementById("name").value = data.displayName || "";
+
+  const box = document.getElementById("rolesBox");
+  box.innerHTML = "";
+
+  ROLES.forEach(r => {
+    const checked = data.roles && (
+      Array.isArray(data.roles)
+        ? data.roles.includes(r)
+        : data.roles[r]
+    );
+
+    box.innerHTML += `
+      <label style="display:block">
+        <input type="checkbox" value="${r}" ${checked ? "checked":""}>
+        ${r}
+      </label>
+    `;
+  });
+
+  document.getElementById("saveBtn").onclick = async () => {
+
+    const name = document.getElementById("name").value;
+
+    const checkedRoles = {};
+    document.querySelectorAll("#rolesBox input:checked")
+      .forEach(i => checkedRoles[i.value] = true);
+
+    const payload = {
+      displayName: name,
+      permanentieCount: data.permanentieCount || 0,
+      roles: checkedRoles
+    };
+
+    if(editingId){
+      await update(ref(db, "users/" + editingId), payload);
+    } else {
+      const newId = name.toLowerCase().replace(/\s/g,"_");
+      await set(ref(db, "users/" + newId), payload);
+    }
+
+    popup.remove();
+  };
 }
 
+/* BACK */
 window.goBack = function(){
   window.location.href = "admin.html";
 }
-
 </script>
 
 </body>
