@@ -6,483 +6,124 @@
 <title>Personeel beheer</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f4f4f4;
-}
-
-header{
-  background:#c71f1f;
-  color:#fff;
-  padding:12px 16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:16px;
-}
-
-.searchbar{
-  display:flex;
-  gap:10px;
-  margin-bottom:16px;
-}
-
-input{
-  flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
-
-button{
-  padding:12px 14px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  background:#c71f1f;
-  color:#fff;
-  font-weight:bold;
-}
+body{font-family:Arial;margin:0;background:#f4f4f4}
+header{background:#c71f1f;color:#fff;padding:12px}
+.container{max-width:900px;margin:auto;padding:15px}
 
 .card{
-  background:#fff;
-  padding:14px;
-  margin-bottom:10px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  background:#fff;padding:12px;margin-bottom:10px;
+  border-radius:10px;display:flex;justify-content:space-between
 }
 
-.roles{
-  font-size:12px;
-  color:#666;
-  margin-top:4px;
-}
-
-.actions button{
-  margin-left:6px;
-  background:#333;
-}
-
-.actions button.delete{
-  background:#a30000;
-}
+button{padding:8px;border:none;border-radius:6px;cursor:pointer}
 </style>
-
 </head>
 
 <body>
 
-<header>
-  <div>👥 Personeel beheer</div>
-  <div><button onclick="goBack()">← Terug</button></div>
-  <button onclick="logout()">Uitloggen</button>
-</header>
-  <button onclick="toggleLogs()">📜 Logs</button>
-  <div id="logPanel" style="display:none;margin-top:15px;background:#fff;padding:10px;border-radius:10px"></div>
+<header>👥 Personeel beheer</header>
 
 <div class="container">
-<div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
 
-  <button onclick="exportData()">⬇ Export JSON</button>
+<input id="search" placeholder="Zoek..." oninput="render()" style="width:100%;padding:10px;margin-bottom:10px">
 
-  <input type="file" id="importFile" style="display:none" onchange="importData(event)">
-  <button onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+<button onclick="openForm()">+ Nieuw</button>
 
-  <button onclick="clearAll()">🧨 Reset (danger)</button>
-
-</div>
-
-  <div class="searchbar">
-    <input id="search" placeholder="Zoek personeelslid..." oninput="render()">
-    <button onclick="addUser()">+ Nieuw</button>
-  </div>
-<div id="stats" style="margin-bottom:15px;font-weight:bold"></div>
-
-<div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-
-  <select id="roleFilter" onchange="render()" style="padding:10px;border-radius:8px">
-    <option value="">Alle rollen</option>
-  </select>
-
-  <button onclick="selectAll()">Selecteer alles</button>
-  <button onclick="deselectAll()">Deselecteer</button>
-
-  <select id="bulkRole" style="padding:10px;border-radius:8px">
-    <option value="">+ rol toevoegen</option>
-  </select>
-
-  <button onclick="applyBulkRole()">Toepassen</button>
-
-</div>
-
-  <div id="list"></div>
+<div id="list"></div>
 
 </div>
 
 <script type="module">
-  function checkAccess(userName){
-
-  const u = users[userName];
-  if(!u) return false;
-
-  return u.roles?.admin === true;
-}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getDatabase,
-  ref,
-  onValue,
-  remove,
-  set,
-  update
+  getDatabase, ref, onValue, set, remove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-};
+const app = initializeApp({
+  databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let users = {};
-let selected = new Set();
 let editingId = null;
 
-/* ROLES */
-const ROLES = [
-  "brandweer",
-  "chauffeur",
-  "ambulancier",
-  "bevelvoerder",
-  "officier",
-  "duiker",
-  "gaspakdrager",
-  "stagiair",
-  "admin",
-  "ploeg"
-];
+const rolesList = ["brandweer","chauffeur","ambulancier","duiker","admin"];
 
-/* ELEMENTS */
-const listEl = document.getElementById("list");
-const searchEl = document.getElementById("search");
-const statsEl = document.getElementById("stats");
-const roleFilterEl = document.getElementById("roleFilter");
-const bulkRoleEl = document.getElementById("bulkRole");
-
-/* INIT FILTER DROPDOWNS */
-ROLES.forEach(r=>{
-  roleFilterEl.innerHTML += `<option value="${r}">${r}</option>`;
-  bulkRoleEl.innerHTML += `<option value="${r}">${r}</option>`;
-});
-
-/* LIVE DATA */
 onValue(ref(db,"users"), snap=>{
   users = snap.val() || {};
-
-  const currentUser = localStorage.getItem("userName");
-
-  if(!currentUser || !checkAccess(currentUser)){
-    document.body.innerHTML = `
-      <div style="
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        font-family:Arial;
-        background:#c71f1f;
-        color:white;
-        flex-direction:column;
-        text-align:center;
-      ">
-        <h1>⛔ Geen toegang</h1>
-        <p>Je hebt geen admin rechten</p>
-      </div>
-    `;
-    return;
-  }
-
-  render();
-});
   render();
 });
 
-/* STATS */
-function updateStats(){
-  const total = Object.keys(users).length;
-
-  const countRole = (role)=>{
-    return Object.values(users).filter(u => u.roles?.[role]).length;
-  };
-
-  statsEl.innerHTML = `
-    👥 Totaal: ${total}
-    | 🚒 Brandweer: ${countRole("brandweer")}
-    | 🚗 Chauffeur: ${countRole("chauffeur")}
-    | 🤿 Duiker: ${countRole("duiker")}
-    | 🛠 Admin: ${countRole("admin")}
-  `;
-}
-
-/* RENDER */
 function render(){
-
-  updateStats();
-
-  const search = searchEl.value.toLowerCase();
-  const urlRole = getRoleFilterFromURL();
-const filterRole = urlRole || roleFilterEl.value;
-
-  listEl.innerHTML = "";
+  const search = document.getElementById("search").value.toLowerCase();
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
   Object.keys(users)
-    .filter(id=>{
-      const u = users[id];
-
-      const matchSearch = (u.displayName||"").toLowerCase().includes(search);
-      const matchRole = !filterRole || u.roles?.[filterRole];
-
-      return matchSearch && matchRole;
-    })
-    .sort((a,b)=>
-      (users[a].displayName||"").localeCompare(users[b].displayName||"")
-    )
+    .filter(id => users[id].displayName.toLowerCase().includes(search))
     .forEach(id=>{
 
       const u = users[id];
 
-      const div = document.createElement("div");
-      div.className = "card";
+      const roles = u.roles ? Object.keys(u.roles).join(", ") : "";
 
-      div.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px">
-
-          <input type="checkbox"
-            onchange="toggleSelect('${id}')"
-            ${selected.has(id) ? "checked":""}>
+      list.innerHTML += `
+        <div class="card">
+          <div>
+            <b>${u.displayName}</b><br>
+            <small>${roles}</small>
+          </div>
 
           <div>
-            <strong>${u.displayName}</strong>
-            <div class="roles">${formatRoles(u.roles)}</div>
+            <button onclick="edit('${id}')">✏️</button>
+            <button onclick="del('${id}')">🗑</button>
           </div>
         </div>
-
-        <div class="actions">
-          <button onclick="openEdit('${id}')">✏️</button>
-          <button class="delete" onclick="openDelete('${id}')">🗑</button>
-        </div>
       `;
-
-      listEl.appendChild(div);
     });
 }
 
-/* FORMAT ROLES */
-function formatRoles(r){
-  if(!r) return "Geen rollen";
-  return Object.keys(r).filter(k=>r[k]).join(" • ");
-}
-
-/* SELECT */
-window.toggleSelect = function(id){
-  if(selected.has(id)) selected.delete(id);
-  else selected.add(id);
-  render();
-};
-
-window.selectAll = function(){
-  Object.keys(users).forEach(id=>selected.add(id));
-  render();
-};
-
-window.deselectAll = function(){
-  selected.clear();
-  render();
-};
-
-/* BULK ROLE */
-window.applyBulkRole = async function(){
-
-  const role = bulkRoleEl.value;
-  if(!role) return;
-
-  const updates = {};
-
-  selected.forEach(id=>{
-    updates["users/"+id+"/roles/"+role] = true;
-  });
-
-  await update(ref(db), updates);
-
-  selected.clear();
-};
-
 /* DELETE */
-window.openDelete = function(id){
-
-  const u = users[id];
-
-  const modal = document.createElement("div");
-  modal.style = `
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.6);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  `;
-
-  modal.innerHTML = `
-    <div style="background:#fff;padding:20px;border-radius:12px;width:300px;text-align:center">
-      <h3>Verwijderen?</h3>
-      <p>${u.displayName}</p>
-
-      <button id="del" style="background:#a30000;color:#fff;padding:10px;border:none;border-radius:8px;width:100%">
-        Verwijderen
-      </button>
-
-      <button onclick="this.parentElement.parentElement.remove()" style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;background:#333;color:#fff">
-        Annuleer
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  document.getElementById("del").onclick = async ()=>{
-   log("delete", users[id].displayName);
-await remove(ref(db,"users/"+id));
-    modal.remove();
-  };
-}
-
-/* PLACEHOLDERS (blijven uit stap 4) */
-window.openEdit = function(id){
-  alert("Edit zit al in Stap 4 popup");
-  log(editingId ? "update" : "create", name);
-};
-
-window.addUser = function(){
-  alert("Gebruik popup uit Stap 4");
-};
-
-window.goBack = function(){
-  window.location.href = "admin.html";
-};
-
-window.exportData = function(){
-
-  const dataStr = JSON.stringify(users, null, 2);
-  const blob = new Blob([dataStr], {type:"application/json"});
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "brandweer_users_backup.json";
-  a.click();
-};
-
-import { set, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-window.importData = function(event){
-
-  const file = event.target.files[0];
-  const reader = new FileReader();
-
-  reader.onload = async function(e){
-
-    const data = JSON.parse(e.target.result);
-
-    if(!confirm("Import overschrijft huidige data!")) return;
-
-    await set(ref(db,"users"), data);
-
-    alert("Import klaar");
-  };
-
-  reader.readAsText(file);
-};
-
-window.clearAll = async function(){
-
-  if(!confirm("ALLE USERS VERWIJDEREN?")) return;
-
-  await set(ref(db,"users"), {});
-
-  alert("Database leeggemaakt");
-};
-
-  import { push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-function log(action, target){
-
-  push(ref(db,"logs"), {
-    action,
-    target,
-    by: "admin",
-    time: Date.now()
-  });
-
-}
-  function getRoleFilterFromURL(){
-  const params = new URLSearchParams(window.location.search);
-  return params.get("role");
-}
-  import { onValue, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-window.toggleLogs = function(){
-
-  const panel = document.getElementById("logPanel");
-
-  if(panel.style.display === "block"){
-    panel.style.display = "none";
-    return;
+window.del = async function(id){
+  if(confirm("Verwijderen?")){
+    await remove(ref(db,"users/"+id));
   }
+}
 
-  panel.style.display = "block";
+/* EDIT */
+window.edit = function(id){
+  editingId = id;
+  openForm(users[id]);
+}
 
-  onValue(ref(db,"logs"), snap=>{
+/* ADD */
+window.openForm = function(data={}){
 
-    const logs = snap.val() || {};
-    panel.innerHTML = "";
+  const name = prompt("Naam", data.displayName || "");
+  if(!name) return;
 
-    Object.values(logs)
-      .sort((a,b)=>b.time - a.time)
-      .slice(0,50)
-      .forEach(l=>{
-        panel.innerHTML += `
-          <div style="border-bottom:1px solid #eee;padding:5px">
-            <b>${l.by}</b> → ${l.action} → ${l.target}
-            <br><small>${new Date(l.time).toLocaleString()}</small>
-          </div>
-        `;
-      });
+  const roleInput = prompt("Rollen (komma gescheiden)", 
+    data.roles ? Object.keys(data.roles).join(",") : ""
+  );
 
+  const roles = {};
+  roleInput.split(",").forEach(r=>{
+    if(r.trim()) roles[r.trim()] = true;
   });
-};
-  function getCurrentUser(){
-  return localStorage.getItem("userName");
-    by: getCurrentUser();
+
+  const id = name.toLowerCase().replace(/\s/g,"_");
+
+  set(ref(db,"users/"+id),{
+    displayName:name,
+    permanentieCount:data.permanentieCount || 0,
+    roles:roles
+  });
+
+  editingId = null;
 }
-  window.logout = function(){
-  localStorage.removeItem("userName");
-  window.location.href = "index.html";
-};
-  function isAdmin(){
-  const u = users[getCurrentUser()];
-  return u?.roles?.admin === true;
-    if(!isAdmin()) return alert("Geen toegang");
-}
+
 </script>
 
 </body>
