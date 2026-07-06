@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Admin</title>
+  <link rel="stylesheet" href="style.css">
 
 <style>
 body{
@@ -12,17 +13,6 @@ body{
   background:#f4f4f4;
 }
 
-/* HEADER */
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 16px;
-  background:#c71f1f;
-  color:#fff;
-}
-
-header img{ height:55px; }
 
 /* CONTENT */
 .container{
@@ -69,14 +59,27 @@ footer{
 
 <body>
 
-<header>
-  <img src="logo.png">
+<header id="appHeader">
+  <div class="header-left">
+    <img src="logo.png" alt="Logo" class="header-logo">
+  </div>
 
-  <div>
-    <div id="greeting"></div>
-    <small id="date"></small>
+  <div class="header-right">
+    <div id="greeting" class="header-name"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
   </div>
 </header>
+  <main class="content">
+
+<a href="index.html" class="backlink">
+    <span class="arrow">←</span>
+    Terug
+</a>
+
+<h2>Admin</h2>
+
+...
 
 <div class="container">
 
@@ -199,5 +202,6 @@ function greeting(){
 }
 
 </script>
+  <script src="header.js"></script>
 </body>
 </html>
