@@ -10,12 +10,43 @@ body{font-family:Arial;margin:0;background:#f4f4f4}
 header{background:#c71f1f;color:#fff;padding:12px}
 .container{max-width:900px;margin:auto;padding:15px}
 
-.card{
-  background:#fff;padding:12px;margin-bottom:10px;
-  border-radius:10px;display:flex;justify-content:space-between
+input{
+  width:100%;padding:10px;margin:10px 0;
 }
 
-button{padding:8px;border:none;border-radius:6px;cursor:pointer}
+.card{
+  background:#fff;padding:12px;margin-bottom:10px;
+  border-radius:10px;display:flex;justify-content:space-between;
+  align-items:center;
+}
+
+button{
+  padding:8px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  margin-left:5px;
+}
+
+#modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box{
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+  width:300px;
+}
+
+.role-list label{
+  display:block;
+  margin:4px 0;
+}
 </style>
 </head>
 
@@ -25,12 +56,30 @@ button{padding:8px;border:none;border-radius:6px;cursor:pointer}
 
 <div class="container">
 
-<input id="search" placeholder="Zoek..." oninput="render()" style="width:100%;padding:10px;margin-bottom:10px">
+<input id="search" placeholder="Zoek..." oninput="render()">
 
-<button onclick="openForm()">+ Nieuw</button>
+<button onclick="openModal()">+ Nieuw</button>
 
 <div id="list"></div>
 
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+
+    <h3 id="title">Personeel</h3>
+
+    <input id="name" placeholder="Naam">
+
+    <div class="role-list" id="roles"></div>
+
+    <br>
+
+    <button onclick="save()">Opslaan</button>
+    <button onclick="closeModal()">Annuleer</button>
+
+  </div>
 </div>
 
 <script type="module">
@@ -47,9 +96,18 @@ const app = initializeApp({
 const db = getDatabase(app);
 
 let users = {};
-let editingId = null;
+let editId = null;
 
-const rolesList = ["brandweer","chauffeur","ambulancier","duiker","admin"];
+const ROLES = [
+  "brandweer",
+  "chauffeur",
+  "ambulancier",
+  "duiker",
+  "admin"
+];
+
+const modal = document.getElementById("modal");
+const rolesDiv = document.getElementById("roles");
 
 onValue(ref(db,"users"), snap=>{
   users = snap.val() || {};
@@ -57,16 +115,16 @@ onValue(ref(db,"users"), snap=>{
 });
 
 function render(){
-  const search = document.getElementById("search").value.toLowerCase();
+
+  const s = document.getElementById("search").value.toLowerCase();
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   Object.keys(users)
-    .filter(id => users[id].displayName.toLowerCase().includes(search))
+    .filter(id => users[id].displayName.toLowerCase().includes(s))
     .forEach(id=>{
 
       const u = users[id];
-
       const roles = u.roles ? Object.keys(u.roles).join(", ") : "";
 
       list.innerHTML += `
@@ -85,43 +143,67 @@ function render(){
     });
 }
 
+/* OPEN ADD */
+window.openModal = function(data={}){
+
+  editId = data.id || null;
+
+  document.getElementById("name").value = data.displayName || "";
+
+  rolesDiv.innerHTML = "";
+
+  ROLES.forEach(r=>{
+    const checked = data.roles?.[r];
+
+    rolesDiv.innerHTML += `
+      <label>
+        <input type="checkbox" value="${r}" ${checked?"checked":""}>
+        ${r}
+      </label>
+    `;
+  });
+
+  modal.style.display = "flex";
+}
+
+/* CLOSE */
+window.closeModal = function(){
+  modal.style.display = "none";
+}
+
+/* EDIT */
+window.edit = function(id){
+  const u = users[id];
+  u.id = id;
+  openModal(u);
+}
+
+/* SAVE */
+window.save = async function(){
+
+  const name = document.getElementById("name").value;
+  if(!name) return;
+
+  const roles = {};
+  document.querySelectorAll(".role-list input:checked")
+    .forEach(i=>roles[i.value]=true);
+
+  const id = editId || name.toLowerCase().replace(/\s/g,"_");
+
+  await set(ref(db,"users/"+id),{
+    displayName:name,
+    permanentieCount:users[id]?.permanentieCount || 0,
+    roles:roles
+  });
+
+  closeModal();
+}
+
 /* DELETE */
 window.del = async function(id){
   if(confirm("Verwijderen?")){
     await remove(ref(db,"users/"+id));
   }
-}
-
-/* EDIT */
-window.edit = function(id){
-  editingId = id;
-  openForm(users[id]);
-}
-
-/* ADD */
-window.openForm = function(data={}){
-
-  const name = prompt("Naam", data.displayName || "");
-  if(!name) return;
-
-  const roleInput = prompt("Rollen (komma gescheiden)", 
-    data.roles ? Object.keys(data.roles).join(",") : ""
-  );
-
-  const roles = {};
-  roleInput.split(",").forEach(r=>{
-    if(r.trim()) roles[r.trim()] = true;
-  });
-
-  const id = name.toLowerCase().replace(/\s/g,"_");
-
-  set(ref(db,"users/"+id),{
-    displayName:name,
-    permanentieCount:data.permanentieCount || 0,
-    roles:roles
-  });
-
-  editingId = null;
 }
 
 </script>
