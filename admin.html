@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brandweer Herentals — Admin</title>
 
-<link rel="stylesheet" href="admin.css">
-  
-
 <style>
 body{
   margin:0;
@@ -25,9 +22,7 @@ header{
   color:#fff;
 }
 
-header img{
-  height:55px;
-}
+header img{ height:55px; }
 
 /* CONTENT */
 .container{
@@ -36,9 +31,7 @@ header img{
   margin:auto;
 }
 
-h1{
-  margin:20px 0;
-}
+h1{ margin:20px 0; }
 
 /* GRID */
 .grid{
@@ -57,19 +50,11 @@ h1{
   transition:0.2s;
 }
 
-.card:hover{
-  transform:translateY(-2px);
-}
+.card:hover{ transform:translateY(-2px); }
 
-.card h2{
-  margin:0;
-  font-size:18px;
-}
+.card h2{ margin:0; font-size:18px; }
 
-.card p{
-  margin:6px 0 0;
-  color:#666;
-}
+.card p{ margin:6px 0 0; color:#666; }
 
 /* FOOTER */
 footer{
@@ -85,9 +70,10 @@ footer{
 <body>
 
 <header>
-  <img src="logo.png" alt="logo">
+  <img src="logo.png">
+
   <div>
-    <div id="greeting">Goedemorgen</div>
+    <div id="greeting"></div>
     <small id="date"></small>
   </div>
 </header>
@@ -126,11 +112,29 @@ footer{
   Versie Admin 1.0
 </footer>
 
-<script>
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getDatabase,
+  ref,
+  onValue
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+/* 🔥 FIREBASE */
+const app = initializeApp({
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
 
 const auth = getAuth(app);
+const db = getDatabase(app);
 
+/* 🔐 AUTH CHECK */
 onAuthStateChanged(auth, (user)=>{
 
   if(!user){
@@ -138,35 +142,63 @@ onAuthStateChanged(auth, (user)=>{
     return;
   }
 
-  function loadUserData(email){
+  checkAdmin(user.email);
+});
+
+/* 👤 ADMIN CHECK */
+function checkAdmin(email){
 
   onValue(ref(db,"users"), snap=>{
 
-    users = snap.val() || {};
+    const users = snap.val() || {};
 
     const current = Object.values(users)
       .find(u => u.email === email);
 
     if(!current){
-      document.body.innerHTML = "Geen toegang";
+      document.body.innerHTML = "<h2>Geen toegang</h2>";
       return;
     }
 
     if(!current.roles?.admin){
-      document.body.innerHTML = "Geen admin rechten";
+      document.body.innerHTML = "<h2>Geen admin rechten</h2>";
       return;
     }
 
-    render();
+    startApp();
   });
-function go(page){
-  alert("Volgende stap bouwen we: " + page);
 }
 
+/* 🚀 START DASHBOARD */
+function startApp(){
+  greeting();
+  updateDate();
+  setInterval(updateDate, 60000);
+}
+
+/* NAVIGATIE */
+window.go = function(page){
+
+  const routes = {
+    users: "admin-users.html",
+    agenda: "admin-agenda.html",
+    permanentie: "admin-permanentie.html",
+    instellingen: "admin-settings.html"
+  };
+
+  if(routes[page]){
+    window.location.href = routes[page];
+  } else {
+    alert("Pagina nog niet gebouwd: " + page);
+  }
+};
+
+/* UI */
 function updateDate(){
   const now = new Date();
   document.getElementById("date").innerText =
-    now.toLocaleDateString("nl-BE") + " " + now.toLocaleTimeString("nl-BE",{hour:'2-digit',minute:'2-digit'});
+    now.toLocaleDateString("nl-BE") + " " +
+    now.toLocaleTimeString("nl-BE",{hour:'2-digit',minute:'2-digit'});
 }
 
 function greeting(){
@@ -177,9 +209,6 @@ function greeting(){
   document.getElementById("greeting").innerText = g;
 }
 
-greeting();
-updateDate();
-setInterval(updateDate, 1000);
 </script>
 
 </body>
