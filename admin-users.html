@@ -92,6 +92,24 @@ button{
     <input id="search" placeholder="Zoek personeelslid..." oninput="render()">
     <button onclick="addUser()">+ Nieuw</button>
   </div>
+<div id="stats" style="margin-bottom:15px;font-weight:bold"></div>
+
+<div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+
+  <select id="roleFilter" onchange="render()" style="padding:10px;border-radius:8px">
+    <option value="">Alle rollen</option>
+  </select>
+
+  <button onclick="selectAll()">Selecteer alles</button>
+  <button onclick="deselectAll()">Deselecteer</button>
+
+  <select id="bulkRole" style="padding:10px;border-radius:8px">
+    <option value="">+ rol toevoegen</option>
+  </select>
+
+  <button onclick="applyBulkRole()">Toepassen</button>
+
+</div>
 
   <div id="list"></div>
 
@@ -117,6 +135,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let users = {};
+let selected = new Set();
 let editingId = null;
 
 /* ROLES */
@@ -133,28 +152,65 @@ const ROLES = [
   "ploeg"
 ];
 
+/* ELEMENTS */
 const listEl = document.getElementById("list");
 const searchEl = document.getElementById("search");
+const statsEl = document.getElementById("stats");
+const roleFilterEl = document.getElementById("roleFilter");
+const bulkRoleEl = document.getElementById("bulkRole");
 
-/* LOAD */
+/* INIT FILTER DROPDOWNS */
+ROLES.forEach(r=>{
+  roleFilterEl.innerHTML += `<option value="${r}">${r}</option>`;
+  bulkRoleEl.innerHTML += `<option value="${r}">${r}</option>`;
+});
+
+/* LIVE DATA */
 onValue(ref(db,"users"), snap=>{
   users = snap.val() || {};
   render();
 });
 
+/* STATS */
+function updateStats(){
+  const total = Object.keys(users).length;
+
+  const countRole = (role)=>{
+    return Object.values(users).filter(u => u.roles?.[role]).length;
+  };
+
+  statsEl.innerHTML = `
+    👥 Totaal: ${total}
+    | 🚒 Brandweer: ${countRole("brandweer")}
+    | 🚗 Chauffeur: ${countRole("chauffeur")}
+    | 🤿 Duiker: ${countRole("duiker")}
+    | 🛠 Admin: ${countRole("admin")}
+  `;
+}
+
 /* RENDER */
 function render(){
+
+  updateStats();
+
   const search = searchEl.value.toLowerCase();
+  const filterRole = roleFilterEl.value;
+
   listEl.innerHTML = "";
 
   Object.keys(users)
-    .filter(id =>
-      (users[id].displayName || "").toLowerCase().includes(search)
-    )
+    .filter(id=>{
+      const u = users[id];
+
+      const matchSearch = (u.displayName||"").toLowerCase().includes(search);
+      const matchRole = !filterRole || u.roles?.[filterRole];
+
+      return matchSearch && matchRole;
+    })
     .sort((a,b)=>
-      (users[a].displayName || "").localeCompare(users[b].displayName || "")
+      (users[a].displayName||"").localeCompare(users[b].displayName||"")
     )
-    .forEach(id => {
+    .forEach(id=>{
 
       const u = users[id];
 
@@ -162,10 +218,15 @@ function render(){
       div.className = "card";
 
       div.innerHTML = `
-        <div>
-          <strong>${u.displayName}</strong>
-          <div class="roles">
-            ${formatRoles(u.roles)}
+        <div style="display:flex;align-items:center;gap:10px">
+
+          <input type="checkbox"
+            onchange="toggleSelect('${id}')"
+            ${selected.has(id) ? "checked":""}>
+
+          <div>
+            <strong>${u.displayName}</strong>
+            <div class="roles">${formatRoles(u.roles)}</div>
           </div>
         </div>
 
@@ -179,132 +240,52 @@ function render(){
     });
 }
 
-/* FORMAT */
+/* FORMAT ROLES */
 function formatRoles(r){
   if(!r) return "Geen rollen";
   return Object.keys(r).filter(k=>r[k]).join(" • ");
 }
 
-/* OPEN ADD */
-window.addUser = function(){
-  editingId = null;
-  openModal("Nieuw personeelslid", {});
+/* SELECT */
+window.toggleSelect = function(id){
+  if(selected.has(id)) selected.delete(id);
+  else selected.add(id);
+  render();
 };
 
-/* OPEN EDIT */
-window.openEdit = function(id){
-  editingId = id;
-  openModal("Bewerken", users[id]);
+window.selectAll = function(){
+  Object.keys(users).forEach(id=>selected.add(id));
+  render();
 };
 
-/* MODAL SYSTEM */
-function openModal(title, data){
+window.deselectAll = function(){
+  selected.clear();
+  render();
+};
 
-  closeModal();
+/* BULK ROLE */
+window.applyBulkRole = async function(){
 
-  const modal = document.createElement("div");
-  modal.id = "modal";
-  modal.style = `
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.6);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:9999;
-  `;
+  const role = bulkRoleEl.value;
+  if(!role) return;
 
-  modal.innerHTML = `
-    <div style="
-      background:#fff;
-      width:380px;
-      border-radius:14px;
-      padding:20px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.3)
-    ">
+  const updates = {};
 
-      <h2 style="margin-top:0">${title}</h2>
-
-      <input id="name" placeholder="Naam"
-        style="width:100%;padding:10px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px">
-
-      <div id="rolesBox"></div>
-
-      <div style="margin-top:15px;display:flex;gap:10px">
-        <button id="saveBtn" style="flex:1;background:#c71f1f;color:#fff;padding:10px;border:none;border-radius:8px">
-          Opslaan
-        </button>
-
-        <button onclick="closeModal()" style="flex:1;background:#333;color:#fff;padding:10px;border:none;border-radius:8px">
-          Annuleer
-        </button>
-      </div>
-
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  document.getElementById("name").value = data.displayName || "";
-
-  const box = document.getElementById("rolesBox");
-  box.innerHTML = "";
-
-  ROLES.forEach(r=>{
-    const checked = data.roles?.[r] || false;
-
-    box.innerHTML += `
-      <label style="display:block;margin:4px 0">
-        <input type="checkbox" value="${r}" ${checked ? "checked":""}>
-        ${r}
-      </label>
-    `;
+  selected.forEach(id=>{
+    updates["users/"+id+"/roles/"+role] = true;
   });
 
-  document.getElementById("saveBtn").onclick = async () => {
+  await update(ref(db), updates);
 
-    const name = document.getElementById("name").value;
+  selected.clear();
+};
 
-    const roles = {};
-    document.querySelectorAll("#rolesBox input:checked")
-      .forEach(i=>roles[i.value]=true);
-
-    const payload = {
-      displayName: name,
-      permanentieCount: data.permanentieCount || 0,
-      roles: roles
-    };
-
-    if(editingId){
-      await update(ref(db,"users/"+editingId), payload);
-    } else {
-      const id = name.toLowerCase().replace(/\s/g,"_");
-      await set(ref(db,"users/"+id), payload);
-    }
-
-    closeModal();
-  };
-
-  modal.onclick = (e)=>{
-    if(e.target === modal) closeModal();
-  };
-}
-
-/* CLOSE MODAL */
-window.closeModal = function(){
-  const m = document.getElementById("modal");
-  if(m) m.remove();
-}
-
-/* DELETE CONFIRM */
+/* DELETE */
 window.openDelete = function(id){
-
-  closeModal();
 
   const u = users[id];
 
   const modal = document.createElement("div");
-  modal.id = "modal";
   modal.style = `
     position:fixed;
     inset:0;
@@ -323,7 +304,7 @@ window.openDelete = function(id){
         Verwijderen
       </button>
 
-      <button onclick="closeModal()" style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;background:#333;color:#fff">
+      <button onclick="this.parentElement.parentElement.remove()" style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;background:#333;color:#fff">
         Annuleer
       </button>
     </div>
@@ -333,18 +314,22 @@ window.openDelete = function(id){
 
   document.getElementById("del").onclick = async ()=>{
     await remove(ref(db,"users/"+id));
-    closeModal();
-  };
-
-  modal.onclick = (e)=>{
-    if(e.target === modal) closeModal();
+    modal.remove();
   };
 }
 
-/* BACK */
+/* PLACEHOLDERS (blijven uit stap 4) */
+window.openEdit = function(id){
+  alert("Edit zit al in Stap 4 popup");
+};
+
+window.addUser = function(){
+  alert("Gebruik popup uit Stap 4");
+};
+
 window.goBack = function(){
   window.location.href = "admin.html";
-}
+};
 </script>
 
 </body>
