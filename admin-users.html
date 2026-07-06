@@ -84,7 +84,10 @@ button{
 <header>
   <div>👥 Personeel beheer</div>
   <div><button onclick="goBack()">← Terug</button></div>
+  <button onclick="logout()">Uitloggen</button>
 </header>
+  <button onclick="toggleLogs()">📜 Logs</button>
+  <div id="logPanel" style="display:none;margin-top:15px;background:#fff;padding:10px;border-radius:10px"></div>
 
 <div class="container">
 <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
@@ -126,6 +129,13 @@ button{
 </div>
 
 <script type="module">
+  function checkAccess(userName){
+
+  const u = users[userName];
+  if(!u) return false;
+
+  return u.roles?.admin === true;
+}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -178,6 +188,31 @@ ROLES.forEach(r=>{
 /* LIVE DATA */
 onValue(ref(db,"users"), snap=>{
   users = snap.val() || {};
+
+  const currentUser = localStorage.getItem("userName");
+
+  if(!currentUser || !checkAccess(currentUser)){
+    document.body.innerHTML = `
+      <div style="
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        font-family:Arial;
+        background:#c71f1f;
+        color:white;
+        flex-direction:column;
+        text-align:center;
+      ">
+        <h1>⛔ Geen toegang</h1>
+        <p>Je hebt geen admin rechten</p>
+      </div>
+    `;
+    return;
+  }
+
+  render();
+});
   render();
 });
 
@@ -402,6 +437,51 @@ function log(action, target){
   function getRoleFilterFromURL(){
   const params = new URLSearchParams(window.location.search);
   return params.get("role");
+}
+  import { onValue, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+window.toggleLogs = function(){
+
+  const panel = document.getElementById("logPanel");
+
+  if(panel.style.display === "block"){
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.style.display = "block";
+
+  onValue(ref(db,"logs"), snap=>{
+
+    const logs = snap.val() || {};
+    panel.innerHTML = "";
+
+    Object.values(logs)
+      .sort((a,b)=>b.time - a.time)
+      .slice(0,50)
+      .forEach(l=>{
+        panel.innerHTML += `
+          <div style="border-bottom:1px solid #eee;padding:5px">
+            <b>${l.by}</b> → ${l.action} → ${l.target}
+            <br><small>${new Date(l.time).toLocaleString()}</small>
+          </div>
+        `;
+      });
+
+  });
+};
+  function getCurrentUser(){
+  return localStorage.getItem("userName");
+    by: getCurrentUser();
+}
+  window.logout = function(){
+  localStorage.removeItem("userName");
+  window.location.href = "index.html";
+};
+  function isAdmin(){
+  const u = users[getCurrentUser()];
+  return u?.roles?.admin === true;
+    if(!isAdmin()) return alert("Geen toegang");
 }
 </script>
 
