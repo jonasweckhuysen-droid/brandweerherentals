@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda beheer</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f4f4;
+}
+
+header{
+  background:#c71f1f;
+  color:#fff;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.card{
+  background:#fff;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+small{
+  color:#666;
+}
+
+button{
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>📅 Agenda</div>
+  <button onclick="back()">⬅ Back</button>
+</header>
+
+<div class="container">
+
+<label>Datum</label>
+<input type="date" id="date">
+
+<label>Titel</label>
+<input type="text" id="title">
+
+<label>Beschrijving</label>
+<textarea id="desc"></textarea>
+
+<button onclick="addEvent()">Toevoegen</button>
+
+<div id="list"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  set,
+  remove
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const app = initializeApp({
+  databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+
+const db = getDatabase(app);
+
+let agenda = {};
+
+const listEl = document.getElementById("list");
+
+/* LOAD AGENDA */
+onValue(ref(db,"agenda"), snap=>{
+  agenda = snap.val() || {};
+  render();
+});
+
+/* RENDER */
+function render(){
+
+  listEl.innerHTML = "";
+
+  Object.keys(agenda)
+    .sort()
+    .forEach(date=>{
+
+      const events = agenda[date];
+
+      Object.keys(events).forEach(id=>{
+
+        const e = events[id];
+
+        listEl.innerHTML += `
+          <div class="card">
+            <div>
+              <b>${e.title}</b><br>
+              <small>${date} - ${e.desc}</small>
+            </div>
+
+            <button onclick="del('${date}','${id}')">🗑</button>
+          </div>
+        `;
+      });
+    });
+}
+
+/* ADD EVENT */
+window.addEvent = async function(){
+
+  const date = document.getElementById("date").value;
+  const title = document.getElementById("title").value;
+  const desc = document.getElementById("desc").value;
+
+  if(!date || !title) return;
+
+  const id = "e_" + Date.now();
+
+  await set(ref(db,"agenda/"+date+"/"+id),{
+    title,
+    desc
+  });
+
+  document.getElementById("title").value = "";
+  document.getElementById("desc").value = "";
+};
+
+/* DELETE */
+window.del = async function(date,id){
+
+  await remove(ref(db,"agenda/"+date+"/"+id));
+};
+
+/* BACK */
+window.back = function(){
+  window.location.href = "admin.html";
+};
+
+</script>
+
+</body>
+</html>
