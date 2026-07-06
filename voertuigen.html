@@ -121,6 +121,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const messaging = firebase.messaging();
 
 document.getElementById("submitBtn").addEventListener("click", async () => {
 
@@ -219,6 +220,35 @@ window.remove = (id)=>{
     db.ref("reservations/"+id).remove();
   }
 };
+
+  async function enableNotifications(){
+
+  try {
+    const permission = await Notification.requestPermission();
+
+    if(permission !== "granted"){
+      console.log("Notificaties geweigerd");
+      return;
+    }
+
+    const token = await messaging.getToken({
+      vapidKey: "JOUW_VAPID_KEY_HIER"
+    });
+
+    console.log("FCM token:", token);
+
+    // opslaan in Firebase
+    const user = localStorage.getItem("userName") || "onbekend";
+
+    firebase.database().ref("tokens/" + user).set({
+      token: token
+    });
+
+  } catch(err){
+    console.error(err);
+  }
+}
+enableNotifications();
 </script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
 
