@@ -21,17 +21,35 @@
   /* -----------------------------
      GEBRUIKER
   ----------------------------- */
-  function restoreUser() {
-    const user = localStorage.getItem(NAME_KEY);
-    const greet = document.getElementById("greeting");
+function restoreUser() {
+  const userId = localStorage.getItem(NAME_KEY);
+  const greet = document.getElementById("greeting");
 
-    if (greet && user) {
-      greet.textContent = `Welkom, ${user}!`;
-    }
+  if (!userId) return;
 
-    window.currentUser = user;
-  }
+  window.currentUser = userId;
 
+  // Firebase ophalen
+  fetch(`https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/users/${userId}.json`)
+    .then(res => res.json())
+    .then(user => {
+
+      if (!user) {
+        if (greet) greet.textContent = "Welkom";
+        return;
+      }
+
+      const name = user.displayName || userId;
+
+      if (greet) {
+        greet.textContent = `Welkom, ${name}!`;
+      }
+
+    })
+    .catch(() => {
+      if (greet) greet.textContent = `Welkom, ${userId}`;
+    });
+}
   /* -----------------------------
      DATUM & TIJD
   ----------------------------- */
