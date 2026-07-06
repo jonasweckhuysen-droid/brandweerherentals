@@ -4,238 +4,228 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voertuigenreservatie</title>
-<link rel="stylesheet" href="style.css">
 
-<!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
-/* Basis styling voor mobielvriendelijk overzicht */
 .container {
   max-width: 600px;
   margin: auto;
   padding: 10px;
   font-family: sans-serif;
 }
-.header-logo {
-  height: 50px;
-}
-.header-right {
-  float: right;
-  text-align: right;
-}
-.header-datetime {
-  font-size: 0.85em;
-  color: #555;
-}
-.content {
-  margin-top: 20px;
-}
-.backlink {
-  display: inline-block;
-  margin-bottom: 15px;
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-}
+
+.header-right { float:right; text-align:right; }
+.header-datetime { font-size:0.85em; color:#555; }
+
 .card {
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 15px;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
   background: #f8f8f8;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-.card-header {
-  font-weight: bold;
-  font-size: 1.1em;
-  margin-bottom: 5px;
-}
-.card-body div {
-  margin: 3px 0;
-}
+
 .vehicle-options label {
-  display: block;
-  margin-bottom: 5px;
+  display:block;
+  margin:5px 0;
 }
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0 10px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+
+input, button {
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
 }
+
 .call-btn {
-  background: #c71f1f;
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 5px;
-  cursor: pointer;
-}
-.call-btn:hover {
-  opacity: 0.9;
+  background:#c71f1f;
+  color:#fff;
+  font-weight:bold;
+  border:none;
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
 
-  <!-- HEADER -->
-  <header id="appHeader">
-    <div class="header-left">
-      <img src="logo.png" class="header-logo" alt="Brandweer Herentals">
-    </div>
-    <div class="header-right">
-      <div class="header-greeting">Welkom</div>
-      <div class="header-name" id="userName"></div>
-      <div class="header-datetime" id="datetime"></div>
-    </div>
-  </header>
+<h2>🚒 Voertuigenreservatie</h2>
 
-  <div class="content">
-    <a href="index.html" class="backlink"><span class="arrow">←</span> Terug</a>
+<div class="card">
 
-    <h2>🚒 Voertuigenreservatie</h2>
+  <h3>Nieuwe aanvraag</h3>
 
-    <!-- RESERVATIE FORMULIER -->
-    <div class="card">
-      <div class="card-header"><h3>Nieuwe aanvraag</h3></div>
-      <div class="card-body">
-        <label>Voertuig</label>
-        <div class="vehicle-options">
-          <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
-          <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
-          <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
-          <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
-        </div>
-
-        <label>Van</label>
-        <input type="datetime-local" id="from">
-
-        <label>Tot</label>
-        <input type="datetime-local" id="to">
-
-        <label>Doeleinde</label>
-        <input type="text" id="purpose">
-
-        <label>Aantal personen</label>
-        <input type="number" id="persons" min="1">
-
-        <button class="call-btn" id="submitBtn">Aanvraag indienen</button>
-      </div>
-    </div>
-
-    <h2>📅 Reservaties</h2>
-    <div id="reservations"></div>
+  <label>Voertuig</label>
+  <div class="vehicle-options">
+    <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
+    <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
+    <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
+    <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
   </div>
+
+  <label>Van</label>
+  <input type="datetime-local" id="from">
+
+  <label>Tot</label>
+  <input type="datetime-local" id="to">
+
+  <label>Doeleinde</label>
+  <input type="text" id="purpose">
+
+  <label>Aantal personen</label>
+  <input type="number" id="persons" min="1">
+
+  <button class="call-btn" id="submitBtn">Aanvraag indienen</button>
+
+</div>
+
+<h3>📅 Reservaties</h3>
+<div id="reservations"></div>
+
 </div>
 
 <script>
-/* -------------------- GEBRUIKER -------------------- */
+/* ---------------- USER ---------------- */
 const currentUser = localStorage.getItem("userName") || "Onbekend";
-document.getElementById("userName").textContent = currentUser;
 
-/* -------------------- ADMIN CHECK -------------------- */
 const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
 const isAdmin = admins.includes(currentUser);
 
-/* -------------------- DATETIME -------------------- */
-setInterval(() => {
-  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
-}, 1000);
-
-/* -------------------- FIREBASE INIT -------------------- */
+/* ---------------- FIREBASE ---------------- */
 const firebaseConfig = {
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* -------------------- SUBMIT RESERVATIE -------------------- */
-document.getElementById("submitBtn").addEventListener("click", () => {
+/* ---------------- HELPERS ---------------- */
+function isOverlapping(vehicle, from, to, reservations){
+
+  const start = new Date(from).getTime();
+  const end = new Date(to).getTime();
+
+  return Object.values(reservations).some(r => {
+
+    if(r.vehicle !== vehicle) return false;
+    if(r.status !== "Goedgekeurd") return false;
+
+    const rStart = new Date(r.from).getTime();
+    const rEnd = new Date(r.to).getTime();
+
+    return (start < rEnd && end > rStart);
+  });
+}
+
+/* ---------------- SUBMIT ---------------- */
+document.getElementById("submitBtn").addEventListener("click", async () => {
+
   const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
+  const fromVal = document.getElementById("from").value;
+  const toVal = document.getElementById("to").value;
+  const purposeVal = document.getElementById("purpose").value;
+  const personsVal = document.getElementById("persons").value;
+
+  if(!fromVal || !toVal){
+    alert("Vul alle datums in");
+    return;
+  }
+
+  if(new Date(fromVal) >= new Date(toVal)){
+    alert("Eindtijd moet na starttijd liggen");
+    return;
+  }
+
+  const snap = await db.ref("reservations").once("value");
+  const existing = snap.val() || {};
+
+  // 🔥 CONFLICT CHECK
+  if(isOverlapping(vehicle, fromVal, toVal, existing)){
+    alert("⚠️ Dit voertuig is al gereserveerd in deze periode");
+    return;
+  }
+
   const r = {
     user: currentUser,
     vehicle,
-    from: from.value,
-    to: to.value,
-    purpose: purpose.value,
-    persons: persons.value,
+    from: fromVal,
+    to: toVal,
+    purpose: purposeVal || "",
+    persons: personsVal || "",
     status: "In afwachting",
     timestamp: Date.now()
   };
-  db.ref("reservations").push(r)
-    .then(() => {
-      // Velden leegmaken
-      document.querySelector('input[name="vehicle"][value="Caddy S542"]').checked = true;
-      from.value = "";
-      to.value = "";
-      purpose.value = "";
-      persons.value = "";
-    })
-    .catch(err => console.error("⚠️ Fout bij Firebase push:", err));
+
+  try {
+    await db.ref("reservations").push(r);
+
+    alert("Aanvraag ingediend");
+
+    document.getElementById("from").value = "";
+    document.getElementById("to").value = "";
+    document.getElementById("purpose").value = "";
+    document.getElementById("persons").value = "";
+
+  } catch(err){
+    console.error(err);
+    alert("Fout bij opslaan");
+  }
 });
 
-/* -------------------- LIVE RENDER VAN FIREBASE -------------------- */
+/* ---------------- LIVE DATA ---------------- */
 db.ref("reservations").on("value", snapshot => {
+
   const data = snapshot.val() || {};
-  const reservations = Object.keys(data)
-      .map(key => ({ id: key, ...data[key] }))
-      .filter(r => isAdmin ? true : r.status === "Goedgekeurd"); // Admin ziet alles, gewone gebruikers alleen goedgekeurd
-  renderFirebase(reservations);
+  const list = document.getElementById("reservations");
+
+  list.innerHTML = "";
+
+  const items = Object.keys(data)
+    .map(k => ({ id:k, ...data[k] }))
+    .sort((a,b)=> new Date(a.from) - new Date(b.from));
+
+  items.forEach(r => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const canDelete = isAdmin || r.user === currentUser;
+
+    card.innerHTML = `
+      <b>${r.vehicle}</b><br>
+      Van: ${r.from}<br>
+      Tot: ${r.to}<br>
+      Door: ${r.user}<br>
+      Doel: ${r.purpose}<br>
+      Personen: ${r.persons}<br>
+      Status: ${r.status}<br>
+
+      ${isAdmin && r.status === "In afwachting" ? `
+        <button onclick="updateStatus('${r.id}','Goedgekeurd')">Goedkeuren</button>
+        <button onclick="updateStatus('${r.id}','Afgekeurd')">Afkeuren</button>
+      ` : ""}
+
+      ${canDelete ? `<button onclick="remove('${r.id}')">Verwijderen</button>` : ""}
+    `;
+
+    list.appendChild(card);
+  });
 });
 
-/* -------------------- RENDER FUNCTIE -------------------- */
-function renderFirebase(reservations) {
-  const wrap = document.getElementById("reservations");
-  wrap.innerHTML = "";
+/* ---------------- ADMIN ACTIONS ---------------- */
+window.updateStatus = (id,status)=>{
+  db.ref("reservations/"+id).update({ status });
+};
 
-  reservations
-    .sort((a,b) => new Date(a.from) - new Date(b.from)) // Van vroeg naar laat
-    .forEach(r => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      // admin of eigenaar kan verwijderen
-      const canDelete = isAdmin || r.user === currentUser;
-
-      card.innerHTML = `
-        <div class="card-header">${r.vehicle}</div>
-        <div class="card-body">
-          <div><strong>Van:</strong> ${r.from}</div>
-          <div><strong>Tot:</strong> ${r.to}</div>
-          <div><strong>Door:</strong> ${r.user}</div>
-          <div><strong>Doel:</strong> ${r.purpose}</div>
-          <div><strong>Personen:</strong> ${r.persons}</div>
-          <div><strong>Status:</strong> ${r.status}</div>
-
-          ${isAdmin ? `
-            ${r.status === "In afwachting" ? `
-              <button class="call-btn" onclick="approveFirebase('${r.id}','Goedgekeurd')">✔ Goedkeuren</button>
-              <button class="call-btn" style="background:#444" onclick="approveFirebase('${r.id}','Afgekeurd')">✖ Afkeuren</button>
-            ` : ""}
-          ` : ""}
-
-          ${canDelete ? `<button class="call-btn" style="background:#900;" onclick="removeFirebase('${r.id}')">🗑 Verwijderen</button>` : ""}
-        </div>
-      `;
-      wrap.appendChild(card);
-    });
-}
-
-/* -------------------- APPROVE / REMOVE -------------------- */
-function approveFirebase(id, status) {
-  db.ref("reservations/" + id).update({ status });
-}
-
-function removeFirebase(id) {
-  if(!confirm("Weet je zeker dat je deze reservatie wil verwijderen?")) return;
-  db.ref("reservations/" + id).remove();
-}
+window.remove = (id)=>{
+  if(confirm("Verwijderen?")){
+    db.ref("reservations/"+id).remove();
+  }
+};
 </script>
 
 </body>
