@@ -9,43 +9,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 10px;
-  font-family: sans-serif;
-}
-
-.header-right { float:right; text-align:right; }
-.header-datetime { font-size:0.85em; color:#555; }
-
-.card {
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: #f8f8f8;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.vehicle-options label {
-  display:block;
-  margin:5px 0;
-}
-
-input, button {
-  width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
-.call-btn {
-  background:#c71f1f;
-  color:#fff;
-  font-weight:bold;
-  border:none;
-}
+body { font-family: sans-serif; margin:0; }
+.container { max-width:600px; margin:auto; padding:10px; }
+.card { padding:10px; background:#f5f5f5; margin-bottom:10px; border-radius:8px; }
+input, button { width:100%; padding:10px; margin:6px 0; }
+button { background:#c71f1f; color:#fff; border:none; }
 </style>
 </head>
 
@@ -57,106 +25,73 @@ input, button {
 
 <div class="card">
 
-  <h3>Nieuwe aanvraag</h3>
+<label>Voertuig</label>
+<label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
+<label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
 
-  <label>Voertuig</label>
-  <div class="vehicle-options">
-    <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
-    <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
-    <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
-    <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
-  </div>
+<label>Van</label>
+<input type="datetime-local" id="from">
 
-  <label>Van</label>
-  <input type="datetime-local" id="from">
+<label>Tot</label>
+<input type="datetime-local" id="to">
 
-  <label>Tot</label>
-  <input type="datetime-local" id="to">
+<label>Doel</label>
+<input type="text" id="purpose">
 
-  <label>Doeleinde</label>
-  <input type="text" id="purpose">
+<label>Aantal personen</label>
+<input type="number" id="persons">
 
-  <label>Aantal personen</label>
-  <input type="number" id="persons" min="1">
-
-  <button class="call-btn" id="submitBtn">Aanvraag indienen</button>
+<button id="submitBtn">Aanvraag indienen</button>
 
 </div>
 
-<h3>📅 Reservaties</h3>
+<h3>Reservaties</h3>
 <div id="reservations"></div>
 
 </div>
 
 <script>
-/* ---------------- USER ---------------- */
-const currentUser = localStorage.getItem("userName") || "Onbekend";
-
-const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
-const isAdmin = admins.includes(currentUser);
-
-
-/* ---------------- HELPERS ---------------- */
-function isOverlapping(vehicle, from, to, reservations){
-
-  const start = new Date(from).getTime();
-  const end = new Date(to).getTime();
-
-  return Object.values(reservations).some(r => {
-
-    if(r.vehicle !== vehicle) return false;
-    if(r.status !== "Goedgekeurd") return false;
-
-    const rStart = new Date(r.from).getTime();
-    const rEnd = new Date(r.to).getTime();
-
-    return (start < rEnd && end > rStart);
+/* SAFE INIT */
+if (!firebase.apps.length) {
+  firebase.initializeApp({
+    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
   });
 }
 
-/* ---------------- SUBMIT + firebase ---------------- */
-const firebaseConfig = {
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-};
-
-firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const messaging = firebase.messaging();
 
-document.getElementById("submitBtn").addEventListener("click", async () => {
+const currentUser = localStorage.getItem("userName") || "Onbekend";
+
+/* SUBMIT */
+document.getElementById("submitBtn").onclick = async () => {
 
   const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
+  const from = document.getElementById("from").value;
+  const to = document.getElementById("to").value;
 
-  const fromVal = document.getElementById("from").value;
-  const toVal = document.getElementById("to").value;
-
-  const purposeVal = document.getElementById("purpose").value;
-  const personsVal = document.getElementById("persons").value;
-
-  if(!fromVal || !toVal){
-    alert("Vul alle velden in");
+  if (!from || !to) {
+    alert("Vul tijden in");
     return;
   }
 
-  if(new Date(fromVal) >= new Date(toVal)){
-    alert("Eindtijd moet na starttijd liggen");
+  if (new Date(from) >= new Date(to)) {
+    alert("Einde moet na start zijn");
     return;
   }
 
   const r = {
-    user: localStorage.getItem("userName") || "Onbekend",
+    user: currentUser,
     vehicle,
-    from: fromVal,
-    to: toVal,
-    purpose: purposeVal || "",
-    persons: personsVal || "",
+    from,
+    to,
+    purpose: document.getElementById("purpose").value,
+    persons: document.getElementById("persons").value,
     status: "In afwachting",
     timestamp: Date.now()
   };
 
   try {
     await db.ref("reservations").push(r);
-
     alert("Aanvraag verstuurd");
 
     document.getElementById("from").value = "";
@@ -164,93 +99,38 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     document.getElementById("purpose").value = "";
     document.getElementById("persons").value = "";
 
-  } catch(e){
+  } catch (e) {
     console.error(e);
     alert("Firebase fout");
   }
-});
+};
 
-/* ---------------- LIVE DATA ---------------- */
-db.ref("reservations").on("value", snapshot => {
+/* LIVE DATA */
+db.ref("reservations").on("value", snap => {
 
-  const data = snapshot.val() || {};
+  const data = snap.val() || {};
   const list = document.getElementById("reservations");
 
   list.innerHTML = "";
 
-  const items = Object.keys(data)
-    .map(k => ({ id:k, ...data[k] }))
-    .sort((a,b)=> new Date(a.from) - new Date(b.from));
+  Object.keys(data).forEach(id => {
 
-  items.forEach(r => {
+    const r = data[id];
 
-    const card = document.createElement("div");
-    card.className = "card";
+    const div = document.createElement("div");
+    div.className = "card";
 
-    const canDelete = isAdmin || r.user === currentUser;
-
-    card.innerHTML = `
+    div.innerHTML = `
       <b>${r.vehicle}</b><br>
-      Van: ${r.from}<br>
-      Tot: ${r.to}<br>
-      Door: ${r.user}<br>
-      Doel: ${r.purpose}<br>
-      Personen: ${r.persons}<br>
-      Status: ${r.status}<br>
-
-      ${isAdmin && r.status === "In afwachting" ? `
-        <button onclick="updateStatus('${r.id}','Goedgekeurd')">Goedkeuren</button>
-        <button onclick="updateStatus('${r.id}','Afgekeurd')">Afkeuren</button>
-      ` : ""}
-
-      ${canDelete ? `<button onclick="remove('${r.id}')">Verwijderen</button>` : ""}
+      ${r.from} → ${r.to}<br>
+      ${r.user}<br>
+      Status: ${r.status}
     `;
 
-    list.appendChild(card);
+    list.appendChild(div);
   });
 });
-
-/* ---------------- ADMIN ACTIONS ---------------- */
-window.updateStatus = (id,status)=>{
-  db.ref("reservations/"+id).update({ status });
-};
-
-window.remove = (id)=>{
-  if(confirm("Verwijderen?")){
-    db.ref("reservations/"+id).remove();
-  }
-};
-
-  async function enableNotifications(){
-
-  try {
-    const permission = await Notification.requestPermission();
-
-    if(permission !== "granted"){
-      console.log("Notificaties geweigerd");
-      return;
-    }
-
-    const token = await messaging.getToken({
-      vapidKey: "JOUW_VAPID_KEY_HIER"
-    });
-
-    console.log("FCM token:", token);
-
-    // opslaan in Firebase
-    const user = localStorage.getItem("userName") || "onbekend";
-
-    firebase.database().ref("tokens/" + user).set({
-      token: token
-    });
-
-  } catch(err){
-    console.error(err);
-  }
-}
-enableNotifications();
 </script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
 
 </body>
 </html>
