@@ -9,79 +9,74 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
-body{font-family:Arial;margin:0;background:#f4f4f4}
-header{background:#c71f1f;color:#fff;padding:12px}
-.container{max-width:800px;margin:auto;padding:10px}
-.card{background:#fff;margin:10px 0;padding:10px;border-radius:8px}
-button{padding:8px;margin:5px;border:none;border-radius:6px;cursor:pointer}
-.ok{background:green;color:#fff}
-.no{background:#444;color:#fff}
-.del{background:#900;color:#fff}
+body { font-family:Arial; margin:0; background:#f4f4f4; }
+header { background:#c71f1f; color:#fff; padding:10px; }
+.container { max-width:800px; margin:auto; padding:10px; }
+.card { background:#fff; padding:10px; margin:10px 0; border-radius:8px; }
+button { margin:5px; padding:6px 10px; border:none; border-radius:6px; }
+.ok { background:green; color:#fff; }
+.no { background:#444; color:#fff; }
+.del { background:#900; color:#fff; }
 </style>
 </head>
 
 <body>
 
-<header>
-  🚒 Admin Voertuigen
-</header>
+<header>🚒 Admin Voertuigen</header>
 
 <div class="container" id="list"></div>
 
 <script>
-const firebaseConfig = {
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-function load(){
-
-  db.ref("reservations").on("value", snap => {
-
-    const data = snap.val() || {};
-    const list = document.getElementById("list");
-
-    list.innerHTML = "";
-
-    Object.keys(data).forEach(id => {
-
-      const r = data[id];
-
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML = `
-        <b>${r.vehicle}</b><br>
-        ${r.from} → ${r.to}<br>
-        ${r.user}<br>
-        Status: ${r.status}<br>
-
-        ${r.status === "In afwachting" ? `
-          <button class="ok" onclick="update('${id}','Goedgekeurd')">Goedkeuren</button>
-          <button class="no" onclick="update('${id}','Afgekeurd')">Afkeuren</button>
-        ` : ""}
-
-        <button class="del" onclick="del('${id}')">Verwijderen</button>
-      `;
-
-      list.appendChild(card);
-    });
+if (!firebase.apps.length) {
+  firebase.initializeApp({
+    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
   });
 }
 
-function update(id,status){
-  db.ref("reservations/"+id).update({ status });
-}
+const db = firebase.database();
 
-function del(id){
+/* LOAD */
+db.ref("reservations").on("value", snap => {
+
+  const data = snap.val() || {};
+  const list = document.getElementById("list");
+
+  list.innerHTML = "";
+
+  Object.keys(data).forEach(id => {
+
+    const r = data[id];
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <b>${r.vehicle}</b><br>
+      ${r.from} → ${r.to}<br>
+      ${r.user}<br>
+      Status: ${r.status}<br>
+
+      ${r.status === "In afwachting" ? `
+        <button class="ok" onclick="update('${id}','Goedgekeurd')">Goedkeuren</button>
+        <button class="no" onclick="update('${id}','Afgekeurd')">Afkeuren</button>
+      ` : ""}
+
+      <button class="del" onclick="removeItem('${id}')">Verwijderen</button>
+    `;
+
+    list.appendChild(div);
+  });
+});
+
+window.update = (id,status) => {
+  db.ref("reservations/"+id).update({ status });
+};
+
+window.removeItem = (id) => {
   if(confirm("Verwijderen?")){
     db.ref("reservations/"+id).remove();
   }
-}
-
-load();
+};
 </script>
 
 </body>
