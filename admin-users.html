@@ -120,27 +120,55 @@ function render(){
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  Object.keys(users)
+  let filtered = Object.keys(users)
     .filter(id => users[id].displayName.toLowerCase().includes(s))
-    .forEach(id=>{
+    .sort((a,b)=>
+      users[a].displayName.localeCompare(users[b].displayName,"nl")
+    );
 
-      const u = users[id];
-      const roles = u.roles ? Object.keys(u.roles).join(", ") : "";
+  if(filtered.length === 0){
+    list.innerHTML = `
+      <div style="padding:15px;text-align:center;color:#666">
+        Geen resultaten gevonden
+      </div>
+    `;
+    return;
+  }
 
-      list.innerHTML += `
-        <div class="card">
-          <div>
-            <b>${u.displayName}</b><br>
-            <small>${roles}</small>
-          </div>
+  filtered.forEach(id=>{
 
-          <div>
-            <button onclick="edit('${id}')">✏️</button>
-            <button onclick="del('${id}')">🗑</button>
-          </div>
+    const u = users[id];
+
+    const roles = u.roles
+      ? Object.keys(u.roles)
+      : [];
+
+    const badges = roles.map(r=>`
+      <span style="
+        display:inline-block;
+        padding:2px 8px;
+        margin:2px;
+        border-radius:10px;
+        font-size:12px;
+        background:${roleColor(r)};
+        color:white;
+      ">${r}</span>
+    `).join("");
+
+    list.innerHTML += `
+      <div class="card">
+        <div>
+          <b>${u.displayName}</b><br>
+          <div>${badges}</div>
         </div>
-      `;
-    });
+
+        <div>
+          <button onclick="edit('${id}')">✏️</button>
+          <button onclick="del('${id}')">🗑</button>
+        </div>
+      </div>
+    `;
+  });
 }
 
 /* OPEN ADD */
@@ -203,6 +231,17 @@ window.save = async function(){
 window.del = async function(id){
   if(confirm("Verwijderen?")){
     await remove(ref(db,"users/"+id));
+  }
+}
+  function roleColor(role){
+
+  switch(role){
+    case "admin": return "#c71f1f";
+    case "chauffeur": return "#1f6fc7";
+    case "brandweer": return "#2e7d32";
+    case "ambulancier": return "#6a1b9a";
+    case "duiker": return "#ef6c00";
+    default: return "#555";
   }
 }
 
