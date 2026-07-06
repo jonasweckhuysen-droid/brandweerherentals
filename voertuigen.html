@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voertuigenreservatie</title>
+<link rel="stylesheet" href="style.css">
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -16,14 +17,6 @@ body{
   background:#f4f4f4;
 }
 
-header{
-  background:#c71f1f;
-  color:#fff;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
 
 .container{
   max-width:700px;
@@ -81,8 +74,16 @@ button{
 
 <body>
 
-<header>
-  🚒 Voertuigenreservatie
+<header id="appHeader">
+  <div class="header-left">
+    <img src="logo.png" alt="Logo" class="header-logo">
+  </div>
+
+  <div class="header-right">
+    <div id="greeting" class="header-name"></div>
+    <div id="datetime"></div>
+    <div id="ploegOfWeek"></div>
+  </div>
 </header>
 
 <div class="container">
