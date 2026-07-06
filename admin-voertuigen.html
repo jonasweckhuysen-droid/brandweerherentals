@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voertuigen beheer</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f4f4;
+}
+
+header{
+  background:#c71f1f;
+  color:#fff;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.card{
+  background:#fff;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+small{
+  color:#666;
+}
+
+button{
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>🚒 Voertuigen</div>
+  <button onclick="back()">⬅ Back</button>
+</header>
+
+<div class="container">
+
+<label>Voertuig</label>
+<input id="vehicle" placeholder="bv. MUG01">
+
+<label>Datum</label>
+<input type="date" id="date">
+
+<label>Persoon</label>
+<select id="person"></select>
+
+<button onclick="add()">Reserveren</button>
+
+<div id="list"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  set,
+  remove
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const app = initializeApp({
+  databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+});
+
+const db = getDatabase(app);
+
+let users = {};
+let vehicles = {};
+
+const personEl = document.getElementById("person");
+const listEl = document.getElementById("list");
+
+/* USERS */
+onValue(ref(db,"users"), snap=>{
+  users = snap.val() || {};
+  fillUsers();
+});
+
+/* VEHICLES */
+onValue(ref(db,"voertuigen"), snap=>{
+  vehicles = snap.val() || {};
+  render();
+});
+
+/* FILL USERS */
+function fillUsers(){
+
+  personEl.innerHTML = "";
+
+  Object.keys(users)
+    .sort((a,b)=>users[a].displayName.localeCompare(users[b].displayName,"nl"))
+    .forEach(id=>{
+      personEl.innerHTML += `
+        <option value="${id}">
+          ${users[id].displayName}
+        </option>
+      `;
+    });
+}
+
+/* RENDER */
+function render(){
+
+  listEl.innerHTML = "";
+
+  Object.keys(vehicles).forEach(v=>{
+
+    const days = vehicles[v];
+
+    Object.keys(days).forEach(date=>{
+
+      Object.keys(days[date]).forEach(userId=>{
+
+        listEl.innerHTML += `
+          <div class="card">
+            <div>
+              <b>${v}</b><br>
+              <small>${date} - ${users[userId]?.displayName || userId}</small>
+            </div>
+
+            <button onclick="del('${v}','${date}','${userId}')">🗑</button>
+          </div>
+        `;
+      });
+
+    });
+
+  });
+}
+
+/* ADD */
+window.add = async function(){
+
+  const v = document.getElementById("vehicle").value;
+  const date = document.getElementById("date").value;
+  const user = document.getElementById("person").value;
+
+  if(!v || !date || !user) return;
+
+  await set(ref(db,"voertuigen/"+v+"/"+date+"/"+user),true);
+};
+
+/* DELETE */
+window.del = async function(v,date,user){
+
+  await remove(ref(db,"voertuigen/"+v+"/"+date+"/"+user));
+};
+
+/* BACK */
+window.back = function(){
+  window.location.href = "admin.html";
+};
+
+</script>
+
+</body>
+</html>
