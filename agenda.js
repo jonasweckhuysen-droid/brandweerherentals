@@ -49,11 +49,11 @@ async function googleSignIn() {
 }
 
 // -------------------- HELPERS --------------------
-function isFutureEvent(dateStr) {
+function isFutureEvent(dateStr){
     return new Date(dateStr) >= new Date();
 }
 
-// -------------------- AGENDA LOAD --------------------
+// -------------------- LOAD AGENDA --------------------
 async function loadAgenda() {
 
     loadingEl.textContent = "Even geduld…";
@@ -64,7 +64,7 @@ async function loadAgenda() {
         const fbSnapshot = await db.ref("reservations").once("value");
         const fbData = fbSnapshot.val() || {};
 
-        // 🧹 CLEANUP: oude Firebase events verwijderen
+        // 🧹 AUTOMATISCHE CLEANUP (verleden verwijderen)
         Object.entries(fbData).forEach(([key, event]) => {
             if (event.from && new Date(event.from) < new Date()) {
                 db.ref("reservations/" + key).remove();
@@ -74,21 +74,21 @@ async function loadAgenda() {
         const fbEvents = Object.keys(fbData).map(key => ({
             id: key,
             ...fbData[key],
-            source: 'firebase'
+            source: "firebase"
         }));
 
-        // 2️⃣ Google Calendar
+        // 2️⃣ Google Calendar ophalen
         await googleSignIn();
 
         const now = new Date().toISOString();
 
         const response = await gapi.client.calendar.events.list({
-            calendarId: 'primary',
+            calendarId: "primary",
             timeMin: now,
             showDeleted: false,
             singleEvents: true,
             maxResults: 50,
-            orderBy: 'startTime'
+            orderBy: "startTime"
         });
 
         const gcEvents = (response.result.items || []).map(e => ({
@@ -104,9 +104,7 @@ async function loadAgenda() {
         }));
 
         // 3️⃣ COMBINEREN + FILTEREN
-        const allEventsRaw = [...fbEvents, ...gcEvents];
-
-        const allEvents = allEventsRaw
+        const allEvents = [...fbEvents, ...gcEvents]
             .filter(e => e.from && isFutureEvent(e.from))
             .sort((a, b) => new Date(a.from) - new Date(b.from));
 
@@ -129,7 +127,7 @@ function renderAgenda(events) {
     todayEl.textContent =
         "Vandaag: " + new Date().toLocaleDateString("nl-BE");
 
-    if (events.length === 0) {
+    if (!events.length) {
         agendaEl.innerHTML = "<p>Geen komende events.</p>";
         return;
     }
@@ -151,7 +149,7 @@ function renderAgenda(events) {
 
                 ${e.purpose ? `<div><strong>Doel:</strong> ${e.purpose}</div>` : ""}
                 ${e.persons ? `<div><strong>Personen:</strong> ${e.persons}</div>` : ""}
-                ${e.source === 'firebase' ? `<div><strong>Status:</strong> ${e.status}</div>` : ""}
+                ${e.source === "firebase" ? `<div><strong>Status:</strong> ${e.status}</div>` : ""}
             </div>
         `;
 
