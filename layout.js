@@ -1,5 +1,5 @@
 fetch("header.html")
-.then(r => r.text())
-.then(html => {
-    document.getElementById("header-placeholder").innerHTML = html;
-});
+  .then(response => response.text())
+  .then(data => {
+    document.getElementById("header-placeholder").innerHTML = data;
+  });
