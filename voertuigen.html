@@ -7,6 +7,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
 
 <style>
 body{
@@ -72,7 +73,7 @@ button{
 
 .time{
   font-size:14px;
-  margin:4px 0;
+  margin:6px 0;
   color:#333;
 }
 </style>
@@ -113,32 +114,32 @@ button{
   <button id="submitBtn">Aanvraag indienen</button>
 </div>
 
-<!-- LIST -->
 <h3>Reservaties</h3>
 <div id="reservations"></div>
 
 </div>
 
 <script>
-  const messaging = firebase.messaging();
-/* ---------------- FIREBASE ---------------- */
-if (!firebase.apps.length) {
-  firebase.initializeApp({
-    apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
-    authDomain: "post-herentals.firebaseapp.com",
-    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "post-herentals",
-    storageBucket: "post-herentals.appspot.com",
-    messagingSenderId: "762725561089",
-    appId: "1:762725561089:web:38c46cc8cf44d624252100"
-  });
-}
+/* ---------------- FIREBASE INIT ---------------- */
+firebase.initializeApp({
+  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+  authDomain: "post-herentals.firebaseapp.com",
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "post-herentals",
+  storageBucket: "post-herentals.appspot.com",
+  messagingSenderId: "762725561089",
+  appId: "1:762725561089:web:38c46cc8cf44d624252100"
+});
 
 const db = firebase.database();
+const messaging = firebase.messaging();
+
+/* ---------------- USER ---------------- */
 const currentUser = localStorage.getItem("userName") || "Onbekend";
+
+/* ---------------- PUSH (voor later gebruik klaar) ---------------- */
 async function enableNotifications() {
   try {
-
     const permission = await Notification.requestPermission();
     if(permission !== "granted") return;
 
@@ -146,37 +147,39 @@ async function enableNotifications() {
       vapidKey: "JOUW_VAPID_KEY"
     });
 
-    const user = localStorage.getItem("userName") || "onbekend";
-
-    await db.ref("tokens/" + user).set({
-      token: token
+    await db.ref("tokens/" + currentUser).set({
+      token
     });
 
     console.log("Push token opgeslagen");
-
   } catch(err) {
     console.error("Push error:", err);
   }
 }
-
 enableNotifications();
 
-/* ---------------- FORMATTERS ---------------- */
-function formatDate(d){
-  const date = new Date(d);
-  return date.toLocaleDateString("nl-BE", {
-    weekday:"long",
+/* ---------------- FORMAT ---------------- */
+function formatDateTime(from, to){
+  const f = new Date(from);
+  const t = new Date(to);
+
+  const optionsDate = {
+    weekday:"short",
     day:"2-digit",
     month:"long",
     year:"numeric"
-  });
-}
+  };
 
-function formatTime(d){
-  return new Date(d).toLocaleTimeString("nl-BE", {
+  const optionsTime = {
     hour:"2-digit",
     minute:"2-digit"
-  });
+  };
+
+  return `
+    📅 ${f.toLocaleDateString("nl-BE", optionsDate)}<br>
+    🕒 ${f.toLocaleTimeString("nl-BE", optionsTime)}
+    → ${t.toLocaleTimeString("nl-BE", optionsTime)}
+  `;
 }
 
 /* ---------------- SUBMIT ---------------- */
@@ -245,8 +248,7 @@ db.ref("reservations").on("value", snap => {
         <b>🚗 ${r.vehicle}</b><br>
 
         <div class="time">
-          📅 ${formatDate(r.from)}<br>
-          🕒 ${formatTime(r.from)} → ${formatTime(r.to)}
+          ${formatDateTime(r.from, r.to)}
         </div>
 
         👤 ${r.user}<br>
