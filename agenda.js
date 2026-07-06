@@ -1,22 +1,28 @@
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 const isAdmin = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"].includes(currentUser);
+
 const agendaEl = document.getElementById("agenda");
 const todayEl = document.getElementById("today");
 const loadingEl = document.getElementById("agenda-loading");
 
 // -------------------- DATETIME --------------------
 setInterval(() => {
-  document.getElementById("datetime").textContent = new Date().toLocaleString("nl-BE");
+    document.getElementById("datetime").textContent =
+        new Date().toLocaleString("nl-BE");
 }, 1000);
 
 // -------------------- FIREBASE --------------------
-const firebaseConfig = { databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/" };
+const firebaseConfig = {
+    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // -------------------- GOOGLE API --------------------
 let gapiInited = false;
 let gapiAuthInstance = null;
+
 function initGapi() {
     gapi.load('client:auth2', async () => {
         await gapi.client.init({
@@ -25,31 +31,57 @@ function initGapi() {
             discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
             scope: "https://www.googleapis.com/auth/calendar.readonly"
         });
+
         gapiAuthInstance = gapi.auth2.getAuthInstance();
         gapiInited = true;
-        loadAgenda(); // start laden na init
+
+        loadAgenda();
     });
 }
+
 initGapi();
 
 async function googleSignIn() {
-    if(!gapiInited) return alert("Google API nog niet geladen");
-    if(!gapiAuthInstance.isSignedIn.get()) await gapiAuthInstance.signIn();
+    if (!gapiInited) return alert("Google API nog niet geladen");
+    if (!gapiAuthInstance.isSignedIn.get()) {
+        await gapiAuthInstance.signIn();
+    }
 }
 
-// -------------------- COMBINED AGENDA --------------------
+// -------------------- HELPERS --------------------
+function isFutureEvent(dateStr) {
+    return new Date(dateStr) >= new Date();
+}
+
+// -------------------- AGENDA LOAD --------------------
 async function loadAgenda() {
+
     loadingEl.textContent = "Even geduld…";
 
     try {
-        // 1️⃣ Firebase events
+
+        // 1️⃣ Firebase ophalen
         const fbSnapshot = await db.ref("reservations").once("value");
         const fbData = fbSnapshot.val() || {};
-        const fbEvents = Object.keys(fbData).map(key => ({ id: key, ...fbData[key], source: 'firebase' }));
 
-        // 2️⃣ Google Calendar events
+        // 🧹 CLEANUP: oude Firebase events verwijderen
+        Object.entries(fbData).forEach(([key, event]) => {
+            if (event.from && new Date(event.from) < new Date()) {
+                db.ref("reservations/" + key).remove();
+            }
+        });
+
+        const fbEvents = Object.keys(fbData).map(key => ({
+            id: key,
+            ...fbData[key],
+            source: 'firebase'
+        }));
+
+        // 2️⃣ Google Calendar
         await googleSignIn();
+
         const now = new Date().toISOString();
+
         const response = await gapi.client.calendar.events.list({
             calendarId: 'primary',
             timeMin: now,
@@ -58,6 +90,7 @@ async function loadAgenda() {
             maxResults: 50,
             orderBy: 'startTime'
         });
+
         const gcEvents = (response.result.items || []).map(e => ({
             id: e.id,
             summary: e.summary,
@@ -70,38 +103,58 @@ async function loadAgenda() {
             source: "google"
         }));
 
-        // 3️⃣ Combine & sort
-        const allEvents = [...fbEvents, ...gcEvents].sort((a,b)=> new Date(a.from) - new Date(b.from));
+        // 3️⃣ COMBINEREN + FILTEREN
+        const allEventsRaw = [...fbEvents, ...gcEvents];
+
+        const allEvents = allEventsRaw
+            .filter(e => e.from && isFutureEvent(e.from))
+            .sort((a, b) => new Date(a.from) - new Date(b.from));
 
         renderAgenda(allEvents);
 
-    } catch(err) {
+    } catch (err) {
         console.error("⚠️ Fout bij laden agenda:", err);
-        document.getElementById("agenda-error").textContent = "Fout bij laden agenda. Controleer console.";
+        document.getElementById("agenda-error").textContent =
+            "Fout bij laden agenda. Controleer console.";
         loadingEl.style.display = "none";
     }
 }
 
 // -------------------- RENDER --------------------
-function renderAgenda(events){
+function renderAgenda(events) {
+
     agendaEl.innerHTML = "";
     loadingEl.style.display = "none";
-    todayEl.textContent = "Vandaag: " + new Date().toLocaleDateString("nl-BE");
+
+    todayEl.textContent =
+        "Vandaag: " + new Date().toLocaleDateString("nl-BE");
+
+    if (events.length === 0) {
+        agendaEl.innerHTML = "<p>Geen komende events.</p>";
+        return;
+    }
 
     events.forEach(e => {
+
         const card = document.createElement("div");
         card.className = "card";
+
         card.innerHTML = `
-            <div class="card-header"><h3>${e.summary || e.vehicle}</h3></div>
+            <div class="card-header">
+                <h3>${e.summary || e.vehicle || "Onbekend"}</h3>
+            </div>
+
             <div class="card-body">
                 <div><strong>Van:</strong> ${new Date(e.from).toLocaleString("nl-BE")}</div>
                 <div><strong>Tot:</strong> ${new Date(e.to).toLocaleString("nl-BE")}</div>
                 <div><strong>Door:</strong> ${e.user}</div>
+
                 ${e.purpose ? `<div><strong>Doel:</strong> ${e.purpose}</div>` : ""}
                 ${e.persons ? `<div><strong>Personen:</strong> ${e.persons}</div>` : ""}
-                ${e.source==='firebase' ? `<div><strong>Status:</strong> ${e.status}</div>` : ""}
+                ${e.source === 'firebase' ? `<div><strong>Status:</strong> ${e.status}</div>` : ""}
             </div>
         `;
+
         agendaEl.appendChild(card);
     });
 }
