@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brandweer Herentals — Admin</title>
+
+<link rel="stylesheet" href="admin.css">
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f4f4f4;
+}
+
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  background:#c71f1f;
+  color:#fff;
+}
+
+header img{
+  height:55px;
+}
+
+/* CONTENT */
+.container{
+  padding:20px;
+  max-width:1100px;
+  margin:auto;
+}
+
+h1{
+  margin:20px 0;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:16px;
+}
+
+/* CARDS */
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:translateY(-2px);
+}
+
+.card h2{
+  margin:0;
+  font-size:18px;
+}
+
+.card p{
+  margin:6px 0 0;
+  color:#666;
+}
+
+/* FOOTER */
+footer{
+  text-align:center;
+  padding:12px;
+  color:#666;
+  font-size:13px;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+  <img src="logo.png" alt="logo">
+  <div>
+    <div id="greeting">Goedemorgen</div>
+    <small id="date"></small>
+  </div>
+</header>
+
+<div class="container">
+
+  <h1>Administratie</h1>
+
+  <div class="grid">
+
+    <div class="card" onclick="go('users')">
+      <h2>👥 Personeel</h2>
+      <p>Beheer gebruikers, rollen en toegang</p>
+    </div>
+
+    <div class="card" onclick="go('agenda')">
+      <h2>📅 Agenda</h2>
+      <p>Beheer planning en events</p>
+    </div>
+
+    <div class="card" onclick="go('permanentie')">
+      <h2>🚒 Permanenties</h2>
+      <p>Overzicht en beheer permanenties</p>
+    </div>
+
+    <div class="card" onclick="go('instellingen')">
+      <h2>⚙ Instellingen</h2>
+      <p>Systeeminstellingen en configuratie</p>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Versie Admin 1.0
+</footer>
+
+<script>
+function go(page){
+  alert("Volgende stap bouwen we: " + page);
+}
+
+function updateDate(){
+  const now = new Date();
+  document.getElementById("date").innerText =
+    now.toLocaleDateString("nl-BE") + " " + now.toLocaleTimeString("nl-BE",{hour:'2-digit',minute:'2-digit'});
+}
+
+function greeting(){
+  const h = new Date().getHours();
+  let g = "Goedemorgen";
+  if(h >= 12 && h < 18) g = "Goedemiddag";
+  if(h >= 18) g = "Goedenavond";
+  document.getElementById("greeting").innerText = g;
+}
+
+greeting();
+updateDate();
+setInterval(updateDate, 1000);
+</script>
+
+</body>
+</html>
