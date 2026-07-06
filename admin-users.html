@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personeel beheer</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f4f4;
+}
+
+header{
+  background:#c71f1f;
+  color:#fff;
+  padding:12px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
+
+.searchbar{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+input{
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+button{
+  padding:12px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#c71f1f;
+  color:#fff;
+  font-weight:bold;
+}
+
+.card{
+  background:#fff;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.roles{
+  font-size:12px;
+  color:#666;
+  margin-top:4px;
+}
+
+.actions button{
+  margin-left:6px;
+  background:#333;
+}
+
+.actions button.delete{
+  background:#a30000;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+  <div>👥 Personeel beheer</div>
+  <div><button onclick="goBack()">← Terug</button></div>
+</header>
+
+<div class="container">
+
+  <div class="searchbar">
+    <input id="search" placeholder="Zoek personeelslid..." oninput="render()">
+    <button onclick="addUser()">+ Nieuw</button>
+  </div>
+
+  <div id="list"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+/* 🔥 JOUW FIREBASE */
+const firebaseConfig = {
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let users = {};
+
+const listEl = document.getElementById("list");
+const searchEl = document.getElementById("search");
+
+/* LIVE DATA */
+const usersRef = ref(db, "users");
+
+onValue(usersRef, (snapshot) => {
+  users = snapshot.val() || {};
+  render();
+});
+
+/* RENDER LIST */
+function render(){
+  const search = searchEl.value.toLowerCase();
+  listEl.innerHTML = "";
+
+  Object.keys(users)
+    .filter(k => (users[k].displayName || "").toLowerCase().includes(search))
+    .sort((a,b)=> (users[a].displayName || "").localeCompare(users[b].displayName || ""))
+    .forEach(id => {
+
+      const u = users[id];
+
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <div>
+          <strong>${u.displayName}</strong>
+          <div class="roles">
+            ${(u.roles ? Object.keys(u.roles).join(" • ") : "Geen rollen")}
+          </div>
+        </div>
+
+        <div class="actions">
+          <button onclick="editUser('${id}')">✏️</button>
+          <button class="delete" onclick="deleteUser('${id}')">🗑</button>
+        </div>
+      `;
+
+      listEl.appendChild(div);
+    });
+}
+
+/* DELETE */
+window.deleteUser = async function(id){
+  if(!confirm("Verwijderen?")) return;
+  await remove(ref(db, "users/" + id));
+}
+
+/* PLACEHOLDERS (Stap 3) */
+window.editUser = function(id){
+  alert("Stap 3: hier komt edit popup voor " + users[id].displayName);
+}
+
+window.addUser = function(){
+  alert("Stap 3: nieuwe gebruiker toevoegen");
+}
+
+window.goBack = function(){
+  window.location.href = "admin.html";
+}
+
+</script>
+
+</body>
+</html>
