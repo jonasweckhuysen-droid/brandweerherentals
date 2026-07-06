@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#c71f1f;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+}
+
+.box{
+  background:white;
+  color:black;
+  padding:20px;
+  border-radius:12px;
+  width:300px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  background:#c71f1f;
+  color:white;
+  border:none;
+  border-radius:8px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="box">
+  <h2>Brandweer Login</h2>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Wachtwoord">
+
+  <button onclick="login()">Login</button>
+
+  <p id="error" style="color:red"></p>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/",
+  apiKey: "YOUR_API_KEY"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.login = async function(){
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "admin.html";
+  } catch(e){
+    document.getElementById("error").innerText = "Login mislukt";
+  }
+};
+
+</script>
+
+</body>
+</html>
