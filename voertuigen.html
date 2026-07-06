@@ -95,13 +95,6 @@ const currentUser = localStorage.getItem("userName") || "Onbekend";
 const admins = ["Jonas Weckhuysen","Patrick Van Hove","Danny Van den Bergh"];
 const isAdmin = admins.includes(currentUser);
 
-/* ---------------- FIREBASE ---------------- */
-const firebaseConfig = {
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
 
 /* ---------------- HELPERS ---------------- */
 function isOverlapping(vehicle, from, to, reservations){
@@ -121,17 +114,26 @@ function isOverlapping(vehicle, from, to, reservations){
   });
 }
 
-/* ---------------- SUBMIT ---------------- */
+/* ---------------- SUBMIT + firebase ---------------- */
+const firebaseConfig = {
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 document.getElementById("submitBtn").addEventListener("click", async () => {
 
   const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
+
   const fromVal = document.getElementById("from").value;
   const toVal = document.getElementById("to").value;
+
   const purposeVal = document.getElementById("purpose").value;
   const personsVal = document.getElementById("persons").value;
 
   if(!fromVal || !toVal){
-    alert("Vul alle datums in");
+    alert("Vul alle velden in");
     return;
   }
 
@@ -140,17 +142,8 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
-  const snap = await db.ref("reservations").once("value");
-  const existing = snap.val() || {};
-
-  // 🔥 CONFLICT CHECK
-  if(isOverlapping(vehicle, fromVal, toVal, existing)){
-    alert("⚠️ Dit voertuig is al gereserveerd in deze periode");
-    return;
-  }
-
   const r = {
-    user: currentUser,
+    user: localStorage.getItem("userName") || "Onbekend",
     vehicle,
     from: fromVal,
     to: toVal,
@@ -163,16 +156,16 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   try {
     await db.ref("reservations").push(r);
 
-    alert("Aanvraag ingediend");
+    alert("Aanvraag verstuurd");
 
     document.getElementById("from").value = "";
     document.getElementById("to").value = "";
     document.getElementById("purpose").value = "";
     document.getElementById("persons").value = "";
 
-  } catch(err){
-    console.error(err);
-    alert("Fout bij opslaan");
+  } catch(e){
+    console.error(e);
+    alert("Firebase fout");
   }
 });
 
