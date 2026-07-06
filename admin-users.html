@@ -6,44 +6,75 @@
 <title>Personeel beheer</title>
 
 <style>
-body{font-family:Arial;margin:0;background:#f4f4f4}
-header{background:#c71f1f;color:#fff;padding:12px}
-.container{max-width:900px;margin:auto;padding:15px}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f4f4;
+}
+
+header{
+  background:#c71f1f;
+  color:#fff;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:15px;
+}
 
 input{
-  width:100%;padding:10px;margin:10px 0;
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 
 .card{
-  background:#fff;padding:12px;margin-bottom:10px;
-  border-radius:10px;display:flex;justify-content:space-between;
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
   align-items:center;
+}
+
+.roles{
+  font-size:12px;
+  color:#666;
 }
 
 button{
-  padding:8px 10px;
+  padding:6px 10px;
+  margin-left:5px;
   border:none;
   border-radius:6px;
   cursor:pointer;
-  margin-left:5px;
 }
 
-#modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,0.6);
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
   display:none;
-  align-items:center;
   justify-content:center;
+  align-items:center;
 }
 
-.modal-box{
+.box{
   background:#fff;
   padding:15px;
-  border-radius:12px;
+  border-radius:10px;
   width:300px;
 }
 
-.role-list label{
+.role-item{
   display:block;
   margin:4px 0;
 }
@@ -52,11 +83,14 @@ button{
 
 <body>
 
-<header>👥 Personeel beheer</header>
+<header>
+  <div>👥 Personeel</div>
+  <button onclick="back()">⬅ Back</button>
+</header>
 
 <div class="container">
 
-<input id="search" placeholder="Zoek..." oninput="render()">
+<input id="search" placeholder="Zoek persoon..." oninput="render()">
 
 <button onclick="openModal()">+ Nieuw</button>
 
@@ -65,14 +99,14 @@ button{
 </div>
 
 <!-- MODAL -->
-<div id="modal">
-  <div class="modal-box">
+<div class="modal" id="modal">
+  <div class="box">
 
     <h3 id="title">Personeel</h3>
 
     <input id="name" placeholder="Naam">
 
-    <div class="role-list" id="roles"></div>
+    <div id="roles"></div>
 
     <br>
 
@@ -86,7 +120,11 @@ button{
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getDatabase, ref, onValue, set, remove
+  getDatabase,
+  ref,
+  onValue,
+  set,
+  remove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const app = initializeApp({
@@ -103,6 +141,7 @@ const ROLES = [
   "chauffeur",
   "ambulancier",
   "duiker",
+  "officier",
   "admin"
 ];
 
@@ -118,60 +157,38 @@ function render(){
 
   const s = document.getElementById("search").value.toLowerCase();
   const list = document.getElementById("list");
+
   list.innerHTML = "";
 
-  let filtered = Object.keys(users)
-    .filter(id => users[id].displayName.toLowerCase().includes(s))
+  Object.keys(users)
+    .filter(id =>
+      users[id].displayName.toLowerCase().includes(s)
+    )
     .sort((a,b)=>
       users[a].displayName.localeCompare(users[b].displayName,"nl")
-    );
+    )
+    .forEach(id=>{
 
-  if(filtered.length === 0){
-    list.innerHTML = `
-      <div style="padding:15px;text-align:center;color:#666">
-        Geen resultaten gevonden
-      </div>
-    `;
-    return;
-  }
+      const u = users[id];
+      const roles = u.roles ? Object.keys(u.roles).join(", ") : "";
 
-  filtered.forEach(id=>{
+      list.innerHTML += `
+        <div class="card">
+          <div>
+            <b>${u.displayName}</b><br>
+            <div class="roles">${roles}</div>
+          </div>
 
-    const u = users[id];
-
-    const roles = u.roles
-      ? Object.keys(u.roles)
-      : [];
-
-    const badges = roles.map(r=>`
-      <span style="
-        display:inline-block;
-        padding:2px 8px;
-        margin:2px;
-        border-radius:10px;
-        font-size:12px;
-        background:${roleColor(r)};
-        color:white;
-      ">${r}</span>
-    `).join("");
-
-    list.innerHTML += `
-      <div class="card">
-        <div>
-          <b>${u.displayName}</b><br>
-          <div>${badges}</div>
+          <div>
+            <button onclick="edit('${id}')">✏️</button>
+            <button onclick="del('${id}')">🗑</button>
+          </div>
         </div>
-
-        <div>
-          <button onclick="edit('${id}')">✏️</button>
-          <button onclick="del('${id}')">🗑</button>
-        </div>
-      </div>
-    `;
-  });
+      `;
+    });
 }
 
-/* OPEN ADD */
+/* OPEN */
 window.openModal = function(data={}){
 
   editId = data.id || null;
@@ -184,7 +201,7 @@ window.openModal = function(data={}){
     const checked = data.roles?.[r];
 
     rolesDiv.innerHTML += `
-      <label>
+      <label class="role-item">
         <input type="checkbox" value="${r}" ${checked?"checked":""}>
         ${r}
       </label>
@@ -192,19 +209,19 @@ window.openModal = function(data={}){
   });
 
   modal.style.display = "flex";
-}
+};
 
 /* CLOSE */
 window.closeModal = function(){
   modal.style.display = "none";
-}
+};
 
 /* EDIT */
 window.edit = function(id){
   const u = users[id];
   u.id = id;
   openModal(u);
-}
+};
 
 /* SAVE */
 window.save = async function(){
@@ -213,37 +230,31 @@ window.save = async function(){
   if(!name) return;
 
   const roles = {};
-  document.querySelectorAll(".role-list input:checked")
+  document.querySelectorAll(".role-item input:checked")
     .forEach(i=>roles[i.value]=true);
 
   const id = editId || name.toLowerCase().replace(/\s/g,"_");
 
   await set(ref(db,"users/"+id),{
     displayName:name,
-    permanentieCount:users[id]?.permanentieCount || 0,
-    roles:roles
+    roles:roles,
+    permanentieCount:users[id]?.permanentieCount || 0
   });
 
   closeModal();
-}
+};
 
 /* DELETE */
 window.del = async function(id){
   if(confirm("Verwijderen?")){
     await remove(ref(db,"users/"+id));
   }
-}
-  function roleColor(role){
+};
 
-  switch(role){
-    case "admin": return "#c71f1f";
-    case "chauffeur": return "#1f6fc7";
-    case "brandweer": return "#2e7d32";
-    case "ambulancier": return "#6a1b9a";
-    case "duiker": return "#ef6c00";
-    default: return "#555";
-  }
-}
+/* BACK */
+window.back = function(){
+  window.location.href = "admin.html";
+};
 
 </script>
 
