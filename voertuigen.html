@@ -120,6 +120,7 @@ button{
 </div>
 
 <script>
+  const messaging = firebase.messaging();
 /* ---------------- FIREBASE ---------------- */
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -135,6 +136,30 @@ if (!firebase.apps.length) {
 
 const db = firebase.database();
 const currentUser = localStorage.getItem("userName") || "Onbekend";
+async function enableNotifications() {
+  try {
+
+    const permission = await Notification.requestPermission();
+    if(permission !== "granted") return;
+
+    const token = await messaging.getToken({
+      vapidKey: "JOUW_VAPID_KEY"
+    });
+
+    const user = localStorage.getItem("userName") || "onbekend";
+
+    await db.ref("tokens/" + user).set({
+      token: token
+    });
+
+    console.log("Push token opgeslagen");
+
+  } catch(err) {
+    console.error("Push error:", err);
+  }
+}
+
+enableNotifications();
 
 /* ---------------- FORMATTERS ---------------- */
 function formatDate(d){
