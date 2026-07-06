@@ -116,80 +116,74 @@ footer{
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import {
   getDatabase,
   ref,
   onValue
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* 🔥 FIREBASE */
+/* FIREBASE */
 const app = initializeApp({
   databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
 });
 
-const auth = getAuth(app);
 const db = getDatabase(app);
 
-/* 🔐 AUTH CHECK */
-onAuthStateChanged(auth, (user)=>{
+/* GET USER FROM PORTAL LOGIN */
+const storedUser = localStorage.getItem("userName");
 
-  if(!user){
-    window.location.href = "login.html";
+let users = {};
+
+/* LOAD USERS */
+onValue(ref(db,"users"), snap=>{
+  users = snap.val() || {};
+  checkAccess();
+});
+
+/* CHECK ACCESS */
+function checkAccess(){
+
+  if(!storedUser){
+    document.body.innerHTML = "<h2>Geen login</h2>";
     return;
   }
 
-  checkAdmin(user.email);
-});
+  const current = users[storedUser];
 
-/* 👤 ADMIN CHECK */
-function checkAdmin(email){
+  if(!current){
+    document.body.innerHTML = "<h2>User niet gevonden</h2>";
+    return;
+  }
 
-  onValue(ref(db,"users"), snap=>{
+  if(!current.roles?.admin){
+    document.body.innerHTML = "<h2>Geen admin rechten</h2>";
+    return;
+  }
 
-    const users = snap.val() || {};
-
-    const current = Object.values(users)
-      .find(u => u.email === email);
-
-    if(!current){
-      document.body.innerHTML = "<h2>Geen toegang</h2>";
-      return;
-    }
-
-    if(!current.roles?.admin){
-      document.body.innerHTML = "<h2>Geen admin rechten</h2>";
-      return;
-    }
-
-    startApp();
-  });
+  startApp();
 }
 
-/* 🚀 START DASHBOARD */
+/* START */
 function startApp(){
   greeting();
   updateDate();
   setInterval(updateDate, 60000);
 }
 
-/* NAVIGATIE */
+/* NAVIGATION */
 window.go = function(page){
 
   const routes = {
     users: "admin-users.html",
     agenda: "admin-agenda.html",
     permanentie: "admin-permanentie.html",
+    voertuigen: "admin-voertuigen.html",
     instellingen: "admin-settings.html"
   };
 
   if(routes[page]){
     window.location.href = routes[page];
   } else {
-    alert("Pagina nog niet gebouwd: " + page);
+    alert("Nog niet gebouwd: " + page);
   }
 };
 
@@ -204,12 +198,11 @@ function updateDate(){
 function greeting(){
   const h = new Date().getHours();
   let g = "Goedemorgen";
-  if(h >= 12 && h < 18) g = "Goedemiddag";
+  if(h >= 12) g = "Goedemiddag";
   if(h >= 18) g = "Goedenavond";
   document.getElementById("greeting").innerText = g;
 }
 
 </script>
-
 </body>
 </html>
