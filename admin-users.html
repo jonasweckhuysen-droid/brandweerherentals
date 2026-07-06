@@ -63,68 +63,87 @@ button{
   inset:0;
   background:rgba(0,0,0,0.6);
   display:none;
-  justify-content:flex-end;
+  justify-content:center;
+  align-items:flex-end;
 }
 
-/* MOBILE SHEET STYLE */
 .box{
   background:#fff;
   width:100%;
-  max-height:90vh;
+  max-width:520px;
+  max-height:92vh;
   border-radius:16px 16px 0 0;
   padding:16px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:12px;
   overflow:hidden;
 }
 
-/* TITLE FIX */
+/* TITEL */
 .box h3{
   margin:0;
   text-align:center;
+  font-size:18px;
 }
 
-/* INPUT FIX */
+/* INPUTS */
 .box input{
   width:100%;
   padding:12px;
   font-size:16px;
   border-radius:10px;
   border:1px solid #ccc;
+  box-sizing:border-box;
 }
 
-/* ROLES SCROLL AREA */
+/* ROLES GRID */
 #roles{
   flex:1;
   overflow-y:auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
   padding:10px;
   border:1px solid #eee;
   border-radius:10px;
   background:#fafafa;
 }
 
-/* ROLE ITEM MOBILE SPACING */
+/* ROLE ITEM STRAK */
 .role-item{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
   padding:8px;
-  font-size:15px;
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:8px;
+  font-size:14px;
 }
 
-/* BUTTON AREA FIXED BOTTOM */
+/* BUTTONS FIXED AREA */
 .modal-actions{
-  display:flex;
+  display:grid;
+  grid-template-columns:1fr 1fr;
   gap:10px;
-  margin-top:10px;
 }
 
 .modal-actions button{
-  flex:1;
   padding:12px;
-  font-size:16px;
+  font-size:15px;
+  border:none;
   border-radius:10px;
+  cursor:pointer;
+}
+
+.modal-actions button:first-child{
+  background:#c71f1f;
+  color:#fff;
+}
+
+.modal-actions button:last-child{
+  background:#ddd;
 }
 </style>
 </head>
@@ -185,7 +204,7 @@ let editId = null;
 
 const ROLES = [
   "brandweer",
-  "bevelvoerde",
+  "bevelvoerder",
   "officier",
   "chauffeur",
   "ambulancier",
