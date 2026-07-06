@@ -59,6 +59,16 @@ if (!firebase.apps.length) {
 }
 
 const db = firebase.database();
+  const firebaseConfig = {
+  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+  authDomain: "post-herentals.firebaseapp.com",
+  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "post-herentals",
+  storageBucket: "post-herentals.firebasestorage.app",
+  messagingSenderId: "762725561089",
+  appId: "1:762725561089:web:38c46cc8cf44d624252100",
+  measurementId: "G-C2FWECFEQX"
+};
 
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 
@@ -99,10 +109,10 @@ document.getElementById("submitBtn").onclick = async () => {
     document.getElementById("purpose").value = "";
     document.getElementById("persons").value = "";
 
-  } catch (e) {
-    console.error(e);
-    alert("Firebase fout");
-  }
+catch (e) {
+  console.error("Firebase fout:", e);
+  alert("Firebase fout:\n" + e.message);
+}
 };
 
 /* LIVE DATA */
