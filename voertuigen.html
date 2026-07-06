@@ -9,99 +9,180 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
-body { font-family: sans-serif; margin:0; }
-.container { max-width:600px; margin:auto; padding:10px; }
-.card { padding:10px; background:#f5f5f5; margin-bottom:10px; border-radius:8px; }
-input, button { width:100%; padding:10px; margin:6px 0; }
-button { background:#c71f1f; color:#fff; border:none; }
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f4f4;
+}
+
+header{
+  background:#c71f1f;
+  color:#fff;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.container{
+  max-width:700px;
+  margin:auto;
+  padding:12px;
+}
+
+.card{
+  background:#fff;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+input, button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button{
+  background:#c71f1f;
+  color:#fff;
+  border:none;
+  font-weight:bold;
+}
+
+.vehicle-options label{
+  display:block;
+  margin:4px 0;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  margin-top:4px;
+}
+
+.wait{ background:#f1c40f; }
+.ok{ background:#2ecc71; color:#fff; }
+.no{ background:#e74c3c; color:#fff; }
+
+.time{
+  font-size:14px;
+  margin:4px 0;
+  color:#333;
+}
 </style>
 </head>
 
 <body>
 
+<header>
+  🚒 Voertuigenreservatie
+</header>
+
 <div class="container">
 
-<h2>🚒 Voertuigenreservatie</h2>
-
+<!-- FORM -->
 <div class="card">
+  <h3>Nieuwe aanvraag</h3>
 
-<label>Voertuig</label>
-<label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
-<label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
+  <label>Voertuig</label>
+  <div class="vehicle-options">
+    <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
+    <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
+    <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
+    <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
+  </div>
 
-<label>Van</label>
-<input type="datetime-local" id="from">
+  <label>Van</label>
+  <input type="datetime-local" id="from">
 
-<label>Tot</label>
-<input type="datetime-local" id="to">
+  <label>Tot</label>
+  <input type="datetime-local" id="to">
 
-<label>Doel</label>
-<input type="text" id="purpose">
+  <label>Doel</label>
+  <input type="text" id="purpose">
 
-<label>Aantal personen</label>
-<input type="number" id="persons">
+  <label>Aantal personen</label>
+  <input type="number" id="persons">
 
-<button id="submitBtn">Aanvraag indienen</button>
-
+  <button id="submitBtn">Aanvraag indienen</button>
 </div>
 
+<!-- LIST -->
 <h3>Reservaties</h3>
 <div id="reservations"></div>
 
 </div>
 
 <script>
-/* SAFE INIT */
+/* ---------------- FIREBASE ---------------- */
 if (!firebase.apps.length) {
   firebase.initializeApp({
-    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+    apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+    authDomain: "post-herentals.firebaseapp.com",
+    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "post-herentals",
+    storageBucket: "post-herentals.appspot.com",
+    messagingSenderId: "762725561089",
+    appId: "1:762725561089:web:38c46cc8cf44d624252100"
   });
 }
 
 const db = firebase.database();
-  const firebaseConfig = {
-  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
-  authDomain: "post-herentals.firebaseapp.com",
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "post-herentals",
-  storageBucket: "post-herentals.firebasestorage.app",
-  messagingSenderId: "762725561089",
-  appId: "1:762725561089:web:38c46cc8cf44d624252100",
-  measurementId: "G-C2FWECFEQX"
-};
-
 const currentUser = localStorage.getItem("userName") || "Onbekend";
 
-/* SUBMIT */
+/* ---------------- FORMATTERS ---------------- */
+function formatDate(d){
+  const date = new Date(d);
+  return date.toLocaleDateString("nl-BE", {
+    weekday:"long",
+    day:"2-digit",
+    month:"long",
+    year:"numeric"
+  });
+}
+
+function formatTime(d){
+  return new Date(d).toLocaleTimeString("nl-BE", {
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
+/* ---------------- SUBMIT ---------------- */
 document.getElementById("submitBtn").onclick = async () => {
 
   const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
   const from = document.getElementById("from").value;
   const to = document.getElementById("to").value;
 
-  if (!from || !to) {
-    alert("Vul tijden in");
+  if(!from || !to){
+    alert("Vul alle velden in");
     return;
   }
 
-  if (new Date(from) >= new Date(to)) {
-    alert("Einde moet na start zijn");
+  if(new Date(from) >= new Date(to)){
+    alert("Eindtijd moet na starttijd liggen");
     return;
   }
-
-  const r = {
-    user: currentUser,
-    vehicle,
-    from,
-    to,
-    purpose: document.getElementById("purpose").value,
-    persons: document.getElementById("persons").value,
-    status: "In afwachting",
-    timestamp: Date.now()
-  };
 
   try {
-    await db.ref("reservations").push(r);
+    await db.ref("reservations").push({
+      user: currentUser,
+      vehicle,
+      from,
+      to,
+      purpose: document.getElementById("purpose").value,
+      persons: document.getElementById("persons").value,
+      status: "In afwachting",
+      timestamp: Date.now()
+    });
+
     alert("Aanvraag verstuurd");
 
     document.getElementById("from").value = "";
@@ -109,13 +190,13 @@ document.getElementById("submitBtn").onclick = async () => {
     document.getElementById("purpose").value = "";
     document.getElementById("persons").value = "";
 
-catch (e) {
-  console.error("Firebase fout:", e);
-  alert("Firebase fout:\n" + e.message);
-}
+  } catch(e){
+    console.error(e);
+    alert("Firebase fout: " + e.message);
+  }
 };
 
-/* LIVE DATA */
+/* ---------------- LIVE DATA ---------------- */
 db.ref("reservations").on("value", snap => {
 
   const data = snap.val() || {};
@@ -123,22 +204,37 @@ db.ref("reservations").on("value", snap => {
 
   list.innerHTML = "";
 
-  Object.keys(data).forEach(id => {
+  Object.keys(data)
+    .map(id => ({ id, ...data[id] }))
+    .sort((a,b) => new Date(a.from) - new Date(b.from))
+    .forEach(r => {
 
-    const r = data[id];
+      let badgeClass = "wait";
+      if(r.status === "Goedgekeurd") badgeClass = "ok";
+      if(r.status === "Afgekeurd") badgeClass = "no";
 
-    const div = document.createElement("div");
-    div.className = "card";
+      const div = document.createElement("div");
+      div.className = "card";
 
-    div.innerHTML = `
-      <b>${r.vehicle}</b><br>
-      ${r.from} → ${r.to}<br>
-      ${r.user}<br>
-      Status: ${r.status}
-    `;
+      div.innerHTML = `
+        <b>🚗 ${r.vehicle}</b><br>
 
-    list.appendChild(div);
-  });
+        <div class="time">
+          📅 ${formatDate(r.from)}<br>
+          🕒 ${formatTime(r.from)} → ${formatTime(r.to)}
+        </div>
+
+        👤 ${r.user}<br>
+        🎯 ${r.purpose || "-"}<br>
+        👥 ${r.persons || "-"} personen<br>
+
+        <span class="badge ${badgeClass}">
+          ${r.status}
+        </span>
+      `;
+
+      list.appendChild(div);
+    });
 });
 </script>
 
