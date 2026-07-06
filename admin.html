@@ -138,8 +138,27 @@ onAuthStateChanged(auth, (user)=>{
     return;
   }
 
-  loadUserData(user.email);
-});
+  function loadUserData(email){
+
+  onValue(ref(db,"users"), snap=>{
+
+    users = snap.val() || {};
+
+    const current = Object.values(users)
+      .find(u => u.email === email);
+
+    if(!current){
+      document.body.innerHTML = "Geen toegang";
+      return;
+    }
+
+    if(!current.roles?.admin){
+      document.body.innerHTML = "Geen admin rechten";
+      return;
+    }
+
+    render();
+  });
 function go(page){
   alert("Volgende stap bouwen we: " + page);
 }
