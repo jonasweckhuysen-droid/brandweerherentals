@@ -1,224 +1,565 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Duiker — Brandweer Herentals</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      background: #111;
-      color: white;
-      font-family: sans-serif;
-    }
-    .duik-card {
-      background: #222;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-left: 5px solid #0b5ed7;
-    }
-    .duiker-rij {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid #333;
-    }
-    .duiker-naam {
-      font-weight: bold;
-    }
-    .duiker-functie {
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-    .status-btn {
-      padding: 4px 8px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      min-width: 70px;
-    }
-    .status-onbekend { background: #7f8c8d; color: white; }
-    .status-yes { background: #2ecc71; color: white; }
-    .status-no { background: #e74c3c; color: white; }
-  </style>
+<title>Duiker — Brandweer Herentals</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+.duik-card{
+  background:#fff;
+  border-radius:14px;
+  padding:15px;
+  margin-bottom:15px;
+  box-shadow:0 3px 8px rgba(0,0,0,.08);
+  border-left:5px solid #0b5ed7;
+}
+
+.duik-card h3{
+  margin-top:0;
+  color:#111;
+}
+
+.duik-info{
+  margin-bottom:15px;
+  color:#333;
+}
+
+.duiker-rij{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #ddd;
+}
+
+.duiker-naam{
+  font-weight:bold;
+}
+
+.duiker-functie{
+  font-size:.85rem;
+  color:#666;
+}
+
+.status-btn{
+  padding:6px 10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  min-width:85px;
+  font-weight:bold;
+}
+
+.status-onbekend{
+  background:#999;
+  color:white;
+}
+
+.status-aanwezig{
+  background:#2ecc71;
+  color:white;
+}
+
+.status-afwezig{
+  background:#e74c3c;
+  color:white;
+}
+
+
+</style>
+
 </head>
+
+
 <body>
 
-  <div class="container">
 
-    <!-- HEADER -->
-    <header id="appHeader">
-      <div class="header-left">
-        <img src="logo.png" class="header-logo">
-      </div>
+<div class="container">
 
-      <div class="header-right">
-        <div id="greeting" class="header-greeting"></div>
-        <div id="datetime" class="header-datetime"></div>
-        <div id="ploegOfWeek" class="header-ploeg"></div>
-      </div>
-    </header>
 
-    <!-- CONTENT -->
-    <div class="content">
+<header id="appHeader">
 
-      <a href="index.html" class="backlink">← Terug naar menu</a>
+  <div class="header-left">
+    <img src="logo.png" 
+         alt="Brandweer Herentals"
+         class="header-logo">
+  </div>
 
-      <!-- ✅ HIER komt jouw pagina-inhoud -->
-      <!-- bvb: duikagenda, defectmeldingen, aanwezigheden, enz... -->
 
+  <div class="header-right">
+
+    <div id="greeting" 
+         class="header-greeting">
     </div>
-  <main>
-    <h2 style="color:black;">🤿 Duikagenda & Aanwezigheid</h2>
-    <p style="color:black;">Zet hier je aanwezigheid bij de duikoefeningen.</p>
-    <div id="duikAgendaContainer"></div>
 
-    
-  </main>
+    <div id="datetime"
+         class="header-datetime">
+    </div>
 
-  <footer><div>Brandweer Herentals</div></footer>
+    <div id="ploegOfWeek"
+         class="header-ploeg">
+    </div>
+
+  </div>
+
+</header>
+
+
+
+<main class="content">
+
+
+<a href="index.html" class="backlink">
+  <span class="arrow">←</span>
+  Terug naar menu
+</a>
+
+
+<h2>🤿 Duikagenda & aanwezigheid</h2>
+
+<p>
+Geef je aanwezigheid door voor de geplande duikoefeningen.
+</p>
+
+
+<div id="duikAgendaContainer"></div>
+
+
+</main>
+
+
+
+<footer>
+Brandweer Herentals
+</footer>
+
+
 </div>
 
-<script src="/brandweerherentals/header.js"></script>
 
-<!-- Firebase compat -->
+<script src="header.js"></script>
+
+
+
+<!-- FIREBASE -->
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+
+
 <script>
-  // ===============================
-  // Firebase initialisatie
-  // ===============================
-  const firebaseConfig = {
-    apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
-    authDomain: "post-herentals.firebaseapp.com",
-    databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "post-herentals",
-    storageBucket: "post-herentals.firebasestorage.app",
-    messagingSenderId: "762725561089",
-    appId: "1:762725561089:web:38c46cccf44d624252100",
-    measurementId: "G-C2FWECFEQX"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
 
-  // ===============================
-  // Duikteam
-  // ===============================
-  const duikers = [
-    { naam: "Bart Boons", functie: "Duiker" },
-    { naam: "Jef Leysen", functie: "Duiker" },
-    { naam: "Wannes Verhegge", functie: "Duiker" },
-    { naam: "Jonas Weckhuysen", functie: "Duiker" },
-    { naam: "Danny Van den Bergh", functie: "Assistent" },
-    { naam: "Patrick Van Hove", functie: "Assistent" },
-    { naam: "Alain Leemans", functie: "Assistent" },
-    { naam: "Kurt Cools", functie: "Assistent" },
-    { naam: "Pedro Wallyn", functie: "Assistent" }
-  ];
 
-  // ===============================
-  // Hardcoded duikagenda 2026
-  // ===============================
-  const duikAgenda = [
-    { datum:"25/01/2026", uur:"9:00", plaats:"LILSE BERGEN", oef:"IJSDUIK OF/EN MATERIAALTEST" },
-    { datum:"08/02/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"ZOEKMETHODES" },
-    { datum:"15/03/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"SEINLIJNEN BEDIENEN" },
-    { datum:"12/04/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"SCENARIO" },
-    { datum:"31/05/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"ZOEKMETHODES" },
-    { datum:"15/06/2026", uur:"19:00", plaats:"GROBBENDONK", oef:"ZONEDUIK" },
-    { datum:"28/06/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"SLEPEN POP" },
-    { datum:"19/07/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"SCENARIO" },
-    { datum:"23/08/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"ZOEKMETHODES" },
-    { datum:"13/09/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"AUTO TE WATER" },
-    { datum:"30/09/2026", uur:"19:00", plaats:"MOL", oef:"ZONEDUIK" },
-    { datum:"04/10/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"SEINLIJNEN BEDIENEN" },
-    { datum:"08/11/2026", uur:"9:00", plaats:"ALBERT KANAAL", oef:"SLEPEN POP" },
-    { datum:"11/12/2026", uur:"19:00", plaats:"JACHTHAVEN", oef:"DUIKEN MET VERLICHTING" }
-  ];
+/* ============================
+ FIREBASE
+============================ */
 
-  // ===============================
-  // Functie om safe Firebase keys te maken
-  // ===============================
-  function makeSafeKey(str) {
-    return str.replace(/[.#$/[\]]/g,"_").replace(/ /g,"_");
-  }
 
-  // ===============================
-  // Genereren agenda + aanwezigheidsknoppen
-  // ===============================
-  function renderAgenda() {
-    const container = document.getElementById("duikAgendaContainer");
-    container.innerHTML = "";
+firebase.initializeApp({
 
-    duikAgenda.forEach(entry => {
-      const dateKey = makeSafeKey(`${entry.datum}_${entry.uur}`);
+apiKey:"AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
 
-      const card = document.createElement("div");
-      card.className = "duik-card";
+authDomain:"post-herentals.firebaseapp.com",
 
-      const h3 = document.createElement("h3");
-      h3.textContent = `📅 ${entry.datum} — ${entry.uur}`;
-      card.appendChild(h3);
+databaseURL:
+"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
 
-      const info = document.createElement("div");
-      info.style.marginBottom = "10px";
-      info.innerHTML = `📍 <strong>Locatie:</strong> ${entry.plaats}<br>📝 <strong>Oefening:</strong> ${entry.oef}`;
-      card.appendChild(info);
+projectId:"post-herentals",
 
-      duikers.forEach(d => {
-        const safeName = makeSafeKey(d.naam);
+storageBucket:
+"post-herentals.firebasestorage.app",
 
-        const row = document.createElement("div");
-        row.className = "duiker-rij";
+messagingSenderId:"762725561089",
 
-        const nameSpan = document.createElement("span");
-        nameSpan.innerHTML = `<span class="duiker-naam">${d.naam}</span> <span class="duiker-functie">(${d.functie})</span>`;
+appId:
+"1:762725561089:web:38c46cccf44d624252100"
 
-        const btn = document.createElement("button");
-        btn.className = "status-btn status-onbekend";
-        btn.innerText = "…";
+});
 
-        const dbRef = db.ref(`duikAanwezig/${dateKey}/${safeName}`);
 
-        // live update
-        dbRef.on("value", snap => {
-          const v = snap.val();
-          if (v === true) {
-            btn.className = "status-btn status-yes";
-            btn.innerText = "Aanwezig";
-          } else if (v === false) {
-            btn.className = "status-btn status-no";
-            btn.innerText = "Afwezig";
-          } else {
-            btn.className = "status-btn status-onbekend";
-            btn.innerText = "…";
-          }
-        });
+const db = firebase.database();
 
-        btn.onclick = () => {
-          dbRef.get().then(snap => {
-            const v = snap.val();
-            dbRef.set(v === true ? false : true);
-          });
-        };
 
-        row.appendChild(nameSpan);
-        row.appendChild(btn);
-        card.appendChild(row);
-      });
 
-      container.appendChild(card);
-    });
-  }
+/* ============================
+ DUikteam
+============================ */
 
-  // Start rendering
-  renderAgenda();
+
+const duikers = [
+
+{naam:"Bart Boons", functie:"Duiker"},
+
+{naam:"Jef Leysen", functie:"Duiker"},
+
+{naam:"Wannes Verhegge", functie:"Duiker"},
+
+{naam:"Jonas Weckhuysen", functie:"Duiker"},
+
+{naam:"Danny Van den Bergh", functie:"Assistent"},
+
+{naam:"Patrick Van Hove", functie:"Assistent"},
+
+{naam:"Alain Leemans", functie:"Assistent"},
+
+{naam:"Kurt Cools", functie:"Assistent"},
+
+{naam:"Pedro Wallyn", functie:"Assistent"}
+
+];
+
+
+
+/* ============================
+ AGENDA
+============================ */
+
+
+const duikAgenda=[
+
+
+{
+datum:"25/01/2026",
+uur:"09:00",
+plaats:"Lilse Bergen",
+oef:"IJsduik / materiaaltest"
+},
+
+
+{
+datum:"08/02/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Zoekmethodes"
+},
+
+
+{
+datum:"15/03/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Seinlijnen bedienen"
+},
+
+
+{
+datum:"12/04/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Scenario"
+},
+
+
+{
+datum:"31/05/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Zoekmethodes"
+},
+
+
+{
+datum:"15/06/2026",
+uur:"19:00",
+plaats:"Grobbenonk",
+oef:"Zoneduik"
+},
+
+
+{
+datum:"28/06/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Slepen pop"
+},
+
+
+{
+datum:"19/07/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Scenario"
+},
+
+
+{
+datum:"23/08/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Zoekmethodes"
+},
+
+
+{
+datum:"13/09/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Auto te water"
+},
+
+
+{
+datum:"30/09/2026",
+uur:"19:00",
+plaats:"Mol",
+oef:"Zoneduik"
+},
+
+
+{
+datum:"04/10/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Seinlijnen bedienen"
+},
+
+
+{
+datum:"08/11/2026",
+uur:"09:00",
+plaats:"Albert Kanaal",
+oef:"Slepen pop"
+},
+
+
+{
+datum:"11/12/2026",
+uur:"19:00",
+plaats:"Jachthaven",
+oef:"Duiken met verlichting"
+}
+
+
+];
+
+
+
+
+/* ============================
+ HELPERS
+============================ */
+
+
+function safeKey(text){
+
+return text
+.replace(/[.#$/[\]]/g,"_")
+.replace(/ /g,"_");
+
+}
+
+
+
+
+/* ============================
+ RENDER
+============================ */
+
+
+function renderAgenda(){
+
+
+const container=
+document.getElementById("duikAgendaContainer");
+
+
+container.innerHTML="";
+
+
+
+duikAgenda.forEach(oefening=>{
+
+
+const dateKey=
+safeKey(
+`${oefening.datum}_${oefening.uur}`
+);
+
+
+
+let card=document.createElement("div");
+
+card.className="duik-card";
+
+
+
+card.innerHTML=`
+
+<h3>
+📅 ${oefening.datum} - ${oefening.uur}
+</h3>
+
+
+<div class="duik-info">
+
+📍 <b>Locatie:</b> ${oefening.plaats}<br>
+
+📝 <b>Oefening:</b> ${oefening.oef}
+
+</div>
+
+
+<div id="duikers-${dateKey}"></div>
+
+`;
+
+
+
+container.appendChild(card);
+
+
+
+const lijst=
+card.querySelector(`#duikers-${dateKey}`);
+
+
+
+duikers.forEach(d=>{
+
+
+const naamKey=
+safeKey(d.naam);
+
+
+
+const rij=
+document.createElement("div");
+
+
+rij.className="duiker-rij";
+
+
+
+const knop=
+document.createElement("button");
+
+
+knop.className=
+"status-btn status-onbekend";
+
+
+knop.innerText="…";
+
+
+
+const ref=
+db.ref(
+`duikAanwezig/${dateKey}/${naamKey}`
+);
+
+
+
+ref.on("value",snap=>{
+
+
+const waarde=snap.val();
+
+
+
+if(waarde===true){
+
+knop.className=
+"status-btn status-aanwezig";
+
+knop.innerText="Aanwezig";
+
+
+}
+
+else if(waarde===false){
+
+knop.className=
+"status-btn status-afwezig";
+
+knop.innerText="Afwezig";
+
+}
+
+
+else{
+
+
+knop.className=
+"status-btn status-onbekend";
+
+knop.innerText="…";
+
+
+}
+
+
+});
+
+
+
+
+knop.onclick=async()=>{
+
+
+const snap=
+await ref.get();
+
+
+ref.set(
+snap.val()===true
+? false
+: true
+);
+
+
+};
+
+
+
+rij.innerHTML=`
+
+<div>
+
+<span class="duiker-naam">
+${d.naam}
+</span>
+
+<br>
+
+<span class="duiker-functie">
+${d.functie}
+</span>
+
+</div>
+
+`;
+
+
+
+rij.appendChild(knop);
+
+
+lijst.appendChild(rij);
+
+
+
+});
+
+
+
+});
+
+}
+
+
+
+renderAgenda();
+
+
+
 </script>
+
 
 </body>
 </html>
