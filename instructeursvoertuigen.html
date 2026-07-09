@@ -1,155 +1,332 @@
 <!doctype html>
 <html lang="nl">
 <head>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Instructeurs voertuigen — Brandweer Herentals</title>
+
+<title>Instructeurs voertuigen</title>
 
 <link rel="stylesheet" href="style.css">
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-</head>
-  <style>
-    #searchInput {
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin-bottom:15px;
+
+<style>
+
+#searchInput{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    margin:15px 0;
+    box-sizing:border-box;
 }
-  </style>
+
+.counter{
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:15px;
+}
+
+.card{
+    background:#fff;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+}
+
+.card-header{
+    background:#c71f1f;
+    color:#fff;
+    padding:12px;
+}
+
+.card-header h3{
+    margin:0;
+}
+
+.card-body{
+    padding:15px;
+}
+
+.card-body div{
+    margin:8px 0;
+}
+
+.call-btn{
+    display:block;
+    text-align:center;
+    margin-top:15px;
+    background:#2ecc71;
+    color:#fff;
+    text-decoration:none;
+    padding:10px;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.call-btn:hover{
+    opacity:.9;
+}
+
+.loading{
+    text-align:center;
+    padding:30px;
+}
+
+</style>
+
+</head>
 
 <body>
 
 <div class="container">
 
-  <!-- ========== HEADER (NIET AANGEPAST) ========== -->
-  <header id="appHeader">  
-    <div class="header-left">  
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">  
-    </div>  
-    <div class="header-right">  
-      <div id="greeting" class="header-greeting"></div>  
-      <div id="datetime" class="header-datetime"></div>  
-      <div id="ploegOfWeek" class="header-ploeg"></div>  
-    </div>  
-  </header> 
-  <!-- ============================================ -->
+<header id="appHeader">
 
-  <div class="content">
-
-    <!-- Terug knop -->
-    <a href="chauffeur.html" class="backlink">⬅ Ga terug naar chauffeurs</a>
-
-    <!-- Teller + zoekfunctie -->
-    <div class="top-bar">
-      <div class="counter" id="counter">Inladen...</div>
-      <input type="text" id="searchInput" placeholder="Zoek op instructeur of voertuig...">
+    <div class="header-left">
+        <img src="logo.png"
+             alt="Brandweer Herentals"
+             class="header-logo">
     </div>
 
-    <!-- Grid -->
-    <div id="grid" class="grid">
-      <div class="loading">📡 Excelbestand wordt ingelezen...</div>
+    <div class="header-right">
+        <div id="greeting" class="header-greeting"></div>
+        <div id="datetime" class="header-datetime"></div>
+        <div id="ploegOfWeek" class="header-ploeg"></div>
     </div>
 
-  </div>
+</header>
 
-  <footer>
-    Brandweer Herentals
-  </footer>
+
+<main class="content">
+
+<a href="chauffeur.html" class="backlink">
+<span class="arrow">←</span>
+Terug naar chauffeur
+</a>
+
+<h2>👨‍🏫 Instructeurs voertuigen</h2>
+
+<div class="counter" id="counter">
+Inladen...
+</div>
+
+<input
+id="searchInput"
+type="text"
+placeholder="Zoek op instructeur of voertuig...">
+
+<div id="grid" class="grid">
+
+<div class="loading">
+📡 Excelbestand wordt geladen...
+</div>
 
 </div>
 
-<!-- JOUW HEADER SCRIPT -->
-<script src="/brandweerherentals/header.js"></script>
+</main>
+
+<footer>
+
+Brandweer Herentals
+
+</footer>
+
+</div>
+
+<script src="header.js"></script>
 
 <script>
-const EXCEL_FILE = "/brandweerherentals/data/Instructeurs voertuigen HA.xlsx";
-let allData = [];
 
-// Excel uitlezen
+const EXCEL_FILE =
+"data/Instructeurs voertuigen HA.xlsx";
+
+let allData=[];
+
+
+
 fetch(EXCEL_FILE)
-  .then(res => res.arrayBuffer())
-  .then(buffer => {
-    const workbook = XLSX.read(buffer, { type:"array" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sheet);
 
-    // Filter lege rijen
-    allData = data.filter(row => row.Voertuig && row.Instructeur && row.Telefoonnummer);
+.then(res=>res.arrayBuffer())
 
-    // Sorteren op voertuig, dan instructeur
-    allData.sort((a,b) => {
-      if(a.Voertuig === b.Voertuig) 
-        return a.Instructeur.localeCompare(b.Instructeur,'nl');
+.then(buffer=>{
 
-      return a.Voertuig.localeCompare(b.Voertuig,'nl');
-    });
+const workbook=
+XLSX.read(buffer,{type:"array"});
 
-    render(allData);
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("grid").innerHTML = "<div>❌ Fout bij het laden van het Excelbestand.</div>";
-  });
+const sheet=
+workbook.Sheets[
+workbook.SheetNames[0]
+];
 
-// Icon kiezen op voertuignaam
-function getVehicleIcon(name="") {
-  const n = name.toLowerCase();
-  if(n.includes("ladder")) return "🪜";
-  if(n.includes("ambulance")) return "🚑";
-  if(n.includes("tank")) return "🚛";
-  if(n.includes("command")) return "🚓";
-  if(n.includes("pomp")) return "🚒";
-  return "🚒";
+const data=
+XLSX.utils.sheet_to_json(sheet);
+
+
+
+allData=data.filter(r=>
+
+r.Voertuig &&
+r.Instructeur &&
+r.Telefoonnummer
+
+);
+
+
+
+allData.sort((a,b)=>{
+
+if(a.Voertuig===b.Voertuig){
+
+return a.Instructeur.localeCompare(
+b.Instructeur,
+"nl"
+);
+
 }
 
-// Render functie
-function render(data){
-  const grid = document.getElementById("grid");
-  const counter = document.getElementById("counter");
+return a.Voertuig.localeCompare(
+b.Voertuig,
+"nl"
+);
 
-  grid.innerHTML = "";
-  counter.textContent = `👨‍🏫 ${data.length} instructeurs gevonden`;
-
-  if(data.length === 0){
-    grid.innerHTML = "<div>Geen resultaten gevonden.</div>";
-    return;
-  }
-
-  data.forEach(row => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const icon = getVehicleIcon(row.Voertuig);
-
-    card.innerHTML = `
-      <div class="card-header">
-        <h3>${row.Instructeur}</h3>
-      </div>
-
-      <div class="card-body">
-        <div class="veh">${icon} ${row.Voertuig}</div>
-        <div class="tel">📞 ${row.Telefoonnummer}</div>
-
-        <a class="call-btn" href="tel:${row.Telefoonnummer.replace(/\s+/g,'')}">
-          ☎️ Bel nu
-        </a>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
-}
-
-// Zoekfunctie
-document.getElementById("searchInput").addEventListener("input", function(){
-  const term = this.value.toLowerCase();
-  const filtered = allData.filter(row =>
-    row.Voertuig.toLowerCase().includes(term) ||
-    row.Instructeur.toLowerCase().includes(term)
-  );
-  render(filtered);
 });
+
+
+
+render(allData);
+
+})
+
+.catch(err=>{
+
+console.error(err);
+
+document.getElementById("grid").innerHTML=
+
+"<div class='loading'>❌ Excelbestand kon niet geladen worden.</div>";
+
+});
+
+
+
+function getVehicleIcon(name=""){
+
+const n=name.toLowerCase();
+
+if(n.includes("ladder")) return "🪜";
+
+if(n.includes("ambulance")) return "🚑";
+
+if(n.includes("tank")) return "🚛";
+
+if(n.includes("command")) return "🚓";
+
+if(n.includes("pomp")) return "🚒";
+
+return "🚒";
+
+}
+
+
+
+function render(data){
+
+const grid=document.getElementById("grid");
+
+const counter=document.getElementById("counter");
+
+grid.innerHTML="";
+
+counter.innerHTML=
+`👨‍🏫 ${data.length} instructeurs gevonden`;
+
+
+
+if(data.length===0){
+
+grid.innerHTML="<div>Geen resultaten gevonden.</div>";
+
+return;
+
+}
+
+
+
+data.forEach(row=>{
+
+const card=document.createElement("div");
+
+card.className="card";
+
+const telefoon=
+String(row.Telefoonnummer).replace(/\s+/g,"");
+
+card.innerHTML=`
+
+<div class="card-header">
+
+<h3>${row.Instructeur}</h3>
+
+</div>
+
+<div class="card-body">
+
+<div>
+${getVehicleIcon(row.Voertuig)}
+<b>${row.Voertuig}</b>
+</div>
+
+<div>
+📞 ${row.Telefoonnummer}
+</div>
+
+<a
+class="call-btn"
+href="tel:${telefoon}">
+
+☎️ Bel instructeur
+
+</a>
+
+</div>
+
+`;
+
+grid.appendChild(card);
+
+});
+
+}
+
+
+
+document
+.getElementById("searchInput")
+.addEventListener("input",function(){
+
+const zoek=this.value.toLowerCase();
+
+const filtered=allData.filter(r=>
+
+r.Voertuig.toLowerCase().includes(zoek)
+
+||
+
+r.Instructeur.toLowerCase().includes(zoek)
+
+);
+
+render(filtered);
+
+});
+
 </script>
 
 </body>
