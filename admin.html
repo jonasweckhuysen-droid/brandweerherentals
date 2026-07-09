@@ -1,207 +1,492 @@
 <!doctype html>
 <html lang="nl">
+
 <head>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Brandweer Herentals — Admin</title>
-  <link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="style.css">
+
 
 <style>
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#f4f4f4;
-}
 
 
-/* CONTENT */
 .container{
-  padding:20px;
-  max-width:1100px;
-  margin:auto;
+
+max-width:1100px;
+margin:auto;
+padding:15px;
+
 }
 
-h1{ margin:20px 0; }
 
-/* GRID */
+
 .grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap:16px;
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(220px,1fr));
+
+gap:16px;
+
 }
 
-/* CARDS */
+
+
 .card{
-  background:#fff;
-  padding:18px;
-  border-radius:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-  cursor:pointer;
-  transition:0.2s;
+
+background:#fff;
+
+padding:18px;
+
+border-radius:14px;
+
+box-shadow:
+0 2px 8px rgba(0,0,0,.08);
+
+cursor:pointer;
+
+transition:.2s;
+
 }
 
-.card:hover{ transform:translateY(-2px); }
 
-.card h2{ margin:0; font-size:18px; }
 
-.card p{ margin:6px 0 0; color:#666; }
+.card:hover{
 
-/* FOOTER */
+transform:translateY(-3px);
+
+}
+
+
+
+.icon{
+
+font-size:35px;
+
+margin-bottom:10px;
+
+}
+
+
+
+.card h2{
+
+margin:0;
+
+font-size:18px;
+
+}
+
+
+
+.card p{
+
+margin:8px 0 0;
+
+color:#666;
+
+}
+
+
+
 footer{
-  text-align:center;
-  padding:12px;
-  color:#666;
-  font-size:13px;
+
+text-align:center;
+
+padding:15px;
+
+font-size:13px;
+
+color:#666;
+
 }
+
+
+
 </style>
+
 
 </head>
 
+
+
 <body>
 
+
+
 <header id="appHeader">
-  <div class="header-left">
-    <img src="logo.png" alt="Logo" class="header-logo">
-  </div>
 
-  <div class="header-right">
-    <div id="greeting" class="header-name"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
-</header>
-  <main class="content">
+<div class="header-left">
 
-<a href="index.html" class="backlink">
-    <span class="arrow">←</span>
-    Terug
-</a>
-
-<h2>Admin</h2>
-
-...
-
-<div class="container">
-
-  <h1>Administratie</h1>
-
-  <div class="grid">
-
-    <div class="card" onclick="go('users')">
-      <h2>👥 Personeel</h2>
-      <p>Beheer gebruikers, rollen en toegang</p>
-    </div>
-
-    <div class="card" onclick="go('agenda')">
-      <h2>📅 Agenda</h2>
-      <p>Beheer planning en events</p>
-    </div>
-
-    <div class="card" onclick="go('voertuigen')">
-      <h2>🚒 Voertuig Reservaties</h2>
-      <p>Overzicht en beheer reservaties</p>
-    </div>
-
-  </div>
+<img src="logo.png" 
+class="header-logo"
+alt="Brandweer Herentals">
 
 </div>
 
+
+
+<div class="header-right">
+
+<div id="greeting"></div>
+
+<div id="datetime"></div>
+
+<div id="ploegOfWeek"></div>
+
+</div>
+
+
+</header>
+
+
+
+
+<main class="content">
+
+
+
+<a href="index.html" class="backlink">
+
+← Terug
+
+</a>
+
+
+
+
+<div class="container">
+
+
+<h2>🛠️ Administratie</h2>
+
+
+
+<div class="grid">
+
+
+
+
+
+<div class="card" onclick="go('users')">
+
+<div class="icon">
+
+👥
+
+</div>
+
+<h2>Personeel</h2>
+
+<p>
+Beheer gebruikers, rollen en toegang
+</p>
+
+</div>
+
+
+
+
+
+
+<div class="card" onclick="go('agenda')">
+
+<div class="icon">
+
+📅
+
+</div>
+
+<h2>Agenda</h2>
+
+<p>
+Beheer planning en evenementen
+</p>
+
+</div>
+
+
+
+
+
+
+
+<div class="card" onclick="go('permanentie')">
+
+<div class="icon">
+
+🕒
+
+</div>
+
+<h2>Permanentie</h2>
+
+<p>
+Beheer permanenties en planning
+</p>
+
+</div>
+
+
+
+
+
+
+
+<div class="card" onclick="go('voertuigen')">
+
+<div class="icon">
+
+🚒
+
+</div>
+
+<h2>Voertuig reservaties</h2>
+
+<p>
+Goedkeuren en beheren reservaties
+</p>
+
+</div>
+
+
+
+
+
+
+
+<div class="card" onclick="go('instellingen')">
+
+<div class="icon">
+
+⚙️
+
+</div>
+
+<h2>Instellingen</h2>
+
+<p>
+Algemene instellingen
+</p>
+
+</div>
+
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+</main>
+
+
+
+
 <footer>
-  Versie Admin 1.0
+
+Versie Admin 1.0
+
 </footer>
+
+
+
+
+
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { initializeApp }
+
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+
 import {
-  getDatabase,
-  ref,
-  onValue
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* FIREBASE */
+getDatabase,
+
+ref,
+
+onValue
+
+}
+
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+
+
+
 const app = initializeApp({
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+
+databaseURL:
+
+"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+
 });
 
-const db = getDatabase(app);
 
-/* GET USER FROM PORTAL LOGIN */
-const storedUser = localStorage.getItem("userName");
 
-let users = {};
+const db=getDatabase(app);
 
-/* LOAD USERS */
-onValue(ref(db,"users"), snap=>{
-  users = snap.val() || {};
-  checkAccess();
+
+
+const storedUser =
+localStorage.getItem("userName");
+
+
+
+let users={};
+
+
+
+
+
+onValue(ref(db,"users"),snap=>{
+
+
+users=snap.val()||{};
+
+
+checkAccess();
+
+
 });
 
-/* CHECK ACCESS */
+
+
+
+
+
+
 function checkAccess(){
 
-  if(!storedUser){
-    document.body.innerHTML = "<h2>Geen login</h2>";
-    return;
-  }
 
-  const current = users[storedUser];
 
-  if(!current){
-    document.body.innerHTML = "<h2>User niet gevonden</h2>";
-    return;
-  }
+if(!storedUser){
 
-  if(!current.roles?.admin){
-    document.body.innerHTML = "<h2>Geen admin rechten</h2>";
-    return;
-  }
+document.body.innerHTML=
 
-  startApp();
+"<h2>Geen login</h2>";
+
+return;
+
 }
 
-/* START */
-function startApp(){
-  greeting();
-  updateDate();
-  setInterval(updateDate, 60000);
+
+
+
+
+const current=users[storedUser];
+
+
+
+if(!current){
+
+document.body.innerHTML=
+
+"<h2>User niet gevonden</h2>";
+
+return;
+
 }
 
-/* NAVIGATION */
-window.go = function(page){
 
-  const routes = {
-    users: "admin-users.html",
-    agenda: "admin-agenda.html",
-    permanentie: "admin-permanentie.html",
-    voertuigen: "admin-voertuigen.html",
-    instellingen: "admin-settings.html"
-  };
 
-  if(routes[page]){
-    window.location.href = routes[page];
-  } else {
-    alert("Nog niet gebouwd: " + page);
-  }
+
+
+if(!current.roles?.admin){
+
+document.body.innerHTML=
+
+"<h2>Geen admin rechten</h2>";
+
+return;
+
+}
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+window.go=function(page){
+
+
+
+const routes={
+
+
+users:
+"admin-users.html",
+
+
+agenda:
+"admin-agenda.html",
+
+
+permanentie:
+"admin-permanentie.html",
+
+
+voertuigen:
+"admin-voertuigen.html",
+
+
+instellingen:
+"admin-settings.html"
+
+
 };
 
-/* UI */
-function updateDate(){
-  const now = new Date();
-  document.getElementById("date").innerText =
-    now.toLocaleDateString("nl-BE") + " " +
-    now.toLocaleTimeString("nl-BE",{hour:'2-digit',minute:'2-digit'});
+
+
+if(routes[page]){
+
+
+window.location.href=routes[page];
+
+
 }
 
-function greeting(){
-  const h = new Date().getHours();
-  let g = "Goedemorgen";
-  if(h >= 12) g = "Goedemiddag";
-  if(h >= 18) g = "Goedenavond";
-  document.getElementById("greeting").innerText = g;
+else{
+
+
+alert("Nog niet gebouwd: "+page);
+
+
 }
+
+
+
+};
+
+
 
 </script>
-  <script src="header.js"></script>
+
+
+
+<script src="header.js"></script>
+
+
 </body>
+
 </html>
