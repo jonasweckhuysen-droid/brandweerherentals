@@ -3,76 +3,153 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Brandweer Herentals — Defectmelding</title>
-<link rel="manifest" href="/brandweerherentals/manifest.json">
+
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#c71f1f">
+
 <link rel="stylesheet" href="style.css">
-  <style>
-    .btn {
-  display: flex;
-  flex-direction: column; /* belangrijke regel */
-  align-items: center;    /* centreert icon + tekst */
-  justify-content: center;
-  text-decoration: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  background-color: #fff;
-  color: #000;
-  gap: 4px;               /* ruimte tussen icon, hoofdtekst en small */
+
+<style>
+
+.btn {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  padding:15px;
+  border-radius:14px;
+  background:#fff;
+  color:#000;
+  gap:5px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-.btn .icon {
-  font-size: 1.5rem;
+.btn .icon{
+  font-size:2rem;
 }
 
-.btn small {
-  font-size: 0.75rem;
-  color: #000;
+.btn small{
+  font-size:.8rem;
+  color:#666;
 }
 
-  </style>
+</style>
+
 </head>
+
+
 <body>
 
 <div class="container">
-  <!-- HEADER -->
-  <header id="appHeader">
-    <div class="header-left">
-      <img src="/brandweerherentals/icons/logo.png" alt="Brandweer Herentals" class="header-logo">
+
+
+<!-- HEADER -->
+<header id="appHeader">
+
+  <div class="header-left">
+    <img src="logo.png" 
+         alt="Brandweer Herentals" 
+         class="header-logo">
+  </div>
+
+
+  <div class="header-right">
+
+    <div id="greeting" 
+         class="header-greeting">
     </div>
-    <div class="header-right">
-      <div id="greeting" class="header-greeting"></div>
-      <div id="datetime" class="header-datetime"></div>
-      <div id="ploegOfWeek" class="header-ploeg"></div>
+
+    <div id="datetime" 
+         class="header-datetime">
     </div>
-  </header>
 
-  <!-- CONTENT -->
-  <main class="content">
-    <!-- Ga terug knop -->
-    <a href="/brandweerherentals/" class="backlink">
-      <span class="arrow">←</span> Terug naar start
-    </a>
+    <div id="ploegOfWeek" 
+         class="header-ploeg">
+    </div>
 
-    <!-- Knoppen in uniforme stijl -->
-    <a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u" class="btn">
-      <div class="icon">🔧</div>
-      <div>Defect melden</div>
-      <small>Registreer een probleem</small>
-    </a>
+  </div>
 
-    <a href="/brandweerherentals/defectmeldingstatus.html" class="btn">
-      <div class="icon">📊</div>
-      <div>Status bekijken</div>
-      <small>Overzicht defecten</small>
-    </a>
-  </main>
+</header>
 
-  <footer>
-    <div>Versie 1.1</div>
-  </footer>
+
+
+<!-- CONTENT -->
+
+<main class="content">
+
+
+<a href="index.html" class="backlink">
+  <span class="arrow">←</span>
+  Terug naar start
+</a>
+
+
+<h2>🔧 Defectmelding</h2>
+
+
+<div class="grid">
+
+
+<a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=ex_6l868RE6S2t-IkEL0dqocXptaGhNPlV-vS_rmuEtUNTZUNVFFSUQwRldXTkpKREpGVlYyUzIwWC4u"
+   class="btn">
+
+    <div class="icon">
+      🔧
+    </div>
+
+    <div>
+      Defect melden
+    </div>
+
+    <small>
+      Registreer een probleem
+    </small>
+
+</a>
+
+
+
+<a href="defectmeldingstatus.html"
+   class="btn">
+
+    <div class="icon">
+      📊
+    </div>
+
+    <div>
+      Status bekijken
+    </div>
+
+    <small>
+      Overzicht defecten
+    </small>
+
+</a>
+
+
 </div>
 
-<script src="/brandweerherentals/header.js"></script>
+
+</main>
+
+
+
+<footer>
+  <div>
+    Brandweer Herentals
+  </div>
+</footer>
+
+
+</div>
+
+
+
+<script src="header.js"></script>
+
+
 </body>
 </html>
