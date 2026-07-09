@@ -1,348 +1,607 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Voertuigenreservatie</title>
+
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+<meta name="theme-color" content="#c71f1f">
+
 <link rel="stylesheet" href="style.css">
 
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
 
+
 <style>
-  <link rel="manifest" href="/brandweerherentals/manifest.json">  
-<meta name="theme-color" content="#c71f1f">  
-<link rel="stylesheet" href="style.css">  
- 
-#nameOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.92);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:10000;
-  color:#fff;
-  text-align:center;
-}
 
-.box{
-  background:#111;
-  padding:28px;
-  border-radius:16px;
-  max-width:360px;
-  width:100%;
-}
-
-input,button{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  margin-top:10px;
-}
-
-button{
-  background:#c71f1f;
-  color:#fff;
-  font-weight:700;
-}
-
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 16px;
-  background:#c71f1f;
-  color:#fff;
-}
-
-.header-left img{ height:60px; }
-
-.header-right div{ margin:2px 0; }
-
-footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 16px;
-}
-
-footer button{
-  background:#333;
-  padding:8px 14px;
-  font-size:14px;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-}
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f4f4f4;
-}
-
-
-.container{
-  max-width:700px;
-  margin:auto;
-  padding:12px;
-}
-
-.card{
-  background:#fff;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
-}
-
-input, button{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-button{
-  background:#c71f1f;
-  color:#fff;
-  border:none;
-  font-weight:bold;
-}
+/* Enkel voertuigen specifieke styling */
 
 .vehicle-options label{
-  display:block;
-  margin:4px 0;
+    display:block;
+    margin:8px 0;
 }
 
 .badge{
-  display:inline-block;
-  padding:4px 8px;
-  border-radius:6px;
-  font-size:12px;
-  margin-top:4px;
+    display:inline-block;
+    padding:5px 10px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:bold;
+    margin-top:8px;
 }
 
-.wait{ background:#f1c40f; }
-.ok{ background:#2ecc71; color:#fff; }
-.no{ background:#e74c3c; color:#fff; }
+.wait{
+    background:#f1c40f;
+    color:#111;
+}
+
+.ok{
+    background:#2ecc71;
+    color:white;
+}
+
+.no{
+    background:#e74c3c;
+    color:white;
+}
+
 
 .time{
-  font-size:14px;
-  margin:6px 0;
-  color:#333;
+    margin:8px 0;
+    line-height:1.5;
 }
+
+
+.vehicle-card{
+    border-left:5px solid #c71f1f;
+}
+
+
+.form-group{
+    margin-bottom:12px;
+}
+
+
+.form-group label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+
+input[type="datetime-local"],
+input[type="text"],
+input[type="number"]{
+
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    font-size:15px;
+
+}
+
+
+.submit-btn{
+
+    background:#c71f1f;
+    color:white;
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    font-weight:bold;
+    width:100%;
+    cursor:pointer;
+
+}
+
+
+.submit-btn:hover{
+    background:#8f1515;
+}
+
+
 </style>
+
 </head>
+
+
 
 <body>
 
-<header id="appHeader">
-  <div class="header-left">
-    <img src="logo.png" alt="Logo" class="header-logo">
-  </div>
 
-  <div class="header-right">
-    <div id="greeting" class="header-name"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
+<div class="container">
+
+
+<!-- VASTE HEADER -->
+<header id="appHeader">
+
+    <div class="header-left">
+        <img src="logo.png" 
+             alt="Brandweer Herentals"
+             class="header-logo">
+    </div>
+
+
+    <div class="header-right">
+
+        <div id="greeting" class="header-name"></div>
+
+        <div id="datetime"></div>
+
+        <div id="ploegOfWeek"></div>
+
+    </div>
+
+
 </header>
 
+
+
 <main class="content">
+
 
 <a href="index.html" class="backlink">
     <span class="arrow">←</span>
     Terug
 </a>
 
+
+
 <h2>🚒 Voertuigenreservatie</h2>
 
-...
 
-<div class="container">
 
-<!-- FORM -->
+<!-- NIEUWE AANVRAAG -->
+
 <div class="card">
-  <h3>Nieuwe aanvraag</h3>
 
-  <label>Voertuig</label>
-  <div class="vehicle-options">
-    <label><input type="radio" name="vehicle" value="Caddy S542" checked> Caddy S542</label>
-    <label><input type="radio" name="vehicle" value="Galaxy S541"> Galaxy S541</label>
-    <label><input type="radio" name="vehicle" value="Personeelsbus S545"> Personeelsbus S545</label>
-    <label><input type="radio" name="vehicle" value="Camionette L543"> Camionette L543</label>
-  </div>
 
-  <label>Van</label>
-  <input type="datetime-local" id="from">
+<h3>Nieuwe aanvraag</h3>
 
-  <label>Tot</label>
-  <input type="datetime-local" id="to">
 
-  <label>Doel</label>
-  <input type="text" id="purpose">
 
-  <label>Aantal personen</label>
-  <input type="number" id="persons">
+<div class="form-group">
 
-  <button id="submitBtn">Aanvraag indienen</button>
+<label>Voertuig</label>
+
+
+<div class="vehicle-options">
+
+<label>
+<input type="radio" 
+       name="vehicle" 
+       value="Caddy S542" 
+       checked>
+
+Caddy S542
+</label>
+
+
+<label>
+<input type="radio" 
+       name="vehicle" 
+       value="Galaxy S541">
+
+Galaxy S541
+</label>
+
+
+<label>
+<input type="radio" 
+       name="vehicle" 
+       value="Personeelsbus S545">
+
+Personeelsbus S545
+</label>
+
+
+<label>
+<input type="radio" 
+       name="vehicle" 
+       value="Camionette L543">
+
+Camionette L543
+</label>
+
+
 </div>
+
+</div>
+
+
+
+
+<div class="form-group">
+
+<label>Van</label>
+
+<input type="datetime-local" id="from">
+
+</div>
+
+
+
+
+<div class="form-group">
+
+<label>Tot</label>
+
+<input type="datetime-local" id="to">
+
+</div>
+
+
+
+
+<div class="form-group">
+
+<label>Doel</label>
+
+<input type="text" id="purpose">
+
+</div>
+
+
+
+
+<div class="form-group">
+
+<label>Aantal personen</label>
+
+<input type="number" id="persons">
+
+</div>
+
+
+
+
+<button class="submit-btn" id="submitBtn">
+Aanvraag indienen
+</button>
+
+
+</div>
+
+
+
+
 
 <h3>Reservaties</h3>
+
+
 <div id="reservations"></div>
+
+
+
+</main>
+
+
+
+
+
+<footer>
+
+<div>
+Versie 1.2
+</div>
+
+
+<button onclick="logout()">
+Uitloggen
+</button>
+
+
+</footer>
+
+
 
 </div>
 
+
+
+
+
 <script>
-/* ---------------- FIREBASE INIT ---------------- */
+
+
+/* FIREBASE */
+
 firebase.initializeApp({
-  apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
-  authDomain: "post-herentals.firebaseapp.com",
-  databaseURL: "https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "post-herentals",
-  storageBucket: "post-herentals.appspot.com",
-  messagingSenderId: "762725561089",
-  appId: "1:762725561089:web:38c46cc8cf44d624252100"
+
+apiKey: "AIzaSyAUkFsXiJ7MOIDFfC0AUk9DiT_BPIHzfEE",
+
+authDomain: "post-herentals.firebaseapp.com",
+
+databaseURL:
+"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app",
+
+projectId:"post-herentals",
+
+storageBucket:"post-herentals.appspot.com",
+
+messagingSenderId:"762725561089",
+
+appId:"1:762725561089:web:38c46cc8cf44d624252100"
+
 });
+
+
 
 const db = firebase.database();
-const messaging = firebase.messaging();
 
-/* ---------------- USER ---------------- */
-const currentUser = localStorage.getItem("userName") || "Onbekend";
 
-/* ---------------- PUSH (voor later gebruik klaar) ---------------- */
-async function enableNotifications() {
-  try {
-    const permission = await Notification.requestPermission();
-    if(permission !== "granted") return;
+const currentUser =
+localStorage.getItem("userName") || "Onbekend";
 
-    const token = await messaging.getToken({
-      vapidKey: "JOUW_VAPID_KEY"
-    });
 
-    await db.ref("tokens/" + currentUser).set({
-      token
-    });
 
-    console.log("Push token opgeslagen");
-  } catch(err) {
-    console.error("Push error:", err);
-  }
+
+/* DATUM FORMAT */
+
+function formatDateTime(from,to){
+
+
+const f=new Date(from);
+const t=new Date(to);
+
+
+return `
+
+📅 ${f.toLocaleDateString("nl-BE",{
+
+weekday:"long",
+day:"2-digit",
+month:"long",
+year:"numeric"
+
+})}
+
+<br>
+
+🕒 ${f.toLocaleTimeString("nl-BE",{
+
+hour:"2-digit",
+minute:"2-digit"
+
+})}
+
+→
+
+${t.toLocaleTimeString("nl-BE",{
+
+hour:"2-digit",
+minute:"2-digit"
+
+})}
+
+`;
+
 }
-enableNotifications();
 
-/* ---------------- FORMAT ---------------- */
-function formatDateTime(from, to){
-  const f = new Date(from);
-  const t = new Date(to);
 
-  const optionsDate = {
-    weekday:"short",
-    day:"2-digit",
-    month:"long",
-    year:"numeric"
-  };
 
-  const optionsTime = {
-    hour:"2-digit",
-    minute:"2-digit"
-  };
 
-  return `
-    📅 ${f.toLocaleDateString("nl-BE", optionsDate)}<br>
-    🕒 ${f.toLocaleTimeString("nl-BE", optionsTime)}
-    → ${t.toLocaleTimeString("nl-BE", optionsTime)}
-  `;
+/* RESERVATIE TOEVOEGEN */
+
+
+document.getElementById("submitBtn").onclick =
+async()=>{
+
+
+const vehicle =
+document.querySelector(
+'input[name="vehicle"]:checked'
+).value;
+
+
+const from =
+document.getElementById("from").value;
+
+
+const to =
+document.getElementById("to").value;
+
+
+
+if(!from || !to){
+
+alert("Vul alle tijden in");
+return;
+
 }
 
-/* ---------------- SUBMIT ---------------- */
-document.getElementById("submitBtn").onclick = async () => {
 
-  const vehicle = document.querySelector('input[name="vehicle"]:checked').value;
-  const from = document.getElementById("from").value;
-  const to = document.getElementById("to").value;
 
-  if(!from || !to){
-    alert("Vul alle velden in");
-    return;
-  }
+if(new Date(from)>=new Date(to)){
 
-  if(new Date(from) >= new Date(to)){
-    alert("Eindtijd moet na starttijd liggen");
-    return;
-  }
+alert("Eindtijd moet na starttijd liggen");
+return;
 
-  try {
-    await db.ref("reservations").push({
-      user: currentUser,
-      vehicle,
-      from,
-      to,
-      purpose: document.getElementById("purpose").value,
-      persons: document.getElementById("persons").value,
-      status: "In afwachting",
-      timestamp: Date.now()
-    });
+}
 
-    alert("Aanvraag verstuurd");
 
-    document.getElementById("from").value = "";
-    document.getElementById("to").value = "";
-    document.getElementById("purpose").value = "";
-    document.getElementById("persons").value = "";
 
-  } catch(e){
-    console.error(e);
-    alert("Firebase fout: " + e.message);
-  }
+try{
+
+
+await db.ref("reservations").push({
+
+user:currentUser,
+
+vehicle,
+
+from,
+
+to,
+
+purpose:
+document.getElementById("purpose").value,
+
+persons:
+document.getElementById("persons").value,
+
+status:"In afwachting",
+
+timestamp:Date.now()
+
+});
+
+
+
+alert("Aanvraag verstuurd");
+
+
+
+document.getElementById("from").value="";
+document.getElementById("to").value="";
+document.getElementById("purpose").value="";
+document.getElementById("persons").value="";
+
+
+}
+
+catch(e){
+
+console.error(e);
+
+alert(
+"Firebase fout: "+
+e.message
+);
+
+}
+
+
 };
 
-/* ---------------- LIVE DATA ---------------- */
-db.ref("reservations").on("value", snap => {
 
-  const data = snap.val() || {};
-  const list = document.getElementById("reservations");
 
-  list.innerHTML = "";
 
-  Object.keys(data)
-    .map(id => ({ id, ...data[id] }))
-    .sort((a,b) => new Date(a.from) - new Date(b.from))
-    .forEach(r => {
 
-      let badgeClass = "wait";
-      if(r.status === "Goedgekeurd") badgeClass = "ok";
-      if(r.status === "Afgekeurd") badgeClass = "no";
 
-      const div = document.createElement("div");
-      div.className = "card";
 
-      div.innerHTML = `
-        <b>🚗 ${r.vehicle}</b><br>
+/* RESERVATIES LADEN */
 
-        <div class="time">
-          ${formatDateTime(r.from, r.to)}
-        </div>
 
-        👤 ${r.user}<br>
-        🎯 ${r.purpose || "-"}<br>
-        👥 ${r.persons || "-"} personen<br>
+db.ref("reservations").on("value",snap=>{
 
-        <span class="badge ${badgeClass}">
-          ${r.status}
-        </span>
-      `;
 
-      list.appendChild(div);
-    });
+const data=snap.val() || {};
+
+const list=
+document.getElementById("reservations");
+
+
+list.innerHTML="";
+
+
+
+Object.keys(data)
+
+.map(id=>({
+
+id,
+...data[id]
+
+}))
+
+
+.sort((a,b)=>
+new Date(a.from)-new Date(b.from)
+)
+
+
+.forEach(r=>{
+
+
+let badge="wait";
+
+
+if(r.status==="Goedgekeurd")
+badge="ok";
+
+
+if(r.status==="Afgekeurd")
+badge="no";
+
+
+
+const div=document.createElement("div");
+
+
+div.className="card vehicle-card";
+
+
+
+div.innerHTML=`
+
+<b>🚗 ${r.vehicle}</b>
+
+
+<div class="time">
+
+${formatDateTime(r.from,r.to)}
+
+</div>
+
+
+👤 ${r.user}<br>
+
+🎯 ${r.purpose || "-"}<br>
+
+👥 ${r.persons || "-"} personen
+
+
+<br>
+
+
+<span class="badge ${badge}">
+${r.status}
+</span>
+
+`;
+
+
+
+list.appendChild(div);
+
+
 });
+
+
+});
+
+
+
+
+
+function logout(){
+
+localStorage.removeItem("userName");
+
+location.reload();
+
+}
+
+
 </script>
+
+
+
+<!-- VASTE HEADER SCRIPT -->
 <script src="header.js"></script>
 
+
+
 </body>
+
 </html>
