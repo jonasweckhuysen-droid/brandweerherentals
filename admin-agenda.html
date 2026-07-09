@@ -1,188 +1,600 @@
 <!doctype html>
 <html lang="nl">
+
 <head>
+
 <meta charset="utf-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Agenda beheer</title>
+
+
+<link rel="manifest" href="/brandweerherentals/manifest.json">
+
+<meta name="theme-color" content="#c71f1f">
+
+
 <link rel="stylesheet" href="style.css">
 
+
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f4f4f4;
+
+/* Pagina specifieke styling */
+
+.form-card label{
+    display:block;
+    font-weight:bold;
+    margin-top:12px;
 }
 
 
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:15px;
+.form-card input,
+.form-card textarea{
+
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    font-size:15px;
 }
 
-input, textarea{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
+
+.form-card textarea{
+    min-height:100px;
+    resize:vertical;
 }
 
-.card{
-  background:#fff;
-  padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+
+.primary-btn{
+
+    margin-top:15px;
+    background:#c71f1f;
+    color:white;
+    border:none;
+    padding:14px;
+    width:100%;
+    border-radius:12px;
+    font-weight:bold;
+    cursor:pointer;
+
 }
+
+
+.primary-btn:hover{
+    background:#8f1515;
+}
+
+
+
+.agenda-admin-card{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+
+}
+
+
+
+.agenda-info{
+
+    flex:1;
+
+}
+
+
+
+.agenda-delete{
+
+    background:#c71f1f;
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+
+}
+
+
+.agenda-delete:hover{
+
+    background:#8f1515;
+
+}
+
 
 small{
-  color:#666;
+
+    color:#666;
+
 }
 
-button{
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
+
 </style>
+
+
 </head>
+
 
 <body>
 
-<header>
- <header id="appHeader">
-  <div class="header-left">
-    <img src="logo.png" alt="Logo" class="header-logo">
-  </div>
-
-  <div class="header-right">
-    <div id="greeting" class="header-name"></div>
-    <div id="datetime"></div>
-    <div id="ploegOfWeek"></div>
-  </div>
-</header>
-
-  <main class="content">
-
-<a href="index.html" class="backlink">
-    <span class="arrow">←</span>
-    Terug
-</a>
-
-<h2>Admin - Agenda</h2>
-
-...
 
 <div class="container">
 
-<label>Datum</label>
-<input type="date" id="date">
 
-<label>Titel</label>
-<input type="text" id="title">
 
-<label>Beschrijving</label>
-<textarea id="desc"></textarea>
+<!-- VASTE HEADER -->
 
-<button onclick="addEvent()">Toevoegen</button>
+<header id="appHeader">
 
-<div id="list"></div>
+<div class="header-left">
+
+<img src="logo.png"
+     alt="Brandweer Herentals"
+     class="header-logo">
 
 </div>
 
+
+
+<div class="header-right">
+
+<div id="greeting" class="header-name"></div>
+
+<div id="datetime"></div>
+
+<div id="ploegOfWeek"></div>
+
+</div>
+
+
+</header>
+
+
+
+
+
+<main class="content">
+
+
+
+<a href="admin.html" class="backlink">
+
+<span class="arrow">←</span>
+
+Terug
+
+</a>
+
+
+
+<h2>🛠️ Agenda beheer</h2>
+
+
+
+
+
+<!-- NIEUWE AGENDA -->
+
+<div class="card form-card">
+
+
+<h3>Nieuwe activiteit toevoegen</h3>
+
+
+
+<label>
+Datum
+</label>
+
+
+<input type="date" id="date">
+
+
+
+
+
+<label>
+Titel
+</label>
+
+
+<input type="text"
+       id="title"
+       placeholder="Titel activiteit">
+
+
+
+
+
+<label>
+Beschrijving
+</label>
+
+
+<textarea id="desc"
+placeholder="Beschrijving"></textarea>
+
+
+
+
+
+<button class="primary-btn"
+        onclick="addEvent()">
+
+Toevoegen
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+
+<h3>Agenda items</h3>
+
+
+
+<div id="list"></div>
+
+
+
+
+</main>
+
+
+
+
+
+<footer>
+
+<div>
+Versie 1.2
+</div>
+
+
+<button onclick="logout()">
+Uitloggen
+</button>
+
+
+</footer>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+
 import {
-  getDatabase,
-  ref,
-  onValue,
-  set,
-  remove
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+getDatabase,
+
+ref,
+
+onValue,
+
+set,
+
+remove
+
+}
+
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+
+
+
 
 const app = initializeApp({
-  databaseURL:"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+
+databaseURL:
+"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/"
+
 });
+
+
 
 const db = getDatabase(app);
 
+
+
 let agenda = {};
 
-const listEl = document.getElementById("list");
 
-/* LOAD AGENDA */
-onValue(ref(db,"agenda"), snap=>{
-  agenda = snap.val() || {};
-  render();
+
+const listEl =
+document.getElementById("list");
+
+
+
+
+
+/*
+AGENDA LADEN
+*/
+
+
+onValue(ref(db,"agenda"),snap=>{
+
+
+agenda = snap.val() || {};
+
+render();
+
+
 });
 
-/* RENDER */
+
+
+
+
+
+
+/*
+TONEN
+*/
+
+
 function render(){
 
-  listEl.innerHTML = "";
 
-  Object.keys(agenda)
-    .sort()
-    .forEach(date=>{
+listEl.innerHTML="";
 
-      const events = agenda[date];
 
-      Object.keys(events).forEach(id=>{
 
-        const e = events[id];
+Object.keys(agenda)
 
-        listEl.innerHTML += `
-          <div class="card">
-            <div>
-              <b>${e.title}</b><br>
-              <small>${date} - ${e.desc}</small>
-            </div>
+.sort()
 
-            <button onclick="del('${date}','${id}')">🗑</button>
-          </div>
-        `;
-      });
-    });
+.forEach(date=>{
+
+
+const events = agenda[date];
+
+
+
+Object.keys(events)
+
+.forEach(id=>{
+
+
+const e = events[id];
+
+
+
+const div =
+document.createElement("div");
+
+
+div.className =
+"card agenda-admin-card";
+
+
+
+div.innerHTML = `
+
+
+<div class="agenda-info">
+
+
+<b>${e.title}</b>
+
+
+<br>
+
+
+<small>
+
+📅 ${formatDate(date)}
+
+<br>
+
+${e.desc || ""}
+
+</small>
+
+
+</div>
+
+
+
+<button class="agenda-delete"
+onclick="del('${date}','${id}')">
+
+🗑
+
+</button>
+
+
+`;
+
+
+
+listEl.appendChild(div);
+
+
+
+});
+
+
+});
+
+
 }
 
-/* ADD EVENT */
+
+
+
+
+
+
+/*
+DATUM MOOIER WEERGEVEN
+*/
+
+
+function formatDate(date){
+
+
+return new Date(date)
+
+.toLocaleDateString("nl-BE",{
+
+weekday:"long",
+
+day:"2-digit",
+
+month:"long",
+
+year:"numeric"
+
+});
+
+
+}
+
+
+
+
+
+
+
+/*
+TOEVOEGEN
+*/
+
+
 window.addEvent = async function(){
 
-  const date = document.getElementById("date").value;
-  const title = document.getElementById("title").value;
-  const desc = document.getElementById("desc").value;
 
-  if(!date || !title) return;
+const date =
+document.getElementById("date").value;
 
-  const id = "e_" + Date.now();
 
-  await set(ref(db,"agenda/"+date+"/"+id),{
-    title,
-    desc
-  });
+const title =
+document.getElementById("title").value;
 
-  document.getElementById("title").value = "";
-  document.getElementById("desc").value = "";
+
+const desc =
+document.getElementById("desc").value;
+
+
+
+if(!date || !title){
+
+alert("Vul datum en titel in");
+
+return;
+
+}
+
+
+
+const id =
+"e_"+Date.now();
+
+
+
+await set(
+
+ref(db,"agenda/"+date+"/"+id),
+
+{
+
+title,
+
+desc
+
+}
+
+);
+
+
+
+document.getElementById("title").value="";
+
+document.getElementById("desc").value="";
+
+
+
 };
 
-/* DELETE */
+
+
+
+
+
+
+
+/*
+VERWIJDEREN
+*/
+
+
 window.del = async function(date,id){
 
-  await remove(ref(db,"agenda/"+date+"/"+id));
+
+if(!confirm("Deze activiteit verwijderen?"))
+return;
+
+
+
+await remove(
+
+ref(db,"agenda/"+date+"/"+id)
+
+);
+
+
 };
 
-/* BACK */
-window.back = function(){
-  window.location.href = "admin.html";
-};
+
+
+
+
+
+
+function logout(){
+
+localStorage.removeItem("userName");
+
+location.reload();
+
+
+}
+
+
 
 </script>
- <script src="header.js"></script>
+
+
+
+
+<script src="header.js"></script>
+
+
 
 </body>
+
 </html>
