@@ -1,119 +1,309 @@
 (function () {
 
-  const NAME_KEY = "userName";
+const NAME_KEY = "userName";
 
-  const TEAM_CYCLE = ["A1", "B1", "C1", "A2", "B2", "C2"];
+const TEAM_CYCLE = [
+  "A1",
+  "B1",
+  "C1",
+  "A2",
+  "B2",
+  "C2"
+];
 
-  // 🔑 REFERENTIE:
-  // Vrijdag 23 januari 2026 om 12:00 → ploeg B1
-  const REFERENCE_DATE = new Date("2026-01-23T12:00:00");
+const REFERENCE_DATE = new Date("2026-01-23T12:00:00");
 
-  window.addEventListener("DOMContentLoaded", initHeader);
 
-  function initHeader() {
-    restoreUser();
-    updateDateTime();
-    updatePloegVanWeek();
-    injectMetaTags();
-    setInterval(updateDateTime, 1000);
-  }
+const DATABASE =
+"https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app";
 
-  /* -----------------------------
-     GEBRUIKER
-  ----------------------------- */
-function restoreUser() {
-  const userId = localStorage.getItem(NAME_KEY);
-  const greet = document.getElementById("greeting");
 
-  if (!userId) return;
+window.addEventListener(
+"DOMContentLoaded",
+initHeader
+);
 
-  window.currentUser = userId;
 
-  // Firebase ophalen
-  fetch(`https://post-herentals-default-rtdb.europe-west1.firebasedatabase.app/users/${userId}.json`)
-    .then(res => res.json())
-    .then(user => {
 
-      if (!user) {
-        if (greet) greet.textContent = "Welkom";
-        return;
-      }
+function initHeader(){
 
-      const name = user.displayName || userId;
+  restoreUser();
 
-      if (greet) {
-        greet.textContent = `Welkom, ${name}!`;
-      }
+  updateDateTime();
 
-    })
-    .catch(() => {
-      if (greet) greet.textContent = `Welkom, ${userId}`;
-    });
+  updatePloegVanWeek();
+
+  injectMetaTags();
+
+
+  setInterval(
+    updateDateTime,
+    1000
+  );
+
 }
-  /* -----------------------------
-     DATUM & TIJD
-  ----------------------------- */
-  function updateDateTime() {
-    const dt = document.getElementById("datetime");
 
-    if (dt) {
-      dt.textContent = new Date().toLocaleString("nl-BE", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-  }
 
-  /* -----------------------------
-     PLOEG VAN WEEK
-  ----------------------------- */
-  function getPloegVanWeek(date = new Date()) {
 
-    const diffWeeks = Math.floor(
-      (date - REFERENCE_DATE) / (7 * 24 * 60 * 60 * 1000)
-    );
 
-    const startIndex = TEAM_CYCLE.indexOf("B1");
+// ================= GEBRUIKER =================
 
-    return TEAM_CYCLE[
-      ((startIndex + diffWeeks) % TEAM_CYCLE.length + TEAM_CYCLE.length)
-      % TEAM_CYCLE.length
-    ];
-  }
+async function restoreUser(){
 
-  function updatePloegVanWeek() {
-    const ploegEl = document.getElementById("ploegOfWeek");
-    const ploeg = getPloegVanWeek();
+const userId =
+localStorage.getItem(NAME_KEY);
 
-    if (ploegEl) {
-      ploegEl.textContent = "Ploeg van week: " + ploeg;
-    }
 
-    window.ploegVanWeek = ploeg;
-  }
+const greet =
+document.getElementById("greeting");
 
-  /* -----------------------------
-     META TAGS (voor planning.js)
-  ----------------------------- */
-  function injectMetaTags() {
-    const user = localStorage.getItem(NAME_KEY);
-    const ploeg = window.ploegVanWeek;
 
-    if (user) setMeta("wespen-username", user);
-    if (ploeg) setMeta("wespen-team", ploeg);
-  }
+if(!userId){
 
-  function setMeta(name, content) {
-    let meta = document.querySelector(`meta[name="${name}"]`);
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.setAttribute("name", name);
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute("content", content);
-  }
+window.displayName="";
+
+return;
+
+}
+
+
+window.currentUser=userId;
+
+
+
+try{
+
+
+const response =
+await fetch(
+`${DATABASE}/users/${encodeURIComponent(userId)}.json`
+);
+
+
+const user =
+await response.json();
+
+
+
+const name =
+user?.displayName || userId;
+
+
+
+window.displayName=name;
+
+
+
+if(greet){
+
+greet.textContent =
+`Welkom, ${name}!`;
+
+}
+
+
+
+}
+catch(e){
+
+
+window.displayName=userId;
+
+
+if(greet){
+
+greet.textContent =
+`Welkom, ${userId}`;
+
+}
+
+
+}
+
+
+}
+
+
+
+
+// ================= DATUM =================
+
+
+function updateDateTime(){
+
+
+const dt =
+document.getElementById("datetime");
+
+
+if(!dt) return;
+
+
+const now =
+new Date();
+
+
+
+dt.textContent =
+now.toLocaleDateString(
+"nl-BE",
+{
+weekday:"long",
+day:"numeric",
+month:"long",
+year:"numeric"
+}
+)
++
+" "
++
+now.toLocaleTimeString(
+"nl-BE",
+{
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+
+}
+
+
+
+
+// ================= PLOEG =================
+
+
+function getPloegVanWeek(
+date=new Date()
+){
+
+
+const diffWeeks =
+Math.floor(
+(date-REFERENCE_DATE)
+/
+(7*24*60*60*1000)
+);
+
+
+
+const start =
+TEAM_CYCLE.indexOf("B1");
+
+
+
+return TEAM_CYCLE[
+(
+start +
+diffWeeks
+)
+%
+TEAM_CYCLE.length
+];
+
+
+}
+
+
+
+
+function updatePloegVanWeek(){
+
+
+const ploeg =
+getPloegVanWeek();
+
+
+
+const el =
+document.getElementById(
+"ploegOfWeek"
+);
+
+
+
+if(el){
+
+el.textContent =
+"Ploeg van week: "
++
+ploeg;
+
+}
+
+
+
+window.ploegVanWeek=ploeg;
+
+
+}
+
+
+
+// ================= META =================
+
+
+function injectMetaTags(){
+
+
+setMeta(
+"wespen-team",
+getPloegVanWeek()
+);
+
+
+const user =
+localStorage.getItem(NAME_KEY);
+
+
+
+if(user){
+
+setMeta(
+"wespen-username",
+user
+);
+
+}
+
+
+
+}
+
+
+
+function setMeta(
+name,
+content
+){
+
+
+let meta =
+document.querySelector(
+`meta[name="${name}"]`
+);
+
+
+
+if(!meta){
+
+meta =
+document.createElement("meta");
+
+meta.name=name;
+
+document.head.appendChild(meta);
+
+}
+
+
+
+meta.content=content;
+
+
+}
+
+
 
 })();
